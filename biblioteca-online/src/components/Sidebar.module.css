@@ -1,0 +1,104 @@
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.logoIcon { font-size: 24px; }
+
+.logoText { font-size: 13px; font-weight: 600; color: #111; }
+.logoSub { font-size: 11px; color: #9ca3af; }
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  flex: 1;
+  gap: 2px;
+}
+
+.navLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 0.5rem;
+  margin-bottom: 2px;
+}
+
+.link, .activeLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  font-size: 13px;
+  text-decoration: none;
+  color: #6b7280;
+  transition: background 0.15s;
+}
+
+.link:hover { background: #f3f4f6; color: #111; }
+.activeLink { background: #eff6ff; color: #1d4ed8; font-weight: 500; }
+
+.badge {
+  margin-left: auto;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.status {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.statusLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 3px;
+}
+
+.dotGreen {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+.dotAmber {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}

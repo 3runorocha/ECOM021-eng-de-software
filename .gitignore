@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Bancos SQLite (gerados em runtime)
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# Ambiente
+.env
+.env.local
+
+# Editores e SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
