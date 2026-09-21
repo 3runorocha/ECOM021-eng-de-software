@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +16,18 @@ database = Database(DB_PATH)
 repository = LivroRepository(database)
 service = CatalogoService(repository)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    database.init_schema()
+    yield
+
+
 app = FastAPI(
     title="Biblioteca Online — Catálogo",
     description="Gerenciamento do acervo de livros da biblioteca",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -26,11 +36,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def startup():
-    database.init_schema()
 
 
 @app.exception_handler(LivroNaoEncontrado)
