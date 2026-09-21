@@ -94,6 +94,20 @@ Ver `PLANO_DE_EXECUCAO.md` para o detalhamento. Em resumo:
 **Entrega: 09/11/2026. Meta de conclusão: 07/11/2026.** Cronograma em 16 blocos de
 3 dias: `CRONOGRAMA.md`. Plano detalhado: `PLANO_DE_EXECUCAO.md`.
 
+## Validação
+
+Ao fim de cada semana, antes de começar o bloco seguinte:
+
+```bash
+python validar.py
+```
+
+Sobe os 6 serviços com bancos temporários, roda as checagens estáticas e vivas e
+sai com código 1 se algo falhar. `--estatico` pula o que precisa subir serviço.
+
+**Regra:** todo bloco que entrega comportamento novo adiciona sua checagem ao
+`validar.py`. Detalhes e checklist manual por fase em `VALIDACAO.md`.
+
 ## Sobre o sync entre máquinas
 
 Este repositório é usado em duas máquinas. Antes de começar a trabalhar, `git pull`.

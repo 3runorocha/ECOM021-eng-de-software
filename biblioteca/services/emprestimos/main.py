@@ -13,7 +13,7 @@ from service import EmprestimoService
 from routes import criar_router
 from exceptions import EmprestimoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
 
-DB_PATH = "emprestimos.db"
+DB_PATH = os.getenv("EMPRESTIMOS_DB", "emprestimos.db")
 CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)

@@ -13,7 +13,7 @@ from service import NotificacaoService
 from routes import criar_router
 from exceptions import NotificacaoNaoEncontrada, ServicoIndisponivel
 
-DB_PATH = "notificacoes.db"
+DB_PATH = os.getenv("NOTIFICACOES_DB", "notificacoes.db")
 EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
 
 database = Database(DB_PATH)

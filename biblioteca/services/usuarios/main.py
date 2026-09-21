@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -14,7 +15,7 @@ from exceptions import (
     CredenciaisInvalidas, TokenInvalido,
 )
 
-DB_PATH = "usuarios.db"
+DB_PATH = os.getenv("USUARIOS_DB", "usuarios.db")
 
 SECRET = "biblioteca_secret_2025"
 

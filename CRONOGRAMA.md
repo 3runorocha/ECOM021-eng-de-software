@@ -33,6 +33,15 @@ registro Scrum (`scrum_biblioteca.md`).
 
 ---
 
+## Validação
+
+Ao fim de cada semana, antes do bloco seguinte: `python validar.py`. Todo bloco
+que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
+
+| Semana | Blocos | Status |
+|--------|--------|--------|
+| 21–27/09 | 1 e 2 | ✅ 12 checagens passando — Fase 1 fechada |
+
 ## Marcos
 
 | Quando | Estado esperado |
