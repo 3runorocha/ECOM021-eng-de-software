@@ -1,6 +1,7 @@
-# Dependências compartilhadas por todos os microsserviços
-# Versões compatíveis com Python 3.13 (wheels pré-compiladas disponíveis)
-fastapi==0.115.0
-uvicorn[standard]==0.32.0
-pydantic==2.10.0
-httpx==0.27.2
+# Dependencias compartilhadas por todos os microsservicos.
+# Versoes alinhadas ao que esta efetivamente testado (Python 3.14).
+# Ao subir alguma, rodar `python validar.py` antes de commitar.
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+pydantic==2.13.4
+httpx==0.28.1

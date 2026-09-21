@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -10,7 +11,7 @@ from service import CatalogoService
 from routes import criar_router
 from exceptions import LivroNaoEncontrado, RegraDeNegocio
 
-DB_PATH = "catalogo.db"
+DB_PATH = os.getenv("CATALOGO_DB", "catalogo.db")
 
 database = Database(DB_PATH)
 repository = LivroRepository(database)

@@ -13,7 +13,7 @@ from service import RecomendacaoService
 from routes import criar_router
 from exceptions import ServicoIndisponivel
 
-DB_PATH = "recomendacao.db"
+DB_PATH = os.getenv("RECOMENDACAO_DB", "recomendacao.db")
 EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
 CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
 
