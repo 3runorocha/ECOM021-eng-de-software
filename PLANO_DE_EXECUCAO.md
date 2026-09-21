@@ -7,8 +7,8 @@ Microservices, Componentes de Software e Agentic AI.
 **Premissa:** o tema é aluguel de imóveis. Se o tema mudar, as Fases 2 e 3 mudam
 inteiras; as Fases 1, 4, 5 e 6 valem para qualquer tema.
 
-**Data de entrega:** a confirmar. O sequenciamento abaixo assume que as fases 1–3
-são o mínimo entregável e as 4–6 são o diferencial.
+**Data de entrega:** 09/11/2026. Meta de conclusão: 07/11/2026. Ver `CRONOGRAMA.md`
+para a distribuição em 16 blocos de 3 dias.
 
 ---
 
@@ -22,7 +22,8 @@ Independe de tema. Fazer antes de adaptar qualquer coisa.
 | 1.2 | Substituir `@app.on_event("startup")` por `lifespan` (a API está deprecada no FastAPI) | `main.py` dos 5 serviços |
 | 1.3 | Corrigir os paths duplicados em `PUBLIC_ROUTES` (`/usuarios/usuarios/login`) | `biblioteca/gateway/config.py` |
 | 1.4 | No proxy, não repassar `content-length` / `content-encoding` da resposta upstream — pode corromper a resposta | `biblioteca/gateway/proxy.py` |
-| 1.5 | Criar `docker-compose.yml` com os 6 serviços + `Dockerfile` compartilhado. Elimina os 6 terminais manuais e reforça o argumento de microsserviços na apresentação | raiz |
+| 1.5 | **Externalizar as 17 URLs `localhost` hardcoded** em env var (`os.getenv("IMOVEIS_URL", "http://localhost:8001")`), mantendo o default local. É o que torna o projeto portável entre as duas máquinas, e pré-requisito para containerizar depois | `framework/componentes.py`, `gateway/config.py`, `services/*/main.py`, `seed.py`, `api.js` |
+| 1.6 | Script que sobe os 6 serviços de uma vez (resolve os 6 terminais manuais sem precisar de Docker) | raiz |
 
 ## Fase 2 — Adaptação do domínio: Catálogo → Imóveis
 
@@ -93,6 +94,7 @@ O serviço `recomendacao` (8005) vira um **serviço de agente**. O encaixe já e
 | 6.3 | Diagramas: `3_componentes.png` e `5_classes_componentes.png` reusam a estrutura, só relabel. `1_feature_model.png` e `2_ovm.png` são da LPS antiga — descartar |
 | 6.4 | Reescrever `README.md`; adaptar `COMO_CRIAR_APP.md`; apagar `COMO_DERIVAR_PRODUTO.md` (LPS, fora de escopo) |
 | 6.5 | Adaptar `scrum_biblioteca.md` para o backlog novo |
+| 6.6 | **Stretch:** `docker-compose.yml` + `Dockerfile` compartilhado. Fora do caminho crítico — o enunciado não pede, e as env vars da Fase 1 já resolvem a portabilidade. Só se sobrar tempo |
 
 ---
 

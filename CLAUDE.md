@@ -79,9 +79,15 @@ Ver `PLANO_DE_EXECUCAO.md` para o detalhamento. Em resumo:
       usar o framework como argumento de reúso.
 - [ ] Adaptação do domínio: livros → imóveis, empréstimos → contratos
 - [ ] Serviço de agente (Agentic AI) reusando `componentes.py` como camada de tools
-- [ ] `docker-compose.yml` (hoje são 6 terminais manuais)
+- [ ] Externalizar as 17 URLs `localhost` hardcoded em env var (portabilidade entre as
+      duas máquinas; pré-requisito para Docker)
+- [ ] Script para subir os 6 serviços de uma vez
 - [ ] Testes (não existe nenhum)
-- [ ] Data de entrega: **a confirmar**
+- [ ] Docker: **stretch goal**, fora do caminho crítico. Não está instalado em nenhuma
+      das máquinas e o enunciado não pede. Ver decisão no fim de `CRONOGRAMA.md`
+
+**Entrega: 09/11/2026. Meta de conclusão: 07/11/2026.** Cronograma em 16 blocos de
+3 dias: `CRONOGRAMA.md`. Plano detalhado: `PLANO_DE_EXECUCAO.md`.
 
 ## Sobre o sync entre máquinas
 
