@@ -20,7 +20,7 @@ Independe de tema. Fazer antes de adaptar qualquer coisa.
 |---|------|---------|
 | 1.1 | Remover a definição concreta duplicada de `configurar_componentes` (a segunda, vazia), mantendo só a `@abstractmethod`. Verificar com `FrameworkBiblioteca.__abstractmethods__` — deve conter os dois hotspots obrigatórios | `biblioteca/framework/framework.py` |
 | 1.2 | Substituir `@app.on_event("startup")` por `lifespan` (a API está deprecada no FastAPI) | `main.py` dos 5 serviços |
-| 1.3 | Corrigir os paths duplicados em `PUBLIC_ROUTES` (`/usuarios/usuarios/login`) | `biblioteca/gateway/config.py` |
+| 1.3 | ~~Corrigir `PUBLIC_ROUTES`~~ — **verificado em 21/09: não é bug.** O path duplicado é coerente: o gateway consome o primeiro segmento como seletor de serviço e repassa o resto, que casa com o `prefix` do router. Limpar o prefixo duplo (`/emprestimos/emprestimos/`) ficou para as Fases 2–3, que já renomeiam essas rotas | — |
 | 1.4 | No proxy, não repassar `content-length` / `content-encoding` da resposta upstream — pode corromper a resposta | `biblioteca/gateway/proxy.py` |
 | 1.5 | **Externalizar as 17 URLs `localhost` hardcoded** em env var (`os.getenv("IMOVEIS_URL", "http://localhost:8001")`), mantendo o default local. É o que torna o projeto portável entre as duas máquinas, e pré-requisito para containerizar depois | `framework/componentes.py`, `gateway/config.py`, `services/*/main.py`, `seed.py`, `api.js` |
 | 1.6 | Script que sobe os 6 serviços de uma vez (resolve os 6 terminais manuais sem precisar de Docker) | raiz |

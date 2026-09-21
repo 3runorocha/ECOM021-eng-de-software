@@ -1,3 +1,5 @@
+import os
+
 import httpx
 from interfaces import (
     IComponenteCatalogo,
@@ -8,9 +10,16 @@ from interfaces import (
 )
 
 
+URL_CATALOGO     = os.getenv("CATALOGO_URL",     "http://localhost:8001")
+URL_USUARIOS     = os.getenv("USUARIOS_URL",     "http://localhost:8002")
+URL_EMPRESTIMOS  = os.getenv("EMPRESTIMOS_URL",  "http://localhost:8003")
+URL_NOTIFICACOES = os.getenv("NOTIFICACOES_URL", "http://localhost:8004")
+URL_RECOMENDACAO = os.getenv("RECOMENDACAO_URL", "http://localhost:8005")
+
+
 class ComponenteCatalogoHTTP(IComponenteCatalogo):
 
-    def __init__(self, base_url: str = "http://localhost:8001"):
+    def __init__(self, base_url: str = URL_CATALOGO):
         self._url    = base_url
         self._client = None
 
@@ -45,7 +54,7 @@ class ComponenteCatalogoHTTP(IComponenteCatalogo):
 
 class ComponenteUsuarioHTTP(IComponenteUsuario):
 
-    def __init__(self, base_url: str = "http://localhost:8002"):
+    def __init__(self, base_url: str = URL_USUARIOS):
         self._url    = base_url
         self._client = None
 
@@ -84,7 +93,7 @@ class ComponenteUsuarioHTTP(IComponenteUsuario):
 
 class ComponenteEmprestimoHTTP(IComponenteEmprestimo):
 
-    def __init__(self, base_url: str = "http://localhost:8003"):
+    def __init__(self, base_url: str = URL_EMPRESTIMOS):
         self._url    = base_url
         self._client = None
 
@@ -122,7 +131,7 @@ class ComponenteEmprestimoHTTP(IComponenteEmprestimo):
 
 class ComponenteNotificacaoHTTP(IComponenteNotificacao):
 
-    def __init__(self, base_url: str = "http://localhost:8004"):
+    def __init__(self, base_url: str = URL_NOTIFICACOES):
         self._url    = base_url
         self._client = None
 
@@ -157,7 +166,7 @@ class ComponenteNotificacaoHTTP(IComponenteNotificacao):
 
 class ComponenteRecomendacaoHTTP(IComponenteRecomendacao):
 
-    def __init__(self, base_url: str = "http://localhost:8005"):
+    def __init__(self, base_url: str = URL_RECOMENDACAO):
         self._url    = base_url
         self._client = None
 

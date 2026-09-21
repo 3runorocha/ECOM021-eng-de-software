@@ -1,7 +1,9 @@
+import os
+
 import httpx
 
-USUARIOS_URL = "http://localhost:8002"
-CATALOGO_URL = "http://localhost:8001"
+USUARIOS_URL = os.getenv("USUARIOS_URL", "http://localhost:8002")
+CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
 
 USUARIOS = [
     {"nome": "Admin",          "email": "admin@biblioteca.br",   "senha": "admin123", "tipo": "admin"},
