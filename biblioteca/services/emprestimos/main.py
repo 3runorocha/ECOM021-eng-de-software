@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +12,7 @@ from routes import criar_router
 from exceptions import EmprestimoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
 
 DB_PATH = "emprestimos.db"
-CATALOGO_URL = "http://localhost:8001"
+CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)
 repository = EmprestimoRepository(database)

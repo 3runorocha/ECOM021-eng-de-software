@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +12,7 @@ from routes import criar_router
 from exceptions import NotificacaoNaoEncontrada, ServicoIndisponivel
 
 DB_PATH = "notificacoes.db"
-EMPRESTIMOS_URL = "http://localhost:8003"
+EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
 
 database = Database(DB_PATH)
 repository = NotificacaoRepository(database)

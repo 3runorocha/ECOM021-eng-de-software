@@ -91,9 +91,6 @@ class FrameworkBiblioteca(ABC):
     def executar_logica(self, contexto: dict) -> Any:
         pass
 
-    def configurar_componentes(self) -> None:
-        pass
-
     def pre_processar(self, contexto: dict) -> None:
         pass
 

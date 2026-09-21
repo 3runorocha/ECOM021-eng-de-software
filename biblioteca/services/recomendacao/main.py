@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,8 +12,8 @@ from routes import criar_router
 from exceptions import ServicoIndisponivel
 
 DB_PATH = "recomendacao.db"
-EMPRESTIMOS_URL = "http://localhost:8003"
-CATALOGO_URL = "http://localhost:8001"
+EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
+CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)
 repository = RecomendacaoRepository(database)
