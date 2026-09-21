@@ -74,7 +74,17 @@ cd biblioteca
 pip install -r requirements.txt
 ```
 
-Suba os seis serviços, cada um em um terminal:
+Suba os seis serviços de uma vez, a partir da raiz do repositório:
+
+```bash
+python subir_servicos.py
+```
+
+Use `--reload` para recarregar ao salvar durante o desenvolvimento. `Ctrl+C`
+encerra todos. Se algum serviço morrer, o script derruba o resto e diz qual foi.
+
+<details>
+<summary>Alternativa: um terminal por serviço</summary>
 
 ```bash
 # Catálogo
@@ -95,6 +105,12 @@ cd biblioteca/services/recomendacao && uvicorn main:app --port 8005 --reload
 # API Gateway
 cd biblioteca/gateway && uvicorn main:app --port 8000 --reload
 ```
+
+</details>
+
+As URLs entre serviços vêm de variável de ambiente, com `localhost` como default
+— rodar numa máquina só não exige configuração nenhuma. Para mudar, copie
+`.env.example` para `.env` (e `biblioteca-online/.env.example` para o frontend).
 
 ### 2. Populando o banco de dados
 

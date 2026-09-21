@@ -15,7 +15,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | # | Período | Fase | Itens |
 |---|---------|------|-------|
 | 1 | 21–23/09 | 1 | ✅ **Concluído 21/09.** `configurar_componentes` duplicado corrigido (1.1) · 17 URLs externalizadas em env var + `.env.example` (1.5) · 1.3 verificado e descartado (não era bug) |
-| 2 | 24–26/09 | 1 | `lifespan` nos 5 serviços (1.2) · headers do proxy (1.4) · script que sobe os 6 serviços |
+| 2 | 24–26/09 | 1 | ✅ **Concluído 21/09.** `lifespan` nos 5 serviços (1.2) · headers hop-by-hop filtrados no proxy (1.4) · `subir_servicos.py` (1.6). Validado: 6 serviços no ar, `/health` geral ok, fluxo registro→login→POST→GET pelo gateway, resposta correta com `--compressed` |
 | 3 | 27–29/09 | 2 | Renomear `catalogo` → `imoveis` (2.1) · modelo `Imovel` + schema (2.2) |
 | 4 | 30/09–02/10 | 2 | `definir_disponibilidade(bool)` nos 3 pontos de uso (2.3) · filtros cidade/tipo/quartos/valor (2.4) |
 | 5 | 03–05/10 | 2 | Remover busca por ISBN (2.5) · `IComponenteImovel` + implementação HTTP (2.6) |

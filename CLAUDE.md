@@ -56,11 +56,16 @@ Stack: Python 3.11+, FastAPI, SQLite, React (Vite), httpx.
 
 ## Como executar
 
-Backend — 6 terminais, um por serviço (ver `README.md` para os comandos completos):
+Backend — um comando na raiz sobe os 6 serviços (`--reload` para desenvolvimento,
+`Ctrl+C` encerra todos):
 
 ```bash
-cd biblioteca/services/<servico> && uvicorn main:app --port <porta> --reload
+python subir_servicos.py
 ```
+
+As URLs entre serviços saem de env var com default `localhost`, então numa máquina
+só não precisa configurar nada. Para mudar: `.env.example` → `.env` (backend) e
+`biblioteca-online/.env.example` → `.env` (frontend, prefixo `VITE_`).
 
 Seed (ordem importa): subir serviços → `python seed.py` → parar serviços →
 `python seed_emprestimos.py` → subir de novo.
@@ -72,16 +77,16 @@ Login admin: `admin@biblioteca.br` / `admin123`.
 
 Ver `PLANO_DE_EXECUCAO.md` para o detalhamento. Em resumo:
 
-- [ ] **Bug conhecido:** em `biblioteca/framework/framework.py`, `configurar_componentes`
-      está definido duas vezes — a definição concreta vazia sobrescreve a `@abstractmethod`,
-      então o hotspot obrigatório deixou de ser obrigatório
-      (`__abstractmethods__` == `frozenset({'executar_logica'})`). Corrigir antes de
-      usar o framework como argumento de reúso.
+- [x] ~~Bug do framework: `configurar_componentes` definido duas vezes~~ — corrigido
+      em 21/09 (bloco 1). `__abstractmethods__` volta a conter os dois hotspots
+      obrigatórios e subclasse incompleta é barrada na instanciação.
 - [ ] Adaptação do domínio: livros → imóveis, empréstimos → contratos
 - [ ] Serviço de agente (Agentic AI) reusando `componentes.py` como camada de tools
-- [ ] Externalizar as 17 URLs `localhost` hardcoded em env var (portabilidade entre as
-      duas máquinas; pré-requisito para Docker)
-- [ ] Script para subir os 6 serviços de uma vez
+- [x] ~~Externalizar as 17 URLs `localhost`~~ — feito em 21/09 (bloco 1), com
+      `localhost` mantido como default e `.env.example` documentando as variáveis.
+- [x] ~~Script para subir os 6 serviços~~ — `subir_servicos.py` (bloco 2).
+- [x] ~~`@app.on_event("startup")` depreciado~~ — trocado por `lifespan` nos 5
+      serviços (bloco 2).
 - [ ] Testes (não existe nenhum)
 - [ ] Docker: **stretch goal**, fora do caminho crítico. Não está instalado em nenhuma
       das máquinas e o enunciado não pede. Ver decisão no fim de `CRONOGRAMA.md`

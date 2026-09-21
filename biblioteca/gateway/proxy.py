@@ -7,6 +7,17 @@ from exceptions import ServicoNaoEncontrado, ServicoIndisponivel
 
 class ProxyService:
 
+    # Headers da resposta upstream que nao podem ser repassados: o httpx ja
+    # descomprimiu o corpo, entao content-encoding/content-length descreveriam
+    # bytes que nao existem mais. Os demais sao hop-by-hop. O Starlette
+    # recalcula o content-length correto.
+    HEADERS_NAO_REPASSADOS = frozenset({
+        "content-encoding",
+        "content-length",
+        "transfer-encoding",
+        "connection",
+    })
+
     def __init__(self, registry: ServiceRegistry, timeout: float = 10.0):
         self._registry = registry
         self._timeout = timeout
@@ -38,10 +49,16 @@ class ProxyService:
                     f"Microsservico '{service_name}' indisponivel"
                 )
 
+        headers_resposta = {
+            chave: valor
+            for chave, valor in resp.headers.items()
+            if chave.lower() not in self.HEADERS_NAO_REPASSADOS
+        }
+
         return Response(
             content=resp.content,
             status_code=resp.status_code,
-            headers=dict(resp.headers),
+            headers=headers_resposta,
             media_type=resp.headers.get("content-type"),
         )
 

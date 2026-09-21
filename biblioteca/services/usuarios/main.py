@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,10 +24,18 @@ hasher = PasswordHasher(SECRET)
 token_service = TokenService(SECRET)
 service = UsuarioService(repository, hasher, token_service)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    database.init_schema()
+    yield
+
+
 app = FastAPI(
     title="Biblioteca Online — Usuários",
     description="Registro, autenticação e gerenciamento de perfis",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -34,11 +44,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def startup():
-    database.init_schema()
 
 
 @app.exception_handler(UsuarioNaoEncontrado)
