@@ -27,7 +27,7 @@ class AppDevolucao(FrameworkBiblioteca):
     def pos_processar(self, contexto: dict, resultado: dict) -> None:
         notificacoes = self.get_componente("notificacoes")
         multa        = resultado.get("multa", 0)
-        livro_id     = resultado.get("livro_id")
+        imovel_id     = resultado.get("imovel_id")
 
         if multa > 0:
             mensagem = (
@@ -44,7 +44,7 @@ class AppDevolucao(FrameworkBiblioteca):
             usuario_id=contexto["usuario_id"],
             tipo=tipo,
             mensagem=mensagem,
-            livro_id=livro_id,
+            imovel_id=imovel_id,
         )
 
     def tratar_erro(self, contexto: dict, erro: Exception) -> dict:

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { livrosAPI, emprestimosAPI, usuariosAPI, notificacoesAPI } from '../services/api'
+import { imoveisAPI, emprestimosAPI, usuariosAPI, notificacoesAPI } from '../services/api'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ livros: 0, emprestimos: 0, usuarios: 0, notificacoes: 0 })
@@ -10,7 +10,7 @@ export default function Dashboard() {
     async function carregar() {
       try {
         const [livros, emprestimos, usuarios, notifs] = await Promise.all([
-          livrosAPI.listar(),
+          imoveisAPI.listar(),
           emprestimosAPI.listar(),
           usuariosAPI.listar(),
           notificacoesAPI.listar(),

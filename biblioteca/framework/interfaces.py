@@ -16,18 +16,18 @@ class IComponente(ABC):
         pass
 
 
-class IComponenteCatalogo(IComponente):
+class IComponenteImovel(IComponente):
 
     @abstractmethod
-    def buscar_livros(self, filtros: dict) -> list[dict]:
+    def buscar_imoveis(self, filtros: dict) -> list[dict]:
         pass
 
     @abstractmethod
-    def cadastrar_livro(self, dados: dict) -> dict:
+    def cadastrar_imovel(self, dados: dict) -> dict:
         pass
 
     @abstractmethod
-    def atualizar_disponibilidade(self, livro_id: int, delta: int) -> None:
+    def definir_disponibilidade(self, imovel_id: int, disponivel: bool) -> None:
         pass
 
 

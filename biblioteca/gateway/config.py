@@ -2,7 +2,7 @@ import os
 
 
 SERVICES = {
-    "catalogo":     {"url": os.getenv("CATALOGO_URL",     "http://localhost:8001"), "porta": 8001, "descricao": "Gerenciamento do acervo de livros"},
+    "imoveis":      {"url": os.getenv("IMOVEIS_URL",      "http://localhost:8001"), "porta": 8001, "descricao": "Portfolio de apartamentos e casas"},
     "usuarios":     {"url": os.getenv("USUARIOS_URL",     "http://localhost:8002"), "porta": 8002, "descricao": "Registro e autenticacao de usuarios"},
     "emprestimos":  {"url": os.getenv("EMPRESTIMOS_URL",  "http://localhost:8003"), "porta": 8003, "descricao": "Controle de emprestimos e devolucoes"},
     "notificacoes": {"url": os.getenv("NOTIFICACOES_URL", "http://localhost:8004"), "porta": 8004, "descricao": "Alertas de prazo e atraso"},

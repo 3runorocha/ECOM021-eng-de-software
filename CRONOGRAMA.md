@@ -16,9 +16,9 @@ registro Scrum (`scrum_biblioteca.md`).
 |---|---------|------|-------|
 | 1 | 21–23/09 | 1 | ✅ **Concluído 21/09.** `configurar_componentes` duplicado corrigido (1.1) · 17 URLs externalizadas em env var + `.env.example` (1.5) · 1.3 verificado e descartado (não era bug) |
 | 2 | 24–26/09 | 1 | ✅ **Concluído 21/09.** `lifespan` nos 5 serviços (1.2) · headers hop-by-hop filtrados no proxy (1.4) · `subir_servicos.py` (1.6). Validado: 6 serviços no ar, `/health` geral ok, fluxo registro→login→POST→GET pelo gateway, resposta correta com `--compressed` |
-| 3 | 27–29/09 | 2 | Renomear `catalogo` → `imoveis` (2.1) · modelo `Imovel` + schema (2.2) |
-| 4 | 30/09–02/10 | 2 | `definir_disponibilidade(bool)` nos 3 pontos de uso (2.3) · filtros cidade/tipo/quartos/valor (2.4) |
-| 5 | 03–05/10 | 2 | Remover busca por ISBN (2.5) · `IComponenteImovel` + implementação HTTP (2.6) |
+| 3 | 27–29/09 | 2 | ✅ **Concluído 27/09.** `catalogo` → `imoveis` via `git mv`, histórico preservado (2.1) · modelo `Imovel` + schema (2.2). 2.5 (busca por ISBN) caiu junto: o modelo novo não tem ISBN |
+| 4 | 30/09–02/10 | 2 | ✅ **Concluído 27/09.** `definir_disponibilidade(bool)` (2.3) · filtros cidade/tipo/quartos_min/valor_min/valor_max/disponivel (2.4) · 2.6 antecipado por necessidade (renomear o serviço quebra os componentes) |
+| 5 | 03–05/10 | 2 | ⚠️ **Esvaziado** — 2.5 e 2.6 saíram nos blocos 3 e 4. Bloco livre: usar como folga ou adiantar a Fase 3 |
 | 6 | 06–08/10 | 3 | `Emprestimo` → `Contrato` (3.1) · `inquilino_id`/`imovel_id` (3.2) · campos de data (3.3) |
 | 7 | 09–11/10 | 3 | `PRAZO_MESES = 12` (3.4) · multa proporcional ao `valor_mensal` (3.5) |
 | 8 | 12–14/10 | 3 | `registrar_contrato`/`encerrar_contrato` (3.6) · regra nova: um contrato ativo por imóvel (3.7) |
@@ -41,6 +41,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | Semana | Blocos | Status |
 |--------|--------|--------|
 | 21–27/09 | 1 e 2 | ✅ 12 checagens passando — Fase 1 fechada |
+| 28/09–04/10 | 3 e 4 | ✅ 16 checagens passando — Fase 2 fechada |
 
 ## Marcos
 

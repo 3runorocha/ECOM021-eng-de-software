@@ -11,12 +11,14 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-export const livrosAPI = {
-  listar: (params) => api.get('/catalogo/livros/', { params }),
-  buscar: (id) => api.get(`/catalogo/livros/${id}`),
-  criar: (data) => api.post('/catalogo/livros/', data),
-  atualizar: (id, data) => api.patch(`/catalogo/livros/${id}`, data),
-  deletar: (id) => api.delete(`/catalogo/livros/${id}`),
+export const imoveisAPI = {
+  listar: (params) => api.get('/imoveis/imoveis/', { params }),
+  buscar: (id) => api.get(`/imoveis/imoveis/${id}`),
+  criar: (data) => api.post('/imoveis/imoveis/', data),
+  atualizar: (id, data) => api.patch(`/imoveis/imoveis/${id}`, data),
+  deletar: (id) => api.delete(`/imoveis/imoveis/${id}`),
+  definirDisponibilidade: (id, disponivel) =>
+    api.patch(`/imoveis/imoveis/${id}/disponibilidade`, null, { params: { disponivel } }),
 }
 
 export const usuariosAPI = {
@@ -30,7 +32,7 @@ export const emprestimosAPI = {
   listar: (params) => api.get('/emprestimos/emprestimos/', { params }),
   buscar: (id) => api.get(`/emprestimos/emprestimos/${id}`),
   criar: (data) => api.post('/emprestimos/emprestimos/', data),
-  devolver: (id) => api.patch(`/emprestimos/emprestimos/${id}/devolver`),
+  devolver: (id) => api.post(`/emprestimos/emprestimos/${id}/devolver`),
 }
 
 export const notificacoesAPI = {

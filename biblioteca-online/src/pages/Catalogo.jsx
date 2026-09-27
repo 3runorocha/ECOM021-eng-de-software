@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { livrosAPI } from '../services/api'
+import { imoveisAPI } from '../services/api'
 
 const MOCK = [
   { id: 1, titulo: 'Clean Code', autor: 'Robert C. Martin', isbn: '978-0132350884', genero: 'Tecnologia', disponivel: true },
@@ -18,7 +18,7 @@ export default function Catalogo() {
   const [novoLivro, setNovoLivro] = useState({ titulo: '', autor: '', isbn: '', genero: '' })
 
   useEffect(() => {
-    livrosAPI.listar()
+    imoveisAPI.listar()
       .then((r) => setLivros(r.data))
       .catch(() => setLivros(MOCK))
       .finally(() => setLoading(false))
@@ -33,7 +33,7 @@ export default function Catalogo() {
   async function handleCriar(e) {
     e.preventDefault()
     try {
-      const r = await livrosAPI.criar(novoLivro)
+      const r = await imoveisAPI.criar(novoLivro)
       setLivros([...livros, r.data])
     } catch {
       setLivros([...livros, { ...novoLivro, id: Date.now(), disponivel: true }])

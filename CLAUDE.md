@@ -16,8 +16,11 @@ Motivo: `Emprestimo` e `Contrato de aluguel` têm a mesma estrutura (ator + item
 data início + data fim + multa por atraso), então a adaptação é majoritariamente
 renomeação, não remodelagem.
 
-> A adaptação de domínio ainda **não foi feita**. Todo o código atual ainda fala de
-> livros/empréstimos. Ver `PLANO_DE_EXECUCAO.md`.
+> **Estado em 27/09:** Fase 2 concluída — o serviço de catálogo virou `imoveis`, com
+> modelo `Imovel` e disponibilidade booleana. O serviço de empréstimos ainda fala de
+> `livro_id` e `emprestimos`: isso é a Fase 3 (blocos 6–9), que renomeia para
+> contratos. O frontend ainda renderiza campos de livro nas páginas — só a camada
+> `api.js` foi apontada para os endpoints novos; as telas são reescritas na Fase 5.
 
 ## Arquitetura
 
@@ -26,12 +29,12 @@ Cada serviço tem banco SQLite próprio e roda isolado.
 
 | Serviço | Porta | Vira (após adaptação) |
 |---------|-------|------------------------|
-| API Gateway | 8000 | API Gateway |
-| Catálogo | 8001 | Imóveis |
-| Usuários | 8002 | Usuários (sem mudança) |
-| Empréstimos | 8003 | Contratos |
-| Notificações | 8004 | Notificações (sem mudança) |
-| Recomendação | 8005 | Serviço de Agente (Agentic AI) |
+| API Gateway | 8000 | ✅ rota `/imoveis` |
+| ~~Catálogo~~ **Imóveis** | 8001 | ✅ feito (bloco 3–4) |
+| Usuários | 8002 | ✅ sem mudança |
+| Empréstimos | 8003 | ⬜ Fase 3 (blocos 6–9) |
+| Notificações | 8004 | ⬜ só vocabulário, Fase 3 |
+| Recomendação | 8005 | ⬜ vira agente na Fase 4 |
 
 Stack: Python 3.11+, FastAPI, SQLite, React (Vite), httpx.
 
@@ -71,7 +74,7 @@ Seed (ordem importa): subir serviços → `python seed.py` → parar serviços �
 `python seed_emprestimos.py` → subir de novo.
 
 Frontend: `cd biblioteca-online && npm install && npm run dev` (porta 5173).
-Login admin: `admin@biblioteca.br` / `admin123`.
+Login admin: `admin@alugue.br` / `admin123`.
 
 ## Estado atual e pendências
 

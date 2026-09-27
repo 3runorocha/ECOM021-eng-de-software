@@ -8,20 +8,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Database
 from repository import RecomendacaoRepository
-from clients import EmprestimoClient, CatalogoClient
+from clients import EmprestimoClient, ImovelClient
 from service import RecomendacaoService
 from routes import criar_router
 from exceptions import ServicoIndisponivel
 
 DB_PATH = os.getenv("RECOMENDACAO_DB", "recomendacao.db")
 EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
-CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
+IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)
 repository = RecomendacaoRepository(database)
 emprestimo_client = EmprestimoClient(EMPRESTIMOS_URL)
-catalogo_client = CatalogoClient(CATALOGO_URL)
-service = RecomendacaoService(repository, emprestimo_client, catalogo_client)
+imovel_client = ImovelClient(IMOVEIS_URL)
+service = RecomendacaoService(repository, emprestimo_client, imovel_client)
 
 
 @asynccontextmanager

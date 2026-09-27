@@ -2,7 +2,7 @@ import os
 
 import httpx
 from interfaces import (
-    IComponenteCatalogo,
+    IComponenteImovel,
     IComponenteUsuario,
     IComponenteEmprestimo,
     IComponenteNotificacao,
@@ -10,16 +10,16 @@ from interfaces import (
 )
 
 
-URL_CATALOGO     = os.getenv("CATALOGO_URL",     "http://localhost:8001")
+URL_IMOVEIS      = os.getenv("IMOVEIS_URL",      "http://localhost:8001")
 URL_USUARIOS     = os.getenv("USUARIOS_URL",     "http://localhost:8002")
 URL_EMPRESTIMOS  = os.getenv("EMPRESTIMOS_URL",  "http://localhost:8003")
 URL_NOTIFICACOES = os.getenv("NOTIFICACOES_URL", "http://localhost:8004")
 URL_RECOMENDACAO = os.getenv("RECOMENDACAO_URL", "http://localhost:8005")
 
 
-class ComponenteCatalogoHTTP(IComponenteCatalogo):
+class ComponenteImovelHTTP(IComponenteImovel):
 
-    def __init__(self, base_url: str = URL_CATALOGO):
+    def __init__(self, base_url: str = URL_IMOVEIS):
         self._url    = base_url
         self._client = None
 
@@ -31,23 +31,23 @@ class ComponenteCatalogoHTTP(IComponenteCatalogo):
             self._client.close()
 
     def get_nome(self) -> str:
-        return "catalogo"
+        return "imoveis"
 
-    def buscar_livros(self, filtros: dict = None) -> list[dict]:
+    def buscar_imoveis(self, filtros: dict = None) -> list[dict]:
         params = filtros or {}
-        resp = self._client.get(f"{self._url}/livros/", params=params)
+        resp = self._client.get(f"{self._url}/imoveis/", params=params)
         resp.raise_for_status()
         return resp.json()
 
-    def cadastrar_livro(self, dados: dict) -> dict:
-        resp = self._client.post(f"{self._url}/livros/", json=dados)
+    def cadastrar_imovel(self, dados: dict) -> dict:
+        resp = self._client.post(f"{self._url}/imoveis/", json=dados)
         resp.raise_for_status()
         return resp.json()
 
-    def atualizar_disponibilidade(self, livro_id: int, delta: int) -> None:
+    def definir_disponibilidade(self, imovel_id: int, disponivel: bool) -> None:
         resp = self._client.patch(
-            f"{self._url}/livros/{livro_id}/disponibilidade",
-            params={"delta": delta},
+            f"{self._url}/imoveis/{imovel_id}/disponibilidade",
+            params={"disponivel": disponivel},
         )
         resp.raise_for_status()
 

@@ -14,8 +14,8 @@ proxy_service = ProxyService(registry)
 monitor = MonitorServicos(registry)
 
 app = FastAPI(
-    title="Biblioteca Online - API Gateway",
-    description="Ponto de entrada unico para todos os microsservicos da biblioteca",
+    title="Aluguel de Imoveis - API Gateway",
+    description="Ponto de entrada unico para todos os microsservicos",
     version="1.0.0",
 )
 
@@ -40,9 +40,9 @@ async def middleware_autenticacao(request: Request, call_next):
 METODOS = ["GET", "POST", "PATCH", "DELETE", "PUT"]
 
 
-@app.api_route("/catalogo/{path:path}", methods=METODOS)
-async def gateway_catalogo(request: Request, path: str):
-    return await proxy_service.encaminhar(request, "catalogo", path)
+@app.api_route("/imoveis/{path:path}", methods=METODOS)
+async def gateway_imoveis(request: Request, path: str):
+    return await proxy_service.encaminhar(request, "imoveis", path)
 
 
 @app.api_route("/usuarios/{path:path}", methods=METODOS)

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from models import Emprestimo, EmprestimoCreate
 from repository import EmprestimoRepository
-from clients import CatalogoClient
+from clients import ImovelClient
 from exceptions import EmprestimoNaoEncontrado, RegraDeNegocio
 
 
@@ -11,15 +11,15 @@ class EmprestimoService:
     PRAZO_DIAS = 14
     MULTA_POR_DIA = 0.50
 
-    def __init__(self, repository: EmprestimoRepository, catalogo: CatalogoClient):
+    def __init__(self, repository: EmprestimoRepository, imoveis: ImovelClient):
         self._repo = repository
-        self._catalogo = catalogo
+        self._imoveis = imoveis
 
     def registrar_emprestimo(self, dados: EmprestimoCreate) -> Emprestimo:
         if self._repo.existe_ativo(dados.usuario_id, dados.livro_id):
             raise RegraDeNegocio("Usuário já possui este livro emprestado")
 
-        self._catalogo.atualizar_disponibilidade(dados.livro_id, -1)
+        self._imoveis.definir_disponibilidade(dados.livro_id, False)
 
         hoje = date.today()
         prevista = hoje + timedelta(days=self.PRAZO_DIAS)
@@ -40,7 +40,7 @@ class EmprestimoService:
         atraso = max(0, (hoje - prevista).days)
         multa = round(atraso * self.MULTA_POR_DIA, 2)
 
-        self._catalogo.atualizar_disponibilidade(emprestimo.livro_id, +1)
+        self._imoveis.definir_disponibilidade(emprestimo.livro_id, True)
         self._repo.registrar_devolucao(emprestimo_id, str(hoje), multa)
         return self._repo.buscar_por_id(emprestimo_id)
 

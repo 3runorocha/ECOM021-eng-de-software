@@ -38,6 +38,10 @@ validador não suja seus dados de desenvolvimento.
 | 2 | rota protegida exige token | autenticação furada (sem token ou token falso passando) |
 | 2 | shutdown liberou as 6 portas | processo órfão segurando porta |
 | — | todo `.py` compila | erro de sintaxe em qualquer arquivo |
+| 3 | modelo Imovel substituiu o Livro | campo de acervo (isbn, genero, autor, quantidade) voltando ao modelo |
+| 4 | componente usa disponibilidade booleana | `IComponenteImovel` sem `definir_disponibilidade`, ou `IComponenteCatalogo` ressuscitado |
+| 4 | filtros de imóvel filtram | cidade/tipo/quartos_min/valor vazando resultado errado |
+| 4 | disponibilidade é booleana | guarda de estado sumindo (alugar imóvel já alugado deve dar 400) |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -61,7 +65,7 @@ O que o script não alcança:
 | Fase | Blocos | Verificar à mão |
 |------|--------|-----------------|
 | 1 — saneamento | 1–2 | ✅ nada pendente |
-| 2 — imóveis | 3–5 | Swagger em `:8001/docs` mostra os campos de imóvel; filtros de cidade/tipo/quartos retornam o esperado |
+| 2 — imóveis | 3–5 | ✅ nada pendente |
 | 3 — contratos | 6–9 | Um imóvel com contrato ativo não aceita segundo contrato; multa por atraso confere na conta |
 | 4 — agente | 13–14 | O agente responde a uma busca em linguagem natural e chama as tools certas |
 | 5 — frontend | 10–12 | Login, listagem, cadastro e contrato pela interface; menu sem itens mortos |
@@ -79,3 +83,31 @@ env var; `lifespan` nos 5 serviços; headers hop-by-hop filtrados no proxy;
 Descartado: o path duplicado em `PUBLIC_ROUTES` não era bug (o gateway consome o
 primeiro segmento como seletor de serviço). A limpeza do prefixo duplo ficou para
 as Fases 2–3, que já renomeiam essas rotas.
+
+## Semana 2 (28/09–04/10) — blocos 3 e 4
+
+**Resultado: 16 checagens, todas passando.** Fase 2 fechada, uma semana adiantado.
+
+Entregue: serviço `catalogo` renomeado para `imoveis` via `git mv` (histórico
+preservado); modelo `Imovel` com tipo, endereço, cidade, quartos, banheiros, área e
+valor mensal; `definir_disponibilidade(bool)` no lugar do `delta` inteiro; filtros de
+cidade, tipo, quartos mínimos e faixa de valor; seeds reescritos com 18 imóveis reais
+de Maceió, Recife e João Pessoa.
+
+Verificado à mão, além do validador:
+
+- `seed.py` cadastra os 18 imóveis; `seed_emprestimos.py` insere 42 contratos
+  respeitando a restrição de um contrato aberto por imóvel (9 de 18 ficaram ocupados)
+- integração empréstimo → imóveis pelo `ImovelClient` booleano: alugar marca o imóvel
+  indisponível, devolver libera
+- tentar alugar imóvel já alugado devolve `400 Imóvel 'X' já está indisponível` — a
+  regra da Fase 3 (um contrato por imóvel) já fica parcialmente imposta pelo serviço
+  de imóveis
+
+Antecipado: item 2.6 (interfaces e componentes) saiu junto, porque renomear o serviço
+quebra os componentes que o consomem — não dava para deixar o repositório incoerente
+entre blocos. Item 2.5 (busca por ISBN) caiu sozinho: o modelo novo não tem ISBN.
+Com isso o bloco 5 ficou vazio e vira folga.
+
+Corrigido de passagem: `api.js` chamava `devolver` com PATCH, mas a rota é POST — o
+botão de devolução estava quebrado desde o projeto antigo.
