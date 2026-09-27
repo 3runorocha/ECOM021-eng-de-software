@@ -50,9 +50,9 @@ async def gateway_usuarios(request: Request, path: str):
     return await proxy_service.encaminhar(request, "usuarios", path)
 
 
-@app.api_route("/emprestimos/{path:path}", methods=METODOS)
-async def gateway_emprestimos(request: Request, path: str):
-    return await proxy_service.encaminhar(request, "emprestimos", path)
+@app.api_route("/contratos/{path:path}", methods=METODOS)
+async def gateway_contratos(request: Request, path: str):
+    return await proxy_service.encaminhar(request, "contratos", path)
 
 
 @app.api_route("/notificacoes/{path:path}", methods=METODOS)

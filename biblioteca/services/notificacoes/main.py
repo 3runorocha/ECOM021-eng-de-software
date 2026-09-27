@@ -8,18 +8,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Database
 from repository import NotificacaoRepository
-from clients import EmprestimoClient
+from clients import ContratoClient
 from service import NotificacaoService
 from routes import criar_router
 from exceptions import NotificacaoNaoEncontrada, ServicoIndisponivel
 
 DB_PATH = os.getenv("NOTIFICACOES_DB", "notificacoes.db")
-EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
+CONTRATOS_URL = os.getenv("CONTRATOS_URL", "http://localhost:8003")
 
 database = Database(DB_PATH)
 repository = NotificacaoRepository(database)
-emprestimo_client = EmprestimoClient(EMPRESTIMOS_URL)
-service = NotificacaoService(repository, emprestimo_client)
+contrato_client = ContratoClient(CONTRATOS_URL)
+service = NotificacaoService(repository, contrato_client)
 
 
 @asynccontextmanager
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Biblioteca Online — Notificações",
+    title="Aluguel de Imóveis — Notificações",
     description="Alertas de prazo, atraso e disponibilidade para usuários",
     version="1.0.0",
     lifespan=lifespan,

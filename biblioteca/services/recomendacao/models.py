@@ -14,4 +14,4 @@ class PerfilUsuario(BaseModel):
     usuario_id: int
     tipos_favoritos: list[str]
     cidades_favoritas: list[str]
-    total_emprestimos: int
+    total_contratos: int

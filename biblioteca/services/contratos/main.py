@@ -1,5 +1,4 @@
 import os
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -7,19 +6,19 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import Database
-from repository import EmprestimoRepository
+from repository import ContratoRepository
 from clients import ImovelClient
-from service import EmprestimoService
+from service import ContratoService
 from routes import criar_router
-from exceptions import EmprestimoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
+from exceptions import ContratoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
 
-DB_PATH = os.getenv("EMPRESTIMOS_DB", "emprestimos.db")
+DB_PATH = os.getenv("CONTRATOS_DB", "contratos.db")
 IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)
-repository = EmprestimoRepository(database)
+repository = ContratoRepository(database)
 imovel_client = ImovelClient(IMOVEIS_URL)
-service = EmprestimoService(repository, imovel_client)
+service = ContratoService(repository, imovel_client)
 
 
 @asynccontextmanager
@@ -29,8 +28,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Biblioteca Online — Empréstimos",
-    description="Gerenciamento de empréstimos e devoluções de livros",
+    title="Aluguel de Imóveis — Contratos",
+    description="Locação, encerramento e multa por atraso na desocupação",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -43,8 +42,8 @@ app.add_middleware(
 )
 
 
-@app.exception_handler(EmprestimoNaoEncontrado)
-def tratar_nao_encontrado(request: Request, exc: EmprestimoNaoEncontrado):
+@app.exception_handler(ContratoNaoEncontrado)
+def tratar_nao_encontrado(request: Request, exc: ContratoNaoEncontrado):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 
@@ -55,7 +54,7 @@ def tratar_regra_de_negocio(request: Request, exc: RegraDeNegocio):
 
 @app.exception_handler(ServicoIndisponivel)
 def tratar_servico_indisponivel(request: Request, exc: ServicoIndisponivel):
-    return JSONResponse(status_code=502, content={"detail": str(exc)})
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
 app.include_router(criar_router(service))
@@ -63,4 +62,4 @@ app.include_router(criar_router(service))
 
 @app.get("/health")
 def health():
-    return {"service": "emprestimos", "status": "ok", "port": 8003}
+    return {"service": "contratos", "status": "ok", "port": 8003}

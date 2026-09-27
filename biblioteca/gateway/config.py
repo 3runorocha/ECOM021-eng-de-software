@@ -4,7 +4,7 @@ import os
 SERVICES = {
     "imoveis":      {"url": os.getenv("IMOVEIS_URL",      "http://localhost:8001"), "porta": 8001, "descricao": "Portfolio de apartamentos e casas"},
     "usuarios":     {"url": os.getenv("USUARIOS_URL",     "http://localhost:8002"), "porta": 8002, "descricao": "Registro e autenticacao de usuarios"},
-    "emprestimos":  {"url": os.getenv("EMPRESTIMOS_URL",  "http://localhost:8003"), "porta": 8003, "descricao": "Controle de emprestimos e devolucoes"},
+    "contratos":    {"url": os.getenv("CONTRATOS_URL",    "http://localhost:8003"), "porta": 8003, "descricao": "Locacao, encerramento e multa"},
     "notificacoes": {"url": os.getenv("NOTIFICACOES_URL", "http://localhost:8004"), "porta": 8004, "descricao": "Alertas de prazo e atraso"},
     "recomendacao": {"url": os.getenv("RECOMENDACAO_URL", "http://localhost:8005"), "porta": 8005, "descricao": "Recomendacao por perfil do usuario"},
 }

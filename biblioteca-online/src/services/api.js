@@ -28,11 +28,11 @@ export const usuariosAPI = {
   login: (data) => api.post('/usuarios/usuarios/login', data),
 }
 
-export const emprestimosAPI = {
-  listar: (params) => api.get('/emprestimos/emprestimos/', { params }),
-  buscar: (id) => api.get(`/emprestimos/emprestimos/${id}`),
-  criar: (data) => api.post('/emprestimos/emprestimos/', data),
-  devolver: (id) => api.post(`/emprestimos/emprestimos/${id}/devolver`),
+export const contratosAPI = {
+  listar: (params) => api.get('/contratos/contratos/', { params }),
+  buscar: (id) => api.get(`/contratos/contratos/${id}`),
+  criar: (data) => api.post('/contratos/contratos/', data),
+  encerrar: (id) => api.post(`/contratos/contratos/${id}/encerrar`),
 }
 
 export const notificacoesAPI = {

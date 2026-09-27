@@ -2,21 +2,24 @@ from datetime import date
 
 from models import Notificacao, NotificacaoCreate
 from repository import NotificacaoRepository
-from clients import EmprestimoClient
+from clients import ContratoClient
 from exceptions import NotificacaoNaoEncontrada
 
 
 class NotificacaoService:
 
     DIAS_ALERTA_PRAZO = 2
-    MULTA_POR_DIA = 0.50
+    # Mesma base do servico de contratos: um dia de atraso custa 1/30 do
+    # aluguel. O valor sai do proprio contrato, entao aqui nao ha constante de
+    # multa duplicada -- antes havia um MULTA_POR_DIA = 0.50 repetido.
+    DIAS_BASE_MULTA = 30
     TIPOS_AUTOMATICOS = ("atraso", "prazo_proximo")
 
     def __init__(
-        self, repository: NotificacaoRepository, emprestimos: EmprestimoClient
+        self, repository: NotificacaoRepository, contratos: ContratoClient
     ):
         self._repo = repository
-        self._emprestimos = emprestimos
+        self._contratos = contratos
 
     def criar_notificacao(self, dados: NotificacaoCreate) -> Notificacao:
         novo_id = self._repo.inserir(dados)
@@ -44,26 +47,26 @@ class NotificacaoService:
         }
 
     def executar_varredura(self) -> dict:
-        emprestimos = self._emprestimos.listar_emprestimos()
+        contratos = self._contratos.listar_contratos()
         hoje = date.today()
         geradas = 0
 
-        for emp in emprestimos:
-            if emp["status"] == "devolvido":
+        for contrato in contratos:
+            if contrato["status"] == "encerrado":
                 continue
 
-            usuario_id = emp["usuario_id"]
-            livro_id = emp["livro_id"]
-            prevista = date.fromisoformat(emp["data_devolucao_prevista"])
+            inquilino_id = contrato["inquilino_id"]
+            imovel_id = contrato["imovel_id"]
+            prevista = date.fromisoformat(contrato["data_fim_prevista"])
             dias_restantes = (prevista - hoje).days
 
             if self._repo.existe_nao_lida(
-                usuario_id, livro_id, self.TIPOS_AUTOMATICOS
+                inquilino_id, imovel_id, self.TIPOS_AUTOMATICOS
             ):
                 continue
 
             notificacao = self._montar_notificacao(
-                emp, usuario_id, livro_id, dias_restantes
+                contrato, inquilino_id, imovel_id, dias_restantes
             )
             if notificacao is not None:
                 self._repo.inserir(notificacao)
@@ -74,31 +77,32 @@ class NotificacaoService:
         }
 
     def _montar_notificacao(
-        self, emp: dict, usuario_id: int, livro_id: int, dias_restantes: int
+        self, contrato: dict, inquilino_id: int, imovel_id: int, dias_restantes: int
     ) -> NotificacaoCreate | None:
-        if emp["status"] == "atrasado":
+        if contrato["status"] == "atrasado":
             dias_atraso = abs(dias_restantes)
-            multa = round(dias_atraso * self.MULTA_POR_DIA, 2)
+            valor_dia = contrato["valor_mensal"] / self.DIAS_BASE_MULTA
+            multa = round(dias_atraso * valor_dia, 2)
             return NotificacaoCreate(
-                usuario_id=usuario_id,
+                usuario_id=inquilino_id,
                 tipo="atraso",
                 mensagem=(
-                    f"Seu empréstimo do livro ID {livro_id} está atrasado há "
+                    f"O contrato do imóvel ID {imovel_id} venceu há "
                     f"{dias_atraso} dia(s). Multa acumulada: R$ {multa:.2f}."
                 ),
-                livro_id=livro_id,
+                imovel_id=imovel_id,
             )
 
         if 0 <= dias_restantes <= self.DIAS_ALERTA_PRAZO:
             return NotificacaoCreate(
-                usuario_id=usuario_id,
+                usuario_id=inquilino_id,
                 tipo="prazo_proximo",
                 mensagem=(
-                    f"Atenção! O prazo de devolução do livro ID {livro_id} "
+                    f"Atenção! O contrato do imóvel ID {imovel_id} "
                     f"vence em {dias_restantes} dia(s) "
-                    f"({emp['data_devolucao_prevista']})."
+                    f"({contrato['data_fim_prevista']})."
                 ),
-                livro_id=livro_id,
+                imovel_id=imovel_id,
             )
 
         return None

@@ -39,7 +39,7 @@ class NotificacaoRepository:
         return [self._to_notificacao(r) for r in rows]
 
     def existe_nao_lida(
-        self, usuario_id: int, livro_id: int, tipos: tuple[str, ...]
+        self, usuario_id: int, imovel_id: int, tipos: tuple[str, ...]
     ) -> bool:
         placeholders = ", ".join("?" for _ in tipos)
         conn = self._db.connect()
@@ -47,10 +47,10 @@ class NotificacaoRepository:
             row = conn.execute(
                 f"""
                 SELECT id FROM notificacoes
-                WHERE usuario_id = ? AND livro_id = ? AND lida = 0
+                WHERE usuario_id = ? AND imovel_id = ? AND lida = 0
                   AND tipo IN ({placeholders})
                 """,
-                (usuario_id, livro_id, *tipos),
+                (usuario_id, imovel_id, *tipos),
             ).fetchone()
         finally:
             conn.close()
@@ -61,10 +61,10 @@ class NotificacaoRepository:
         try:
             cursor = conn.execute(
                 """
-                INSERT INTO notificacoes (usuario_id, tipo, mensagem, livro_id)
+                INSERT INTO notificacoes (usuario_id, tipo, mensagem, imovel_id)
                 VALUES (?, ?, ?, ?)
                 """,
-                (dados.usuario_id, dados.tipo, dados.mensagem, dados.livro_id),
+                (dados.usuario_id, dados.tipo, dados.mensagem, dados.imovel_id),
             )
             conn.commit()
             return cursor.lastrowid

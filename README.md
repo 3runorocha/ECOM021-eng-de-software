@@ -16,7 +16,7 @@ Todas as requisições passam por um **API Gateway** que roteia para os microsse
 | API Gateway | 8000 | Ponto de entrada único, roteamento e autenticação |
 | Imóveis | 8001 | Portfólio de apartamentos e casas, busca e disponibilidade |
 | Usuários | 8002 | Cadastro e autenticação |
-| Empréstimos | 8003 | Locação, encerramento e multa (vira Contratos na Fase 3) |
+| Contratos | 8003 | Locação, encerramento e multa por atraso na desocupação |
 | Notificações | 8004 | Alertas de prazo (opcional) |
 | Recomendação | 8005 | Sugestões por perfil/histórico (vira Agente na Fase 4) |
 
@@ -131,18 +131,20 @@ Usuários duplicados são ignorados. **Imóveis não**: diferente do livro, que 
 imóvel não tem chave única de negócio — rodar de novo duplica o portfólio. Apague
 `biblioteca/services/imoveis/imoveis.db` para recomeçar.
 
-**Passo 2 — seed_emprestimos.py (serviços parados)**
+**Passo 2 — seed_contratos.py (serviços parados)**
 
 Popula a tabela de empréstimos com acesso direto ao SQLite. **Pare todos os serviços antes de rodar**, a partir da pasta `biblioteca/`:
 
 ```bash
 cd biblioteca
-python seed_emprestimos.py
+python seed_contratos.py
 ```
 
-Insere 42 contratos (7 usuários × 6 perfis). Como um imóvel é único, no máximo um
-contrato fica em aberto por imóvel — quando os imóveis livres acabam, os demais entram
-como histórico encerrado. Também marca como indisponíveis os imóveis com contrato aberto.
+Insere 42 contratos (7 inquilinos × 6 perfis): ativos, atrasados e encerrados, estes
+com multa proporcional calculada sobre o aluguel de cada imóvel. Como um imóvel é
+único, no máximo um contrato fica em aberto por imóvel — quando os imóveis livres
+acabam, os demais entram como histórico encerrado. Também marca como indisponíveis os
+imóveis com contrato aberto.
 
 Após concluir, suba os serviços novamente.
 
@@ -152,7 +154,7 @@ Após concluir, suba os serviços novamente.
 1. Suba os serviços
 2. python seed.py
 3. Pare os serviços
-4. python seed_emprestimos.py
+4. python seed_contratos.py
 5. Suba os serviços novamente
 ```
 

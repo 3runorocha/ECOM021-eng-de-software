@@ -8,20 +8,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Database
 from repository import RecomendacaoRepository
-from clients import EmprestimoClient, ImovelClient
+from clients import ContratoClient, ImovelClient
 from service import RecomendacaoService
 from routes import criar_router
 from exceptions import ServicoIndisponivel
 
 DB_PATH = os.getenv("RECOMENDACAO_DB", "recomendacao.db")
-EMPRESTIMOS_URL = os.getenv("EMPRESTIMOS_URL", "http://localhost:8003")
+CONTRATOS_URL = os.getenv("CONTRATOS_URL", "http://localhost:8003")
 IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)
 repository = RecomendacaoRepository(database)
-emprestimo_client = EmprestimoClient(EMPRESTIMOS_URL)
+contrato_client = ContratoClient(CONTRATOS_URL)
 imovel_client = ImovelClient(IMOVEIS_URL)
-service = RecomendacaoService(repository, emprestimo_client, imovel_client)
+service = RecomendacaoService(repository, contrato_client, imovel_client)
 
 
 @asynccontextmanager
@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Biblioteca Online — Recomendação",
+    title="Aluguel de Imóveis — Recomendação",
     description="Recomendação de livros baseada no perfil e histórico do usuário",
     version="1.0.0",
     lifespan=lifespan,

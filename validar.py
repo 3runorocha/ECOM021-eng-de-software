@@ -20,11 +20,13 @@ import tempfile
 import time
 from pathlib import Path
 
+from datetime import date
+
 import httpx
 
 RAIZ = Path(__file__).resolve().parent
 BIB = RAIZ / "biblioteca"
-SERVICOS = ["imoveis", "usuarios", "emprestimos", "notificacoes", "recomendacao"]
+SERVICOS = ["imoveis", "usuarios", "contratos", "notificacoes", "recomendacao"]
 PORTAS = (8000, 8001, 8002, 8003, 8004, 8005)
 GATEWAY = "http://localhost:8000"
 
@@ -296,6 +298,118 @@ def disponibilidade_e_booleana(ctx):
     assert r.status_code == 200, "liberar: {0} {1}".format(r.status_code, r.text)
 
 
+def modelo_contrato_substituiu_o_emprestimo():
+    """3.1-3.3 - entidade, campos e datas renomeados."""
+    modelo = (BIB / "services" / "contratos" / "models.py").read_text(encoding="utf-8")
+    for campo in ("inquilino_id", "imovel_id", "data_inicio",
+                  "data_fim_prevista", "valor_mensal"):
+        assert campo in modelo, "Contrato sem o campo {0}".format(campo)
+    for herdado in ("usuario_id", "livro_id", "data_emprestimo", "data_devolucao"):
+        assert herdado not in modelo, (
+            "models.py ainda tem {0}, campo de emprestimo".format(herdado))
+
+
+def prazo_em_meses_e_multa_proporcional():
+    """3.4-3.5 - prazo de 12 meses e multa de 1/30 do aluguel por dia."""
+    fonte = (BIB / "services" / "contratos" / "service.py").read_text(encoding="utf-8")
+    assert "PRAZO_MESES = 12" in fonte, "PRAZO_MESES nao e 12"
+    # Procura a atribuicao, nao o nome: o comentario do service.py cita
+    # MULTA_POR_DIA justamente para explicar que ele foi substituido.
+    assert not re.search(r"^\s*MULTA_POR_DIA\s*=", fonte, re.M), (
+        "MULTA_POR_DIA fixo voltou; a multa deve sair do valor_mensal")
+
+    partes = [
+        "from datetime import date",
+        "from models import Contrato",
+        "from service import ContratoService, somar_meses",
+        "print(somar_meses(date(2026, 1, 31), 1))",
+        "print(somar_meses(date(2026, 3, 15), 12))",
+        "c = Contrato(id=1, inquilino_id=1, imovel_id=1,"
+        " data_inicio='2025-01-10', data_fim_prevista='2026-01-10',"
+        " data_fim_real=None, valor_mensal=3000.0, status='ativo', multa=0.0)",
+        "s = ContratoService(None, None)",
+        "print(s.calcular_multa(c, date(2026, 1, 10)))",
+        "print(s.calcular_multa(c, date(2026, 1, 20)))",
+    ]
+    codigo = chr(10).join(partes)
+
+    saida = subprocess.run(
+        [sys.executable, "-c", codigo], cwd=str(BIB / "services" / "contratos"),
+        capture_output=True, text=True, timeout=60,
+    )
+    assert saida.returncode == 0, "falhou ao calcular: " + saida.stderr
+    linhas = saida.stdout.split()
+
+    # 31/01 + 1 mes cai em 28/02 (2026 nao e bissexto), nao em 31/02.
+    assert linhas[0] == "2026-02-28", "somar_meses errou mes curto: " + linhas[0]
+    assert linhas[1] == "2027-03-15", "somar_meses errou 12 meses: " + linhas[1]
+    assert linhas[2] == "0.0", "sem atraso deveria dar multa 0, deu " + linhas[2]
+    # 10 dias de atraso sobre aluguel de 3000: 3000/30 = 100/dia -> 1000.
+    assert linhas[3] == "1000.0", (
+        "10 dias de atraso sobre R$3000 deveria dar 1000.0, deu " + linhas[3])
+
+
+def ciclo_de_contrato(ctx):
+    """3.6-3.8 - registrar, ocupar o imovel, encerrar, liberar."""
+    c = httpx.Client(base_url=GATEWAY, timeout=10.0)
+    auth = ctx["auth"]
+    imovel_id = ctx["imovel_id"]
+
+    r = c.post("/contratos/contratos/", headers=auth,
+               json={"inquilino_id": 1, "imovel_id": imovel_id})
+    assert r.status_code == 201, "registrar: {0} {1}".format(r.status_code, r.text)
+    contrato = r.json()
+    ctx["contrato_id"] = contrato["id"]
+    assert contrato["status"] == "ativo", contrato
+    assert contrato["valor_mensal"] == 1800.0, (
+        "contrato deveria gravar o aluguel do imovel: {0}".format(contrato))
+
+    # 12 meses depois da assinatura
+    inicio = date.fromisoformat(contrato["data_inicio"])
+    fim = date.fromisoformat(contrato["data_fim_prevista"])
+    meses = (fim.year - inicio.year) * 12 + (fim.month - inicio.month)
+    assert meses == 12, "prazo deveria ser 12 meses, deu {0}".format(meses)
+
+    r = c.get("/imoveis/imoveis/{0}".format(imovel_id), headers=auth)
+    assert r.json()["disponivel"] is False, "assinar contrato deveria ocupar o imovel"
+
+    r = c.post("/contratos/contratos/{0}/encerrar".format(ctx["contrato_id"]),
+               headers=auth)
+    assert r.status_code == 200, "encerrar: {0} {1}".format(r.status_code, r.text)
+    encerrado = r.json()
+    assert encerrado["status"] == "encerrado", encerrado
+    assert encerrado["multa"] == 0.0, "encerrar no prazo nao deveria ter multa"
+
+    r = c.get("/imoveis/imoveis/{0}".format(imovel_id), headers=auth)
+    assert r.json()["disponivel"] is True, "encerrar deveria liberar o imovel"
+
+
+def um_contrato_aberto_por_imovel(ctx):
+    """3.7 - a regra que substitui o 'usuario ja tem este livro'."""
+    c = httpx.Client(base_url=GATEWAY, timeout=10.0)
+    auth = ctx["auth"]
+    imovel_id = ctx["imovel_id"]
+
+    r = c.post("/contratos/contratos/", headers=auth,
+               json={"inquilino_id": 2, "imovel_id": imovel_id})
+    assert r.status_code == 201, "primeiro contrato: {0} {1}".format(r.status_code, r.text)
+    primeiro = r.json()["id"]
+
+    # Outro inquilino, mesmo imovel: tem de ser barrado.
+    r = c.post("/contratos/contratos/", headers=auth,
+               json={"inquilino_id": 3, "imovel_id": imovel_id})
+    assert r.status_code == 400, (
+        "segundo contrato no mesmo imovel deveria dar 400, deu {0} {1}"
+        .format(r.status_code, r.text))
+
+    # E o imovel nao pode ter ficado solto pela compensacao.
+    r = c.get("/imoveis/imoveis/{0}".format(imovel_id), headers=auth)
+    assert r.json()["disponivel"] is False, (
+        "o imovel do contrato em vigor nao pode voltar a disponivel")
+
+    c.post("/contratos/contratos/{0}/encerrar".format(primeiro), headers=auth)
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -305,6 +419,8 @@ ESTATICAS = [
     ("2", "proxy filtra headers do corpo", proxy_filtra_headers),
     ("3", "modelo Imovel substituiu o Livro", modelo_imovel_substituiu_o_livro),
     ("4", "componente usa disponibilidade booleana", componente_imovel_e_booleano),
+    ("6", "modelo Contrato substituiu o Emprestimo", modelo_contrato_substituiu_o_emprestimo),
+    ("7", "prazo em meses e multa proporcional", prazo_em_meses_e_multa_proporcional),
     ("-", "todo .py compila", tudo_compila),
 ]
 
@@ -315,6 +431,8 @@ VIVAS = [
     ("2", "rota protegida exige token", rota_protegida_exige_token),
     ("4", "filtros de imovel filtram", filtros_de_imovel),
     ("4", "disponibilidade e booleana", disponibilidade_e_booleana),
+    ("8", "ciclo de contrato completo", ciclo_de_contrato),
+    ("8", "um contrato aberto por imovel", um_contrato_aberto_por_imovel),
 ]
 
 

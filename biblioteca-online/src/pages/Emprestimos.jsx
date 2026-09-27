@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { emprestimosAPI, imoveisAPI, usuariosAPI } from '../services/api'
+import { contratosAPI, imoveisAPI, usuariosAPI } from '../services/api'
 
 const STATUS = {
   ativo: { label: 'Ativo', color: '#166534', bg: '#dcfce7' },
@@ -22,7 +22,7 @@ export default function Emprestimos() {
     setLoading(true)
     try {
       const [empRes, livrosRes, usuariosRes] = await Promise.all([
-        emprestimosAPI.listar(),
+        contratosAPI.listar(),
         imoveisAPI.listar(),
         usuariosAPI.listar(),
       ])
@@ -45,7 +45,7 @@ export default function Emprestimos() {
 
   async function devolver(id) {
     try {
-      const r = await emprestimosAPI.devolver(id)
+      const r = await contratosAPI.devolver(id)
       setEmprestimos((prev) => prev.map((e) => (e.id === id ? r.data : e)))
     } catch {
       // mantém o estado atual em caso de falha

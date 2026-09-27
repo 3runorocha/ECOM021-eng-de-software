@@ -42,6 +42,10 @@ validador não suja seus dados de desenvolvimento.
 | 4 | componente usa disponibilidade booleana | `IComponenteImovel` sem `definir_disponibilidade`, ou `IComponenteCatalogo` ressuscitado |
 | 4 | filtros de imóvel filtram | cidade/tipo/quartos_min/valor vazando resultado errado |
 | 4 | disponibilidade é booleana | guarda de estado sumindo (alugar imóvel já alugado deve dar 400) |
+| 6 | modelo Contrato substituiu o Emprestimo | `usuario_id`/`livro_id`/`data_emprestimo` voltando ao modelo |
+| 7 | prazo em meses e multa proporcional | `PRAZO_MESES` ≠ 12, `MULTA_POR_DIA` fixo voltando, ou `somar_meses` errando mês curto (31/01 + 1 mês) |
+| 8 | ciclo de contrato completo | assinar → ocupar imóvel → encerrar → liberar quebrando em qualquer ponto |
+| 8 | um contrato aberto por imóvel | segundo contrato no mesmo imóvel passando, ou imóvel ficando solto pela compensação |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -66,7 +70,7 @@ O que o script não alcança:
 |------|--------|-----------------|
 | 1 — saneamento | 1–2 | ✅ nada pendente |
 | 2 — imóveis | 3–5 | ✅ nada pendente |
-| 3 — contratos | 6–9 | Um imóvel com contrato ativo não aceita segundo contrato; multa por atraso confere na conta |
+| 3 — contratos | 6–9 | ✅ nada pendente |
 | 4 — agente | 13–14 | O agente responde a uma busca em linguagem natural e chama as tools certas |
 | 5 — frontend | 10–12 | Login, listagem, cadastro e contrato pela interface; menu sem itens mortos |
 | 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
@@ -111,3 +115,32 @@ Com isso o bloco 5 ficou vazio e vira folga.
 
 Corrigido de passagem: `api.js` chamava `devolver` com PATCH, mas a rota é POST — o
 botão de devolução estava quebrado desde o projeto antigo.
+
+## Semana 3 (05–11/10) — blocos 6 a 9
+
+**Resultado: 20 checagens, todas passando.** Fase 3 fechada, duas semanas adiantado.
+Com isso o **marco do bloco 9 caiu em 27/09**: o mínimo exigido pelo enunciado
+(microsserviços + componentes, funcionando ponta a ponta) está entregue.
+
+Entregue: `emprestimos` virou `contratos`; `Emprestimo` virou `Contrato` com
+`inquilino_id`, `imovel_id`, `data_inicio`, `data_fim_prevista`, `data_fim_real` e
+`valor_mensal`; prazo de 12 meses; multa de 1/30 do aluguel por dia de atraso; regra de
+um contrato aberto por imóvel, imposta no serviço e por índice parcial no banco.
+
+Verificado à mão, além do validador:
+
+- app do framework (`apps/app_contrato.py`) registra contrato pelo Template Method,
+  puxa o aluguel do imóvel e dispara a notificação — o argumento de reúso continua de pé
+- `seed_contratos.py` insere 42 contratos respeitando a restrição (9 de 18 imóveis
+  ocupados); multa do histórico confere na conta (61 dias × R$ 3900/30 = R$ 7930)
+- varredura de notificações gera 3 alertas de atraso, cada um com multa proporcional ao
+  aluguel do seu imóvel (R$ 10.746,67 / R$ 3.513,33 / R$ 11.160) — que é justamente o
+  que a multa fixa de R$ 0,50 não conseguia expressar
+
+Colapsado: os blocos 8 e 9 saíram junto com 6 e 7. Renomear entidade é operação
+atômica — mexer nos campos arrasta métodos, regra e cliente. Mesmo padrão do 2.6.
+Blocos 5, 8 e 9 ficam como folga.
+
+Nota: um check meu deu falso positivo — procurava a string `MULTA_POR_DIA`, que
+aparece no comentário explicando que ela foi substituída. Passou a procurar a
+atribuição (`^\s*MULTA_POR_DIA\s*=`).
