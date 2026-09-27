@@ -18,7 +18,7 @@ RAIZ = Path(__file__).resolve().parent / "biblioteca"
 # O gateway vem por ultimo: ele so procura os servicos quando recebe uma
 # requisicao, mas subir na ordem deixa o log mais legivel.
 SERVICOS = [
-    ("catalogo",     RAIZ / "services" / "catalogo",     8001),
+    ("imoveis",      RAIZ / "services" / "imoveis",      8001),
     ("usuarios",     RAIZ / "services" / "usuarios",     8002),
     ("emprestimos",  RAIZ / "services" / "emprestimos",  8003),
     ("notificacoes", RAIZ / "services" / "notificacoes", 8004),

@@ -10,26 +10,26 @@ class RecomendacaoRepository:
         conn = self._db.connect()
         try:
             rows = conn.execute(
-                "SELECT livro_id FROM historico_recomendacoes WHERE usuario_id = ?",
+                "SELECT imovel_id FROM historico_recomendacoes WHERE usuario_id = ?",
                 (usuario_id,),
             ).fetchall()
         finally:
             conn.close()
-        return {row["livro_id"] for row in rows}
+        return {row["imovel_id"] for row in rows}
 
     def registrar_recomendacoes(
-        self, usuario_id: int, livro_ids: list[int]
+        self, usuario_id: int, imovel_ids: list[int]
     ) -> None:
-        if not livro_ids:
+        if not imovel_ids:
             return
         conn = self._db.connect()
         try:
             conn.executemany(
                 """
-                INSERT OR IGNORE INTO historico_recomendacoes (usuario_id, livro_id)
+                INSERT OR IGNORE INTO historico_recomendacoes (usuario_id, imovel_id)
                 VALUES (?, ?)
                 """,
-                [(usuario_id, livro_id) for livro_id in livro_ids],
+                [(usuario_id, imovel_id) for imovel_id in imovel_ids],
             )
             conn.commit()
         finally:

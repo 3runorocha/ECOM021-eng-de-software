@@ -1,15 +1,22 @@
 from collections import Counter
 
-from models import LivroRecomendado, PerfilUsuario
+from models import ImovelRecomendado, PerfilUsuario
 from repository import RecomendacaoRepository
-from clients import EmprestimoClient, CatalogoClient
+from clients import EmprestimoClient, ImovelClient
 
 
 class RecomendacaoService:
+    """Recomenda imoveis a partir do historico do usuario.
 
-    PONTOS_GENERO = 3
-    PONTOS_AUTOR = 2
-    PENALIDADE_JA_EMPRESTADO = 10
+    O algoritmo e o mesmo do acervo de biblioteca, com as preferencias
+    remapeadas para o dominio de aluguel: genero virou tipo (apartamento/casa)
+    e autor virou cidade. Na Fase 4 este servico e substituido pelo agente,
+    entao a pontuacao aqui e deliberadamente simples.
+    """
+
+    PONTOS_TIPO = 3
+    PONTOS_CIDADE = 2
+    PENALIDADE_JA_ALUGADO = 10
     PENALIDADE_JA_RECOMENDADO = 5
     TOP_N_PREFERENCIAS = 3
 
@@ -17,11 +24,11 @@ class RecomendacaoService:
         self,
         repository: RecomendacaoRepository,
         emprestimos: EmprestimoClient,
-        catalogo: CatalogoClient,
+        imoveis: ImovelClient,
     ):
         self._repo = repository
         self._emprestimos = emprestimos
-        self._catalogo = catalogo
+        self._imoveis = imoveis
 
     def obter_perfil(self, usuario_id: int) -> PerfilUsuario:
         historico = self._emprestimos.buscar_historico(usuario_id)
@@ -29,34 +36,34 @@ class RecomendacaoService:
         if not historico:
             return PerfilUsuario(
                 usuario_id=usuario_id,
-                generos_favoritos=[],
-                autores_favoritos=[],
+                tipos_favoritos=[],
+                cidades_favoritas=[],
                 total_emprestimos=0,
             )
 
-        generos, autores = self._coletar_preferencias(historico)
+        tipos, cidades = self._coletar_preferencias(historico)
         return PerfilUsuario(
             usuario_id=usuario_id,
-            generos_favoritos=self._mais_frequentes(generos),
-            autores_favoritos=self._mais_frequentes(autores),
+            tipos_favoritos=self._mais_frequentes(tipos),
+            cidades_favoritas=self._mais_frequentes(cidades),
             total_emprestimos=len(historico),
         )
 
-    def recomendar(self, usuario_id: int, limite: int = 5) -> list[LivroRecomendado]:
+    def recomendar(self, usuario_id: int, limite: int = 5) -> list[ImovelRecomendado]:
         historico = self._emprestimos.buscar_historico(usuario_id)
-        catalogo = self._catalogo.buscar_catalogo_completo()
+        portfolio = self._imoveis.buscar_portfolio_completo()
 
-        ids_emprestados = {emp["livro_id"] for emp in historico}
-        generos, autores = self._coletar_preferencias(historico)
-        top_generos = set(self._mais_frequentes(generos))
-        top_autores = set(self._mais_frequentes(autores))
+        ids_alugados = {emp["livro_id"] for emp in historico}
+        tipos, cidades = self._coletar_preferencias(historico)
+        top_tipos = set(self._mais_frequentes(tipos))
+        top_cidades = set(self._mais_frequentes(cidades))
         ja_recomendados = self._repo.listar_recomendados(usuario_id)
 
         recomendacoes = []
-        for livro in catalogo:
+        for imovel in portfolio:
             recomendado = self._pontuar(
-                livro, top_generos, top_autores,
-                ids_emprestados, ja_recomendados,
+                imovel, top_tipos, top_cidades,
+                ids_alugados, ja_recomendados,
             )
             if recomendado is not None:
                 recomendacoes.append(recomendado)
@@ -65,58 +72,58 @@ class RecomendacaoService:
         resultado = recomendacoes[:limite]
 
         self._repo.registrar_recomendacoes(
-            usuario_id, [rec.livro_id for rec in resultado]
+            usuario_id, [rec.imovel_id for rec in resultado]
         )
         return resultado
 
     def _coletar_preferencias(self, historico: list[dict]) -> tuple[list, list]:
-        generos, autores = [], []
+        tipos, cidades = [], []
         for emp in historico:
-            livro = self._catalogo.buscar_livro(emp["livro_id"])
-            if livro:
-                generos.append(livro["genero"])
-                autores.append(livro["autor"])
-        return generos, autores
+            imovel = self._imoveis.buscar_imovel(emp["livro_id"])
+            if imovel:
+                tipos.append(imovel["tipo"])
+                cidades.append(imovel["cidade"])
+        return tipos, cidades
 
     def _mais_frequentes(self, valores: list[str]) -> list[str]:
         return [v for v, _ in Counter(valores).most_common(self.TOP_N_PREFERENCIAS)]
 
     def _pontuar(
         self,
-        livro: dict,
-        top_generos: set,
-        top_autores: set,
-        ids_emprestados: set,
+        imovel: dict,
+        top_tipos: set,
+        top_cidades: set,
+        ids_alugados: set,
         ja_recomendados: set,
-    ) -> LivroRecomendado | None:
-        if livro.get("quantidade_disponivel", 0) <= 0:
+    ) -> ImovelRecomendado | None:
+        if not imovel.get("disponivel", False):
             return None
 
         score = 0.0
         motivo = []
 
-        if livro["genero"] in top_generos:
-            score += self.PONTOS_GENERO
-            motivo.append(f"gênero '{livro['genero']}' está entre seus favoritos")
+        if imovel["tipo"] in top_tipos:
+            score += self.PONTOS_TIPO
+            motivo.append(f"tipo '{imovel['tipo']}' está entre seus preferidos")
 
-        if livro["autor"] in top_autores:
-            score += self.PONTOS_AUTOR
-            motivo.append(f"autor '{livro['autor']}' está entre seus favoritos")
+        if imovel["cidade"] in top_cidades:
+            score += self.PONTOS_CIDADE
+            motivo.append(f"cidade '{imovel['cidade']}' está entre suas preferidas")
 
-        if livro["id"] in ids_emprestados:
-            score -= self.PENALIDADE_JA_EMPRESTADO
+        if imovel["id"] in ids_alugados:
+            score -= self.PENALIDADE_JA_ALUGADO
 
-        if livro["id"] in ja_recomendados:
+        if imovel["id"] in ja_recomendados:
             score -= self.PENALIDADE_JA_RECOMENDADO
 
         if score <= 0:
             return None
 
-        return LivroRecomendado(
-            livro_id=livro["id"],
-            titulo=livro["titulo"],
-            autor=livro["autor"],
-            genero=livro["genero"],
+        return ImovelRecomendado(
+            imovel_id=imovel["id"],
+            titulo=imovel["titulo"],
+            tipo=imovel["tipo"],
+            cidade=imovel["cidade"],
             score=score,
             motivo=" e ".join(motivo) if motivo else "recomendação geral",
         )

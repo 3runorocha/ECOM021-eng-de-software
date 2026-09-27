@@ -24,7 +24,7 @@ import httpx
 
 RAIZ = Path(__file__).resolve().parent
 BIB = RAIZ / "biblioteca"
-SERVICOS = ["catalogo", "usuarios", "emprestimos", "notificacoes", "recomendacao"]
+SERVICOS = ["imoveis", "usuarios", "emprestimos", "notificacoes", "recomendacao"]
 PORTAS = (8000, 8001, 8002, 8003, 8004, 8005)
 GATEWAY = "http://localhost:8000"
 
@@ -100,11 +100,11 @@ def env_var_sobrescreve_url():
     codigo = (
         "import sys; sys.path[:0] = ['gateway', 'framework']\n"
         "import config, componentes\n"
-        "print(config.SERVICES['catalogo']['url'])\n"
-        "print(componentes.ComponenteCatalogoHTTP()._url)\n"
+        "print(config.SERVICES['imoveis']['url'])\n"
+        "print(componentes.ComponenteImovelHTTP()._url)\n"
     )
     ambiente = dict(os.environ)
-    ambiente["CATALOGO_URL"] = "http://maquina-b:9001"
+    ambiente["IMOVEIS_URL"] = "http://maquina-b:9001"
     saida = subprocess.run(
         [sys.executable, "-c", codigo], cwd=BIB, env=ambiente,
         capture_output=True, text=True, timeout=60,
@@ -112,7 +112,7 @@ def env_var_sobrescreve_url():
     assert saida.returncode == 0, "falhou ao importar: " + saida.stderr
     linhas = saida.stdout.split()
     assert linhas == ["http://maquina-b:9001"] * 2, (
-        "CATALOGO_URL nao foi respeitada; obtive {0}".format(linhas)
+        "IMOVEIS_URL nao foi respeitada; obtive {0}".format(linhas)
     )
 
 
@@ -189,23 +189,27 @@ def fluxo_completo_pelo_gateway(ctx):
     ctx["token"] = token
 
     auth = {"Authorization": token}
-    r = c.post("/catalogo/livros/", headers=auth, json={
-        "titulo": "Item de validacao", "autor": "Script",
-        "isbn": "000-validacao", "ano_publicacao": 2026,
-        "genero": "teste", "quantidade_total": 3,
+    ctx["auth"] = auth
+    r = c.post("/imoveis/imoveis/", headers=auth, json={
+        "titulo": "Imovel de validacao", "tipo": "apartamento",
+        "endereco": "Rua de Teste, 1", "cidade": "Maceio",
+        "quartos": 2, "banheiros": 1, "area_m2": 60.0, "valor_mensal": 1800.0,
     })
     assert r.status_code == 201, "cadastro: {0} {1}".format(r.status_code, r.text)
+    criado = r.json()
+    assert criado["disponivel"] is True, "imovel novo deveria nascer disponivel"
+    ctx["imovel_id"] = criado["id"]
 
-    r = c.get("/catalogo/livros/", headers=auth)
+    r = c.get("/imoveis/imoveis/", headers=auth)
     assert r.status_code == 200, "listagem: {0} {1}".format(r.status_code, r.text)
-    titulos = [livro["titulo"] for livro in r.json()]
-    assert "Item de validacao" in titulos, (
+    titulos = [imovel["titulo"] for imovel in r.json()]
+    assert "Imovel de validacao" in titulos, (
         "item cadastrado nao apareceu: {0}".format(titulos))
 
 
 def resposta_comprimida_chega_intacta(ctx):
     """1.4 - o caso que o filtro de headers conserta."""
-    r = httpx.get(GATEWAY + "/catalogo/livros/", timeout=10.0, headers={
+    r = httpx.get(GATEWAY + "/imoveis/imoveis/", timeout=10.0, headers={
         "Authorization": ctx["token"],
         "Accept-Encoding": "gzip, deflate",
     })
@@ -218,13 +222,78 @@ def resposta_comprimida_chega_intacta(ctx):
 
 
 def rota_protegida_exige_token(ctx):
-    r = httpx.get(GATEWAY + "/catalogo/livros/", timeout=10.0)
+    r = httpx.get(GATEWAY + "/imoveis/imoveis/", timeout=10.0)
     assert r.status_code == 401, (
         "sem token deveria dar 401, deu {0}".format(r.status_code))
-    r = httpx.get(GATEWAY + "/catalogo/livros/", timeout=10.0,
+    r = httpx.get(GATEWAY + "/imoveis/imoveis/", timeout=10.0,
                   headers={"Authorization": "token-falso"})
     assert r.status_code == 401, (
         "token invalido deveria dar 401, deu {0}".format(r.status_code))
+
+
+def modelo_imovel_substituiu_o_livro():
+    """2.2 - o modelo novo nao pode carregar campo de acervo de biblioteca."""
+    modelo = (BIB / "services" / "imoveis" / "models.py").read_text(encoding="utf-8")
+    for campo in ("tipo", "cidade", "valor_mensal", "disponivel", "quartos"):
+        assert campo in modelo, "Imovel sem o campo {0}".format(campo)
+    for herdado in ("isbn", "genero", "autor", "quantidade_total"):
+        assert herdado not in modelo, (
+            "models.py ainda tem {0}, campo do acervo de livros".format(herdado))
+
+
+def componente_imovel_e_booleano():
+    """2.3/2.6 - o contrato do componente acompanhou a mudanca de semantica."""
+    sys.path.insert(0, str(BIB / "framework"))
+    import interfaces
+
+    metodos = set(interfaces.IComponenteImovel.__abstractmethods__)
+    for metodo in ("buscar_imoveis", "cadastrar_imovel", "definir_disponibilidade"):
+        assert metodo in metodos, (
+            "IComponenteImovel sem {0}; tem {1}".format(metodo, sorted(metodos)))
+    assert not hasattr(interfaces, "IComponenteCatalogo"), (
+        "IComponenteCatalogo ainda existe")
+
+
+def filtros_de_imovel(ctx):
+    """2.4 - os filtros novos precisam filtrar de verdade."""
+    auth = ctx["auth"]
+    base = GATEWAY + "/imoveis/imoveis/"
+
+    r = httpx.get(base, headers=auth, params={"cidade": "Maceio"}, timeout=10.0)
+    assert r.status_code == 200, r.text
+    assert all(i["cidade"] == "Maceio" for i in r.json()), "filtro de cidade vazou"
+
+    r = httpx.get(base, headers=auth, params={"tipo": "casa"}, timeout=10.0)
+    assert r.status_code == 200, r.text
+    assert all(i["tipo"] == "casa" for i in r.json()), "filtro de tipo vazou"
+
+    r = httpx.get(base, headers=auth, params={"quartos_min": 2}, timeout=10.0)
+    assert all(i["quartos"] >= 2 for i in r.json()), "filtro de quartos vazou"
+
+    r = httpx.get(base, headers=auth, params={"valor_max": 2000}, timeout=10.0)
+    assert all(i["valor_mensal"] <= 2000 for i in r.json()), "filtro de valor vazou"
+
+    r = httpx.get(base, headers=auth,
+                  params={"valor_min": 5000, "valor_max": 100}, timeout=10.0)
+    assert r.status_code == 400, (
+        "faixa de valor invertida deveria dar 400, deu {0}".format(r.status_code))
+
+
+def disponibilidade_e_booleana(ctx):
+    """2.3 - substituiu o delta inteiro e mantem a guarda de estado."""
+    url = "{0}/imoveis/imoveis/{1}/disponibilidade".format(GATEWAY, ctx["imovel_id"])
+    auth = ctx["auth"]
+
+    r = httpx.patch(url, headers=auth, params={"disponivel": False}, timeout=10.0)
+    assert r.status_code == 200, "alugar: {0} {1}".format(r.status_code, r.text)
+    assert r.json()["disponivel"] is False, r.text
+
+    r = httpx.patch(url, headers=auth, params={"disponivel": False}, timeout=10.0)
+    assert r.status_code == 400, (
+        "alugar imovel ja alugado deveria dar 400, deu {0}".format(r.status_code))
+
+    r = httpx.patch(url, headers=auth, params={"disponivel": True}, timeout=10.0)
+    assert r.status_code == 200, "liberar: {0} {1}".format(r.status_code, r.text)
 
 
 ESTATICAS = [
@@ -234,6 +303,8 @@ ESTATICAS = [
     ("1", "bancos vem de env var", bancos_por_env_var),
     ("2", "sem API depreciada (lifespan)", sem_api_depreciada),
     ("2", "proxy filtra headers do corpo", proxy_filtra_headers),
+    ("3", "modelo Imovel substituiu o Livro", modelo_imovel_substituiu_o_livro),
+    ("4", "componente usa disponibilidade booleana", componente_imovel_e_booleano),
     ("-", "todo .py compila", tudo_compila),
 ]
 
@@ -242,6 +313,8 @@ VIVAS = [
     ("2", "fluxo completo pelo gateway", fluxo_completo_pelo_gateway),
     ("2", "resposta comprimida intacta", resposta_comprimida_chega_intacta),
     ("2", "rota protegida exige token", rota_protegida_exige_token),
+    ("4", "filtros de imovel filtram", filtros_de_imovel),
+    ("4", "disponibilidade e booleana", disponibilidade_e_booleana),
 ]
 
 

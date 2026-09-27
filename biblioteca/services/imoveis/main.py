@@ -6,16 +6,16 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import Database
-from repository import LivroRepository
-from service import CatalogoService
+from repository import ImovelRepository
+from service import ImovelService
 from routes import criar_router
-from exceptions import LivroNaoEncontrado, RegraDeNegocio
+from exceptions import ImovelNaoEncontrado, RegraDeNegocio
 
-DB_PATH = os.getenv("CATALOGO_DB", "catalogo.db")
+DB_PATH = os.getenv("IMOVEIS_DB", "imoveis.db")
 
 database = Database(DB_PATH)
-repository = LivroRepository(database)
-service = CatalogoService(repository)
+repository = ImovelRepository(database)
+service = ImovelService(repository)
 
 
 @asynccontextmanager
@@ -25,8 +25,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Biblioteca Online — Catálogo",
-    description="Gerenciamento do acervo de livros da biblioteca",
+    title="Aluguel de Imóveis — Imóveis",
+    description="Cadastro e consulta do portfólio de apartamentos e casas",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -39,8 +39,8 @@ app.add_middleware(
 )
 
 
-@app.exception_handler(LivroNaoEncontrado)
-def tratar_nao_encontrado(request: Request, exc: LivroNaoEncontrado):
+@app.exception_handler(ImovelNaoEncontrado)
+def tratar_nao_encontrado(request: Request, exc: ImovelNaoEncontrado):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 
@@ -54,4 +54,4 @@ app.include_router(criar_router(service))
 
 @app.get("/health")
 def health():
-    return {"service": "catalogo", "status": "ok", "port": 8001}
+    return {"service": "imoveis", "status": "ok", "port": 8001}

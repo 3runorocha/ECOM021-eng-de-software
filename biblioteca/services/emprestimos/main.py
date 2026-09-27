@@ -8,18 +8,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Database
 from repository import EmprestimoRepository
-from clients import CatalogoClient
+from clients import ImovelClient
 from service import EmprestimoService
 from routes import criar_router
 from exceptions import EmprestimoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
 
 DB_PATH = os.getenv("EMPRESTIMOS_DB", "emprestimos.db")
-CATALOGO_URL = os.getenv("CATALOGO_URL", "http://localhost:8001")
+IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
 
 database = Database(DB_PATH)
 repository = EmprestimoRepository(database)
-catalogo_client = CatalogoClient(CATALOGO_URL)
-service = EmprestimoService(repository, catalogo_client)
+imovel_client = ImovelClient(IMOVEIS_URL)
+service = EmprestimoService(repository, imovel_client)
 
 
 @asynccontextmanager

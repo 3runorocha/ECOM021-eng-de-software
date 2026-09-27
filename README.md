@@ -14,11 +14,11 @@ Todas as requisições passam por um **API Gateway** que roteia para os microsse
 | Serviço | Porta | Responsabilidade |
 |---------|-------|------------------|
 | API Gateway | 8000 | Ponto de entrada único, roteamento e autenticação |
-| Catálogo | 8001 | Acervo de livros, busca e disponibilidade |
+| Imóveis | 8001 | Portfólio de apartamentos e casas, busca e disponibilidade |
 | Usuários | 8002 | Cadastro e autenticação |
-| Empréstimos | 8003 | Empréstimo, devolução e multa |
+| Empréstimos | 8003 | Locação, encerramento e multa (vira Contratos na Fase 3) |
 | Notificações | 8004 | Alertas de prazo (opcional) |
-| Recomendação | 8005 | Sugestões por perfil/histórico (opcional) |
+| Recomendação | 8005 | Sugestões por perfil/histórico (vira Agente na Fase 4) |
 
 **Stack:** Python 3.11+, FastAPI, SQLite, React (Vite), Scrum, GitHub.
 
@@ -125,9 +125,11 @@ cd biblioteca
 python seed.py
 ```
 
-Cria 7 usuários e 55 livros. Login de administrador: `admin@biblioteca.br` / `admin123`.
+Cria 7 usuários e 18 imóveis. Login de administrador: `admin@alugue.br` / `admin123`.
 
-É seguro rodar mais de uma vez — e-mails e ISBNs duplicados são ignorados.
+Usuários duplicados são ignorados. **Imóveis não**: diferente do livro, que tinha ISBN,
+imóvel não tem chave única de negócio — rodar de novo duplica o portfólio. Apague
+`biblioteca/services/imoveis/imoveis.db` para recomeçar.
 
 **Passo 2 — seed_emprestimos.py (serviços parados)**
 
@@ -138,7 +140,9 @@ cd biblioteca
 python seed_emprestimos.py
 ```
 
-Insere 42 empréstimos (7 usuários × 6 perfis): ativos, atrasados, devolvidos no prazo e devolvidos com multa. Também ajusta a disponibilidade dos livros no catálogo.
+Insere 42 contratos (7 usuários × 6 perfis). Como um imóvel é único, no máximo um
+contrato fica em aberto por imóvel — quando os imóveis livres acabam, os demais entram
+como histórico encerrado. Também marca como indisponíveis os imóveis com contrato aberto.
 
 Após concluir, suba os serviços novamente.
 
@@ -160,7 +164,11 @@ npm install
 npm run dev
 ```
 
-Acesse `http://localhost:5173` e faça login com `admin@biblioteca.br` / `admin123`.
+Acesse `http://localhost:5173` e faça login com `admin@alugue.br` / `admin123`.
+
+> As telas ainda renderizam campos do domínio antigo (autor, gênero). Só a camada
+> `api.js` foi apontada para os endpoints de imóveis; a reescrita das páginas é a
+> Fase 5 (blocos 10–12).
 
 ---
 

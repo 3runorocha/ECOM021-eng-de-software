@@ -19,9 +19,9 @@ class Database:
                 CREATE TABLE IF NOT EXISTS historico_recomendacoes (
                     id          INTEGER PRIMARY KEY AUTOINCREMENT,
                     usuario_id  INTEGER NOT NULL,
-                    livro_id    INTEGER NOT NULL,
+                    imovel_id    INTEGER NOT NULL,
                     data        TEXT    NOT NULL DEFAULT (datetime('now')),
-                    UNIQUE(usuario_id, livro_id)
+                    UNIQUE(usuario_id, imovel_id)
                 )
                 """
             )

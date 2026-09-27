@@ -1,17 +1,17 @@
 from pydantic import BaseModel
 
 
-class LivroRecomendado(BaseModel):
-    livro_id: int
+class ImovelRecomendado(BaseModel):
+    imovel_id: int
     titulo: str
-    autor: str
-    genero: str
+    tipo: str
+    cidade: str
     score: float
     motivo: str
 
 
 class PerfilUsuario(BaseModel):
     usuario_id: int
-    generos_favoritos: list[str]
-    autores_favoritos: list[str]
+    tipos_favoritos: list[str]
+    cidades_favoritas: list[str]
     total_emprestimos: int

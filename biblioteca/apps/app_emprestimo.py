@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'framework'))
 
 from framework import FrameworkBiblioteca
 from componentes import (
-    ComponenteCatalogoHTTP,
+    ComponenteImovelHTTP,
     ComponenteEmprestimoHTTP,
     ComponenteNotificacaoHTTP,
 )
@@ -13,7 +13,7 @@ from componentes import (
 class AppEmprestimo(FrameworkBiblioteca):
 
     def configurar_componentes(self) -> None:
-        self.registrar_componente("catalogo",     ComponenteCatalogoHTTP())
+        self.registrar_componente("imoveis",      ComponenteImovelHTTP())
         self.registrar_componente("emprestimos",  ComponenteEmprestimoHTTP())
         self.registrar_componente("notificacoes", ComponenteNotificacaoHTTP())
 
@@ -21,21 +21,21 @@ class AppEmprestimo(FrameworkBiblioteca):
         return ["usuario_id", "livro_id"]
 
     def pre_processar(self, contexto: dict) -> None:
-        catalogo = self.get_componente("catalogo")
-        livro_id = contexto["livro_id"]
+        imoveis = self.get_componente("imoveis")
+        imovel_id = contexto["livro_id"]
 
-        livros = catalogo.buscar_livros({})
-        livro = next((l for l in livros if l["id"] == livro_id), None)
+        portfolio = imoveis.buscar_imoveis({})
+        imovel = next((i for i in portfolio if i["id"] == imovel_id), None)
 
-        if not livro:
-            raise ValueError(f"Livro ID {livro_id} não encontrado no catálogo")
+        if not imovel:
+            raise ValueError(f"Imóvel ID {imovel_id} não encontrado no portfólio")
 
-        if livro["quantidade_disponivel"] <= 0:
+        if not imovel["disponivel"]:
             raise ValueError(
-                f"Livro '{livro['titulo']}' não possui exemplares disponíveis no momento"
+                f"Imóvel '{imovel['titulo']}' já está alugado no momento"
             )
 
-        contexto["titulo_livro"] = livro["titulo"]
+        contexto["titulo_livro"] = imovel["titulo"]
 
     def executar_logica(self, contexto: dict) -> dict:
         emprestimos = self.get_componente("emprestimos")

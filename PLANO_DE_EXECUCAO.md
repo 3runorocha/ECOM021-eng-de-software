@@ -37,8 +37,8 @@ um livro tem N exemplares (`quantidade_total` / `quantidade_disponivel`), um im�
 | 2.2 | `Livro` → `Imovel`: `titulo`, `tipo` (apartamento/casa), `endereco`, `cidade`, `quartos`, `banheiros`, `area_m2`, `valor_mensal`, `disponivel` | `models.py`, `database.py` |
 | 2.3 | `atualizar_disponibilidade(livro_id, delta: int)` → `definir_disponibilidade(imovel_id, disponivel: bool)`. Propagar a mudança nos 3 pontos de uso | `service.py`, `routes.py`, `repository.py` |
 | 2.4 | Filtros de listagem: `genero`/`autor` → `cidade`, `tipo`, `quartos`, faixa de `valor_mensal` | `repository.py`, `routes.py` |
-| 2.5 | Remover a busca por ISBN (era feature opcional da LPS antiga) | `routes.py`, `service.py` |
-| 2.6 | Atualizar `IComponenteCatalogo` → `IComponenteImovel` e a implementação HTTP | `framework/interfaces.py`, `framework/componentes.py` |
+| 2.5 | ✅ Resolvido no bloco 3 — o modelo `Imovel` não tem ISBN, então a rota deixou de existir | — |
+| 2.6 | ✅ Antecipado para o bloco 4 — renomear o serviço quebra os componentes, não dava para separar | `framework/interfaces.py`, `framework/componentes.py` |
 
 ## Fase 3 — Adaptação do domínio: Empréstimos → Contratos
 

@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'framework'))
 
 from framework import FrameworkBiblioteca
 from componentes import (
-    ComponenteCatalogoHTTP,
+    ComponenteImovelHTTP,
     ComponenteEmprestimoHTTP,
     ComponenteRecomendacaoHTTP,
 )
@@ -13,7 +13,7 @@ from componentes import (
 class AppRecomendacao(FrameworkBiblioteca):
 
     def configurar_componentes(self) -> None:
-        self.registrar_componente("catalogo",     ComponenteCatalogoHTTP())
+        self.registrar_componente("imoveis",      ComponenteImovelHTTP())
         self.registrar_componente("emprestimos",  ComponenteEmprestimoHTTP())
         self.registrar_componente("recomendacao", ComponenteRecomendacaoHTTP())
 
@@ -38,13 +38,13 @@ class AppRecomendacao(FrameworkBiblioteca):
         limite       = contexto.get("limite", 5)
         usuario_id   = contexto["usuario_id"]
 
-        livros = recomendacao.recomendar(usuario_id, limite)
+        imoveis_rec = recomendacao.recomendar(usuario_id, limite)
 
         return {
             "usuario_id":    usuario_id,
             "perfil":        contexto.get("perfil", {}),
-            "recomendacoes": livros,
-            "total":         len(livros),
+            "recomendacoes": imoveis_rec,
+            "total":         len(imoveis_rec),
             "aviso":         contexto.get("_aviso"),
         }
 
@@ -56,19 +56,19 @@ class AppRecomendacao(FrameworkBiblioteca):
 
     def tratar_erro(self, contexto: dict, erro: Exception) -> dict:
         try:
-            catalogo = self.get_componente("catalogo")
-            livros   = catalogo.buscar_livros({})
+            imoveis   = self.get_componente("imoveis")
+            portfolio = imoveis.buscar_imoveis({})
             fallback = [
                 {
-                    "livro_id": l["id"],
-                    "titulo":   l["titulo"],
-                    "autor":    l["autor"],
-                    "genero":   l["genero"],
-                    "score":    0.0,
-                    "motivo":   "recomendação por disponibilidade (fallback)",
+                    "imovel_id": i["id"],
+                    "titulo":    i["titulo"],
+                    "tipo":      i["tipo"],
+                    "cidade":    i["cidade"],
+                    "score":     0.0,
+                    "motivo":    "recomendação por disponibilidade (fallback)",
                 }
-                for l in livros[:5]
-                if l.get("quantidade_disponivel", 0) > 0
+                for i in portfolio[:5]
+                if i.get("disponivel", False)
             ]
             return {
                 "usuario_id":    contexto.get("usuario_id"),
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     })
 
     print(f"\nPerfil do usuário: {resultado.get('perfil')}")
-    print(f"\nRecomendações ({resultado.get('total')} livros):")
+    print(f"\nRecomendações ({resultado.get('total')} imóveis):")
     for rec in resultado.get("recomendacoes", []):
         print(f"  [{rec['score']}pts] {rec['titulo']} — {rec['motivo']}")
 

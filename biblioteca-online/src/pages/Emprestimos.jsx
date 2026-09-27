@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { emprestimosAPI, livrosAPI, usuariosAPI } from '../services/api'
+import { emprestimosAPI, imoveisAPI, usuariosAPI } from '../services/api'
 
 const STATUS = {
   ativo: { label: 'Ativo', color: '#166534', bg: '#dcfce7' },
@@ -23,7 +23,7 @@ export default function Emprestimos() {
     try {
       const [empRes, livrosRes, usuariosRes] = await Promise.all([
         emprestimosAPI.listar(),
-        livrosAPI.listar(),
+        imoveisAPI.listar(),
         usuariosAPI.listar(),
       ])
 
