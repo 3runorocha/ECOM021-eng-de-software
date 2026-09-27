@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'framework'))
 
 from framework import FrameworkBiblioteca
 from componentes import (
-    ComponenteEmprestimoHTTP,
+    ComponenteContratoHTTP,
     ComponenteNotificacaoHTTP,
 )
 
@@ -12,7 +12,7 @@ from componentes import (
 class AppDevolucao(FrameworkBiblioteca):
 
     def configurar_componentes(self) -> None:
-        self.registrar_componente("emprestimos",  ComponenteEmprestimoHTTP())
+        self.registrar_componente("emprestimos",  ComponenteContratoHTTP())
         self.registrar_componente("notificacoes", ComponenteNotificacaoHTTP())
 
     def executar_logica(self, contexto: dict) -> dict:

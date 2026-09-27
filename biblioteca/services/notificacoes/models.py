@@ -6,7 +6,7 @@ class NotificacaoCreate(BaseModel):
     usuario_id: int
     tipo: str
     mensagem: str
-    livro_id: Optional[int] = None
+    imovel_id: Optional[int] = None
 
 
 class Notificacao(BaseModel):
@@ -14,6 +14,6 @@ class Notificacao(BaseModel):
     usuario_id: int
     tipo: str
     mensagem: str
-    livro_id: Optional[int]
+    imovel_id: Optional[int]
     lida: bool
     data_criacao: str

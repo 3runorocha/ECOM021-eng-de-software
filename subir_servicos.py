@@ -20,7 +20,7 @@ RAIZ = Path(__file__).resolve().parent / "biblioteca"
 SERVICOS = [
     ("imoveis",      RAIZ / "services" / "imoveis",      8001),
     ("usuarios",     RAIZ / "services" / "usuarios",     8002),
-    ("emprestimos",  RAIZ / "services" / "emprestimos",  8003),
+    ("contratos",    RAIZ / "services" / "contratos",    8003),
     ("notificacoes", RAIZ / "services" / "notificacoes", 8004),
     ("recomendacao", RAIZ / "services" / "recomendacao", 8005),
     ("gateway",      RAIZ / "gateway",                   8000),

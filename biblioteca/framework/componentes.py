@@ -4,7 +4,7 @@ import httpx
 from interfaces import (
     IComponenteImovel,
     IComponenteUsuario,
-    IComponenteEmprestimo,
+    IComponenteContrato,
     IComponenteNotificacao,
     IComponenteRecomendacao,
 )
@@ -12,7 +12,7 @@ from interfaces import (
 
 URL_IMOVEIS      = os.getenv("IMOVEIS_URL",      "http://localhost:8001")
 URL_USUARIOS     = os.getenv("USUARIOS_URL",     "http://localhost:8002")
-URL_EMPRESTIMOS  = os.getenv("EMPRESTIMOS_URL",  "http://localhost:8003")
+URL_CONTRATOS    = os.getenv("CONTRATOS_URL",    "http://localhost:8003")
 URL_NOTIFICACOES = os.getenv("NOTIFICACOES_URL", "http://localhost:8004")
 URL_RECOMENDACAO = os.getenv("RECOMENDACAO_URL", "http://localhost:8005")
 
@@ -91,9 +91,9 @@ class ComponenteUsuarioHTTP(IComponenteUsuario):
         return resp.json()
 
 
-class ComponenteEmprestimoHTTP(IComponenteEmprestimo):
+class ComponenteContratoHTTP(IComponenteContrato):
 
-    def __init__(self, base_url: str = URL_EMPRESTIMOS):
+    def __init__(self, base_url: str = URL_CONTRATOS):
         self._url    = base_url
         self._client = None
 
@@ -105,25 +105,25 @@ class ComponenteEmprestimoHTTP(IComponenteEmprestimo):
             self._client.close()
 
     def get_nome(self) -> str:
-        return "emprestimos"
+        return "contratos"
 
-    def realizar_emprestimo(self, usuario_id: int, livro_id: int) -> dict:
+    def registrar_contrato(self, inquilino_id: int, imovel_id: int) -> dict:
         resp = self._client.post(
-            f"{self._url}/emprestimos/",
-            json={"usuario_id": usuario_id, "livro_id": livro_id},
+            f"{self._url}/contratos/",
+            json={"inquilino_id": inquilino_id, "imovel_id": imovel_id},
         )
         resp.raise_for_status()
         return resp.json()
 
-    def realizar_devolucao(self, emprestimo_id: int) -> dict:
-        resp = self._client.post(f"{self._url}/emprestimos/{emprestimo_id}/devolver")
+    def encerrar_contrato(self, contrato_id: int) -> dict:
+        resp = self._client.post(f"{self._url}/contratos/{contrato_id}/encerrar")
         resp.raise_for_status()
         return resp.json()
 
-    def listar_emprestimos(self, usuario_id: int) -> list[dict]:
+    def listar_contratos(self, inquilino_id: int) -> list[dict]:
         resp = self._client.get(
-            f"{self._url}/emprestimos/",
-            params={"usuario_id": usuario_id},
+            f"{self._url}/contratos/",
+            params={"inquilino_id": inquilino_id},
         )
         resp.raise_for_status()
         return resp.json()
@@ -145,14 +145,14 @@ class ComponenteNotificacaoHTTP(IComponenteNotificacao):
     def get_nome(self) -> str:
         return "notificacoes"
 
-    def enviar(self, usuario_id: int, tipo: str, mensagem: str, livro_id: int = None) -> dict:
+    def enviar(self, usuario_id: int, tipo: str, mensagem: str, imovel_id: int = None) -> dict:
         resp = self._client.post(
             f"{self._url}/notificacoes/",
             json={
                 "usuario_id": usuario_id,
                 "tipo": tipo,
                 "mensagem": mensagem,
-                "livro_id": livro_id,
+                "imovel_id": imovel_id,
             },
         )
         resp.raise_for_status()

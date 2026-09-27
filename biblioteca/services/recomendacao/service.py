@@ -2,7 +2,7 @@ from collections import Counter
 
 from models import ImovelRecomendado, PerfilUsuario
 from repository import RecomendacaoRepository
-from clients import EmprestimoClient, ImovelClient
+from clients import ContratoClient, ImovelClient
 
 
 class RecomendacaoService:
@@ -23,22 +23,22 @@ class RecomendacaoService:
     def __init__(
         self,
         repository: RecomendacaoRepository,
-        emprestimos: EmprestimoClient,
+        contratos: ContratoClient,
         imoveis: ImovelClient,
     ):
         self._repo = repository
-        self._emprestimos = emprestimos
+        self._contratos = contratos
         self._imoveis = imoveis
 
     def obter_perfil(self, usuario_id: int) -> PerfilUsuario:
-        historico = self._emprestimos.buscar_historico(usuario_id)
+        historico = self._contratos.buscar_historico(usuario_id)
 
         if not historico:
             return PerfilUsuario(
                 usuario_id=usuario_id,
                 tipos_favoritos=[],
                 cidades_favoritas=[],
-                total_emprestimos=0,
+                total_contratos=0,
             )
 
         tipos, cidades = self._coletar_preferencias(historico)
@@ -46,14 +46,14 @@ class RecomendacaoService:
             usuario_id=usuario_id,
             tipos_favoritos=self._mais_frequentes(tipos),
             cidades_favoritas=self._mais_frequentes(cidades),
-            total_emprestimos=len(historico),
+            total_contratos=len(historico),
         )
 
     def recomendar(self, usuario_id: int, limite: int = 5) -> list[ImovelRecomendado]:
-        historico = self._emprestimos.buscar_historico(usuario_id)
+        historico = self._contratos.buscar_historico(usuario_id)
         portfolio = self._imoveis.buscar_portfolio_completo()
 
-        ids_alugados = {emp["livro_id"] for emp in historico}
+        ids_alugados = {c["imovel_id"] for c in historico}
         tipos, cidades = self._coletar_preferencias(historico)
         top_tipos = set(self._mais_frequentes(tipos))
         top_cidades = set(self._mais_frequentes(cidades))
@@ -78,8 +78,8 @@ class RecomendacaoService:
 
     def _coletar_preferencias(self, historico: list[dict]) -> tuple[list, list]:
         tipos, cidades = [], []
-        for emp in historico:
-            imovel = self._imoveis.buscar_imovel(emp["livro_id"])
+        for contrato in historico:
+            imovel = self._imoveis.buscar_imovel(contrato["imovel_id"])
             if imovel:
                 tipos.append(imovel["tipo"])
                 cidades.append(imovel["cidade"])

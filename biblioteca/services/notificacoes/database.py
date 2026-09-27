@@ -21,7 +21,7 @@ class Database:
                     usuario_id   INTEGER NOT NULL,
                     tipo         TEXT    NOT NULL,
                     mensagem     TEXT    NOT NULL,
-                    livro_id     INTEGER,
+                    imovel_id     INTEGER,
                     lida         INTEGER NOT NULL DEFAULT 0,
                     data_criacao TEXT    NOT NULL DEFAULT (datetime('now'))
                 )

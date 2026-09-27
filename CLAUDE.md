@@ -16,11 +16,12 @@ Motivo: `Emprestimo` e `Contrato de aluguel` têm a mesma estrutura (ator + item
 data início + data fim + multa por atraso), então a adaptação é majoritariamente
 renomeação, não remodelagem.
 
-> **Estado em 27/09:** Fase 2 concluída — o serviço de catálogo virou `imoveis`, com
-> modelo `Imovel` e disponibilidade booleana. O serviço de empréstimos ainda fala de
-> `livro_id` e `emprestimos`: isso é a Fase 3 (blocos 6–9), que renomeia para
-> contratos. O frontend ainda renderiza campos de livro nas páginas — só a camada
-> `api.js` foi apontada para os endpoints novos; as telas são reescritas na Fase 5.
+> **Estado em 27/09:** Fases 2 e 3 concluídas. O backend inteiro fala de imóveis e
+> contratos: portfólio com disponibilidade booleana, contrato de 12 meses com multa
+> proporcional (1/30 do aluguel por dia de atraso) e a regra de um contrato aberto por
+> imóvel. O frontend ainda renderiza campos do domínio antigo — só `api.js` foi
+> apontado para os endpoints novos; as telas são reescritas na Fase 5 (blocos 10–12).
+> Próximo: Fase 5 (frontend), depois Fase 4 (agente).
 
 ## Arquitetura
 
@@ -32,8 +33,8 @@ Cada serviço tem banco SQLite próprio e roda isolado.
 | API Gateway | 8000 | ✅ rota `/imoveis` |
 | ~~Catálogo~~ **Imóveis** | 8001 | ✅ feito (bloco 3–4) |
 | Usuários | 8002 | ✅ sem mudança |
-| Empréstimos | 8003 | ⬜ Fase 3 (blocos 6–9) |
-| Notificações | 8004 | ⬜ só vocabulário, Fase 3 |
+| ~~Empréstimos~~ **Contratos** | 8003 | ✅ feito (blocos 6–9) |
+| Notificações | 8004 | ✅ vocabulário e multa proporcional |
 | Recomendação | 8005 | ⬜ vira agente na Fase 4 |
 
 Stack: Python 3.11+, FastAPI, SQLite, React (Vite), httpx.
@@ -71,7 +72,7 @@ só não precisa configurar nada. Para mudar: `.env.example` → `.env` (backend
 `biblioteca-online/.env.example` → `.env` (frontend, prefixo `VITE_`).
 
 Seed (ordem importa): subir serviços → `python seed.py` → parar serviços →
-`python seed_emprestimos.py` → subir de novo.
+`python seed_contratos.py` → subir de novo.
 
 Frontend: `cd biblioteca-online && npm install && npm run dev` (porta 5173).
 Login admin: `admin@alugue.br` / `admin123`.

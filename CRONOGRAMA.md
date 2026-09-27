@@ -19,10 +19,10 @@ registro Scrum (`scrum_biblioteca.md`).
 | 3 | 27–29/09 | 2 | ✅ **Concluído 27/09.** `catalogo` → `imoveis` via `git mv`, histórico preservado (2.1) · modelo `Imovel` + schema (2.2). 2.5 (busca por ISBN) caiu junto: o modelo novo não tem ISBN |
 | 4 | 30/09–02/10 | 2 | ✅ **Concluído 27/09.** `definir_disponibilidade(bool)` (2.3) · filtros cidade/tipo/quartos_min/valor_min/valor_max/disponivel (2.4) · 2.6 antecipado por necessidade (renomear o serviço quebra os componentes) |
 | 5 | 03–05/10 | 2 | ⚠️ **Esvaziado** — 2.5 e 2.6 saíram nos blocos 3 e 4. Bloco livre: usar como folga ou adiantar a Fase 3 |
-| 6 | 06–08/10 | 3 | `Emprestimo` → `Contrato` (3.1) · `inquilino_id`/`imovel_id` (3.2) · campos de data (3.3) |
-| 7 | 09–11/10 | 3 | `PRAZO_MESES = 12` (3.4) · multa proporcional ao `valor_mensal` (3.5) |
-| 8 | 12–14/10 | 3 | `registrar_contrato`/`encerrar_contrato` (3.6) · regra nova: um contrato ativo por imóvel (3.7) |
-| 9 | 15–17/10 | 3 | `ImovelClient` (3.8) · **integração imóveis ↔ contratos end-to-end pelo gateway** |
+| 6 | 06–08/10 | 3 | ✅ **Concluído 27/09.** `Emprestimo` → `Contrato`, `inquilino_id`/`imovel_id`, `data_inicio`/`data_fim_prevista`/`data_fim_real`, status `devolvido` → `encerrado` (3.1–3.3) |
+| 7 | 09–11/10 | 3 | ✅ **Concluído 27/09.** `PRAZO_MESES = 12` com `somar_meses` tratando mês curto (3.4) · multa de 1/30 do aluguel por dia, calculada sobre o `valor_mensal` gravado no contrato (3.5) |
+| 8 | 12–14/10 | 3 | ✅ **Concluído 27/09.** `registrar_contrato`/`encerrar_contrato` (3.6) · um contrato aberto por imóvel, imposto no serviço **e** por índice parcial no banco (3.7) |
+| 9 | 15–17/10 | 3 | ✅ **Concluído 27/09.** `ImovelClient` com compensação se o INSERT falhar (3.8) · integração validada ponta a ponta, incluindo a app do framework e a varredura de notificações |
 | 10 | 18–20/10 | 5 | Reusar shell do frontend (5.1) · `Catalogo.jsx` → `Imoveis.jsx` (5.2) |
 | 11 | 21–23/10 | 5 | `Emprestimos.jsx` → `Contratos.jsx` (5.3) |
 | 12 | 24–26/10 | 5 | `Agente.jsx` (5.4) · remover `Configurador.jsx` (5.5) · rotas e menu (5.6) |
@@ -42,6 +42,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 |--------|--------|--------|
 | 21–27/09 | 1 e 2 | ✅ 12 checagens passando — Fase 1 fechada |
 | 28/09–04/10 | 3 e 4 | ✅ 16 checagens passando — Fase 2 fechada |
+| 05–11/10 | 6 a 9 | ✅ 20 checagens passando — Fase 3 fechada |
 
 ## Marcos
 
@@ -49,7 +50,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 |--------|-----------------|
 | Bloco 2 (26/09) | Esqueleto saneado, roda nas duas máquinas por env var |
 | Bloco 5 (05/10) | Serviço de imóveis completo |
-| Bloco 9 (17/10) | **Backend funcional end-to-end** — mínimo entregável do enunciado |
+| Bloco 9 (17/10) | ✅ **atingido em 27/09** — backend funcional end-to-end, mínimo do enunciado |
 | Bloco 12 (26/10) | Sistema demonstrável com interface |
 | Bloco 14 (01/11) | Agentic AI funcionando (item opcional) |
 | Bloco 16 (07/11) | Pronto para entregar |

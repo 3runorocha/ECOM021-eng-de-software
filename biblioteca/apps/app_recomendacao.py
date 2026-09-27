@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'framework'))
 from framework import FrameworkBiblioteca
 from componentes import (
     ComponenteImovelHTTP,
-    ComponenteEmprestimoHTTP,
+    ComponenteContratoHTTP,
     ComponenteRecomendacaoHTTP,
 )
 
@@ -14,7 +14,7 @@ class AppRecomendacao(FrameworkBiblioteca):
 
     def configurar_componentes(self) -> None:
         self.registrar_componente("imoveis",      ComponenteImovelHTTP())
-        self.registrar_componente("emprestimos",  ComponenteEmprestimoHTTP())
+        self.registrar_componente("contratos",    ComponenteContratoHTTP())
         self.registrar_componente("recomendacao", ComponenteRecomendacaoHTTP())
 
     def get_campos_obrigatorios(self) -> list[str]:
@@ -27,7 +27,7 @@ class AppRecomendacao(FrameworkBiblioteca):
         perfil = recomendacao.obter_perfil(usuario_id)
         contexto["perfil"] = perfil
 
-        if perfil["total_emprestimos"] == 0:
+        if perfil["total_contratos"] == 0:
             contexto["_aviso"] = (
                 "Usuário sem histórico de empréstimos. "
                 "Recomendações baseadas em popularidade geral."
@@ -49,8 +49,8 @@ class AppRecomendacao(FrameworkBiblioteca):
         }
 
     def pos_processar(self, contexto: dict, resultado: dict) -> None:
-        emprestimos = self.get_componente("emprestimos")
-        historico   = emprestimos.listar_emprestimos(contexto["usuario_id"])
+        contratos = self.get_componente("contratos")
+        historico = contratos.listar_contratos(contexto["usuario_id"])
 
         resultado["historico_recente"] = historico[-5:] if historico else []
 
