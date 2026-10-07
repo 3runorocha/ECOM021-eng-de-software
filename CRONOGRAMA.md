@@ -24,7 +24,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 8 | 12–14/10 | 3 | ✅ **Concluído 27/09.** `registrar_contrato`/`encerrar_contrato` (3.6) · um contrato aberto por imóvel, imposto no serviço **e** por índice parcial no banco (3.7) |
 | 9 | 15–17/10 | 3 | ✅ **Concluído 27/09.** `ImovelClient` com compensação se o INSERT falhar (3.8) · integração validada ponta a ponta, incluindo a app do framework e a varredura de notificações |
 | 10 | 18–20/10 | 5 | ✅ **Concluído 07/10.** Shell reusado e rebrandeado; status dos serviços agora vem do `/health` real (5.1) · `Imoveis.jsx` com filtros server-side, cards e estado de erro honesto (5.2) |
-| 11 | 21–23/10 | 5 | `Emprestimos.jsx` → `Contratos.jsx` (5.3) |
+| 11 | 21–23/10 | 5 | ✅ **Concluído 07/10.** `Contratos.jsx` com filtro de status server-side, cadastro de contrato, encerramento e feedback de ação em voo (5.3). Corrigido bug de dados no `seed_contratos.py` |
 | 12 | 24–26/10 | 5 | `Agente.jsx` (5.4) · remover `Configurador.jsx` (5.5) · rotas e menu (5.6) |
 | 13 | 27–29/10 | 4 | Serviço de agente com Claude API, componentes como tools (4.1) · busca conversacional (4.2) |
 | 14 | 30/10–01/11 | 4 | Agente notifica contrato vencendo (4.3) · `App` do framework orquestrando o agente (4.4) |
@@ -44,6 +44,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 28/09–04/10 | 3 e 4 | ✅ 16 checagens passando — Fase 2 fechada |
 | 05–11/10 | 6 a 9 | ✅ 20 checagens passando — Fase 3 fechada |
 | 12–18/10 | 10 | ✅ 23 checagens passando — sistema demonstrável de novo |
+| 19–25/10 | 11 | ✅ 25 checagens passando — ciclo de contrato pela interface |
 
 ## Marcos
 

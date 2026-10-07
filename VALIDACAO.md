@@ -49,6 +49,8 @@ validador não suja seus dados de desenvolvimento.
 | 10 | página de imóveis substituiu o catálogo | `Catalogo.jsx` ressuscitando, ou `App.jsx` sem a rota `/imoveis` |
 | 10 | frontend não inventa dados | fallback de dados falsos voltando à página, ou status de serviço fixo em `ok: true` no Sidebar |
 | 10 | frontend compila | build do Vite quebrando (pula com aviso se faltar `npm install`) |
+| 11 | página de contratos substituiu empréstimos | `Emprestimos.jsx` ressuscitando, rota faltando, ou a tela voltando a falar de status `devolvido` |
+| 11 | tela não duplica a regra de multa | o frontend passando a fazer conta com `valor_mensal` — a multa é do serviço |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -75,7 +77,7 @@ O que o script não alcança:
 | 2 — imóveis | 3–5 | ✅ nada pendente |
 | 3 — contratos | 6–9 | ✅ nada pendente |
 | 4 — agente | 13–14 | O agente responde a uma busca em linguagem natural e chama as tools certas |
-| 5 — frontend | 10–12 | Login, listagem e cadastro ✅ conferidos no bloco 10. Falta: contrato pela interface, menu sem itens mortos, Dashboard com dados reais |
+| 5 — frontend | 10–12 | Login, listagem, cadastro e ciclo de contrato ✅ conferidos (blocos 10 e 11). Falta: menu sem itens mortos, Dashboard com dados reais |
 | 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
 
 ## Semana 1 (21–27/09) — blocos 1 e 2
@@ -180,3 +182,36 @@ Nota sobre o validador: errei duas vezes do mesmo jeito — checagem textual pro
 um nome que aparece no comentário que explica a remoção dele. Agora existe um helper
 `sem_comentarios()` que tira comentários antes de procurar, usado nas checagens de
 `MULTA_POR_DIA` e de `ok: true`.
+
+## Semana 5 (19–25/10) — bloco 11
+
+**Resultado: 25 checagens, todas passando.** O ciclo de contrato fecha pela interface.
+
+Entregue: `Contratos.jsx` no lugar de `Emprestimos.jsx`. Filtro de status vai ao backend
+como query param; tabela com inquilino, imóvel, datas, aluguel, multa e dias em atraso;
+formulário que só oferece imóveis sem contrato em aberto; encerramento com feedback de
+ação em voo.
+
+Verificado no navegador:
+
+- filtro `?status=atrasado` conferido na aba de rede: 3 contratos
+- encerrar o #47 (R$ 5.200, 61 dias de atraso) gerou multa de **R$ 10.573,33**, e o #59
+  (R$ 5.400) gerou **R$ 10.980,00** — exatamente 61 × aluguel / 30, calculado pelo serviço
+- encerrar devolve o imóvel ao portfólio: os imóveis 5, 11 e 17 reapareceram no
+  formulário de novo contrato
+- contrato novo (#85) criado pela tela: 2026-10-07 a 2027-10-07, 12 meses exatos
+
+Bug de dados corrigido: o `seed_contratos.py` somava o prazo ao início recente ao
+rebaixar um contrato aberto para histórico, o que gerava contratos "encerrados" com
+data de saída em 2027 — estado impossível. Agora reposiciona o contrato inteiro no
+passado. Conferido: zero contratos com `data_fim_real` no futuro.
+
+Diagnóstico que errei duas vezes antes de acertar: ao clicar em Encerrar, a lista não
+mudava. Culpei o HMR do Vite, depois meu próprio código. Nenhum dos dois: a sonda de
+2,5s era curta — o refetch faz três chamadas pelo gateway e leva ~3s. O código estava
+certo, mas o silêncio de três segundos era problema real de UX, então os botões agora
+mostram "Encerrando..." / "Registrando..." e ficam desabilitados durante a ação.
+
+Nota sobre o validador: foi a terceira vez que uma checagem textual minha bateu em
+prosa em vez de código (agora o `1/30` escrito no rodapé da tela). A checagem passou a
+procurar aritmética com `valor_mensal`, não a menção da regra.

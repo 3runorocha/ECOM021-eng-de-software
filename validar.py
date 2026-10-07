@@ -475,6 +475,39 @@ def frontend_compila():
         + saida.stdout[-2000:] + saida.stderr[-2000:])
 
 
+def pagina_de_contratos_substituiu_emprestimos():
+    """5.3 - a tela de emprestimos saiu e a rota aponta para a nova."""
+    paginas = RAIZ / "biblioteca-online" / "src" / "pages"
+    assert (paginas / "Contratos.jsx").exists(), "falta pages/Contratos.jsx"
+    assert not (paginas / "Emprestimos.jsx").exists(), "pages/Emprestimos.jsx ainda existe"
+
+    app = (RAIZ / "biblioteca-online" / "src" / "App.jsx").read_text(encoding="utf-8")
+    assert "/contratos" in app, "App.jsx sem a rota /contratos"
+    assert "Emprestimos" not in app, "App.jsx ainda importa Emprestimos"
+
+    pagina = sem_comentarios((paginas / "Contratos.jsx").read_text(encoding="utf-8"))
+    assert "encerrado" in pagina, "a tela nao conhece o status encerrado"
+    assert "devolvido" not in pagina, (
+        "a tela ainda fala de status devolvido, que era do acervo de livros")
+
+
+def tela_nao_duplica_a_regra_de_multa():
+    """A multa e regra de negocio: vive no servico, nao na tela.
+
+    A tela mostra os dias em atraso, que e apresentacao. Se ela passar a
+    calcular dinheiro, a regra fica em dois lugares e eles divergem.
+    """
+    pagina = sem_comentarios(
+        (RAIZ / "biblioteca-online" / "src" / "pages" / "Contratos.jsx")
+        .read_text(encoding="utf-8"))
+    # Procura aritmetica sobre o aluguel, nao a mencao da regra: o rodape da
+    # tela explica "1/30 do aluguel" em prosa, e isso e desejavel.
+    for pista in ("valor_mensal /", "valor_mensal/", "valor_mensal *", "valor_mensal*"):
+        assert pista not in pagina, (
+            "Contratos.jsx faz conta com valor_mensal ({0}); a multa e do servico"
+            .format(pista))
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -488,6 +521,8 @@ ESTATICAS = [
     ("7", "prazo em meses e multa proporcional", prazo_em_meses_e_multa_proporcional),
     ("10", "pagina de imoveis substituiu o catalogo", pagina_de_imoveis_substituiu_catalogo),
     ("10", "frontend nao inventa dados", frontend_nao_inventa_dados),
+    ("11", "pagina de contratos substituiu emprestimos", pagina_de_contratos_substituiu_emprestimos),
+    ("11", "tela nao duplica a regra de multa", tela_nao_duplica_a_regra_de_multa),
     ("10", "frontend compila", frontend_compila),
     ("-", "todo .py compila", tudo_compila),
 ]
