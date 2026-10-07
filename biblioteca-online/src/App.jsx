@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
-import Catalogo from './pages/Catalogo'
+import Imoveis from './pages/Imoveis'
 import Emprestimos from './pages/Emprestimos'
 import Usuarios from './pages/Usuarios'
 import Notificacoes from './pages/Notificacoes'
@@ -21,7 +21,7 @@ function AppInner() {
       <main style={{ flex: 1, overflow: 'auto' }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/imoveis" element={<Imoveis />} />
           <Route path="/emprestimos" element={<Emprestimos />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/notificacoes" element={<Notificacoes />} />

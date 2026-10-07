@@ -52,6 +52,22 @@ def _main_py(servico):
     return (BIB / "services" / servico / "main.py").read_text(encoding="utf-8")
 
 
+def sem_comentarios(texto, marcadores=("#", "//")):
+    """Tira linhas de comentario antes de procurar codigo no fonte.
+
+    Existe porque ja me enganei duas vezes: um comentario que explica a
+    remocao de algo cita o proprio nome removido, e a checagem acusava
+    regressao onde nao havia.
+    """
+    limpas = []
+    for linha in texto.splitlines():
+        nua = linha.strip()
+        if any(nua.startswith(m) for m in marcadores):
+            continue
+        limpas.append(linha)
+    return chr(10).join(limpas)
+
+
 # ------------------------------------------------------- bloco 1 (estatico)
 
 def framework_exige_os_dois_hotspots():
@@ -313,9 +329,7 @@ def prazo_em_meses_e_multa_proporcional():
     """3.4-3.5 - prazo de 12 meses e multa de 1/30 do aluguel por dia."""
     fonte = (BIB / "services" / "contratos" / "service.py").read_text(encoding="utf-8")
     assert "PRAZO_MESES = 12" in fonte, "PRAZO_MESES nao e 12"
-    # Procura a atribuicao, nao o nome: o comentario do service.py cita
-    # MULTA_POR_DIA justamente para explicar que ele foi substituido.
-    assert not re.search(r"^\s*MULTA_POR_DIA\s*=", fonte, re.M), (
+    assert "MULTA_POR_DIA" not in sem_comentarios(fonte), (
         "MULTA_POR_DIA fixo voltou; a multa deve sair do valor_mensal")
 
     partes = [
@@ -410,6 +424,57 @@ def um_contrato_aberto_por_imovel(ctx):
     c.post("/contratos/contratos/{0}/encerrar".format(primeiro), headers=auth)
 
 
+def pagina_de_imoveis_substituiu_catalogo():
+    """5.2 - a tela de catalogo saiu e a rota aponta para a nova."""
+    paginas = RAIZ / "biblioteca-online" / "src" / "pages"
+    assert (paginas / "Imoveis.jsx").exists(), "falta pages/Imoveis.jsx"
+    assert not (paginas / "Catalogo.jsx").exists(), "pages/Catalogo.jsx ainda existe"
+
+    app = (RAIZ / "biblioteca-online" / "src" / "App.jsx").read_text(encoding="utf-8")
+    assert "/imoveis" in app, "App.jsx sem a rota /imoveis"
+    assert "Catalogo" not in app, "App.jsx ainda importa Catalogo"
+
+
+def frontend_nao_inventa_dados():
+    """5.1 - a tela nao pode fingir que funciona quando o backend esta fora.
+
+    A pagina antiga caia num array MOCK de livros no .catch, e o Sidebar tinha
+    a lista de servicos fixa com ok: true -- tudo verde com os servicos
+    derrubados. Os dois mascaravam falha de backend.
+    """
+    pagina = sem_comentarios(
+        (RAIZ / "biblioteca-online" / "src" / "pages" / "Imoveis.jsx")
+        .read_text(encoding="utf-8"))
+    assert "MOCK" not in pagina, (
+        "Imoveis.jsx voltou a ter dados falsos de fallback")
+    assert "setErro" in pagina, "Imoveis.jsx sem estado de erro"
+
+    sidebar = sem_comentarios(
+        (RAIZ / "biblioteca-online" / "src" / "components" / "Sidebar.jsx")
+        .read_text(encoding="utf-8"))
+    assert "ok: true" not in sidebar, (
+        "Sidebar voltou a ter status de servico fixo em ok: true")
+    assert "healthAPI" in sidebar, "Sidebar nao consulta o /health do gateway"
+
+
+def frontend_compila():
+    """5.x - o build do Vite tem de passar."""
+    front = RAIZ / "biblioteca-online"
+    if not (front / "node_modules").exists():
+        raise AssertionError(
+            "node_modules ausente; rode 'npm install' em biblioteca-online "
+            "para esta checagem valer")
+
+    npm = "npm.cmd" if os.name == "nt" else "npm"
+    saida = subprocess.run(
+        [npm, "run", "build"], cwd=str(front),
+        capture_output=True, text=True, timeout=300,
+    )
+    assert saida.returncode == 0, (
+        "build do frontend falhou:" + chr(10)
+        + saida.stdout[-2000:] + saida.stderr[-2000:])
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -421,6 +486,9 @@ ESTATICAS = [
     ("4", "componente usa disponibilidade booleana", componente_imovel_e_booleano),
     ("6", "modelo Contrato substituiu o Emprestimo", modelo_contrato_substituiu_o_emprestimo),
     ("7", "prazo em meses e multa proporcional", prazo_em_meses_e_multa_proporcional),
+    ("10", "pagina de imoveis substituiu o catalogo", pagina_de_imoveis_substituiu_catalogo),
+    ("10", "frontend nao inventa dados", frontend_nao_inventa_dados),
+    ("10", "frontend compila", frontend_compila),
     ("-", "todo .py compila", tudo_compila),
 ]
 

@@ -46,6 +46,9 @@ validador não suja seus dados de desenvolvimento.
 | 7 | prazo em meses e multa proporcional | `PRAZO_MESES` ≠ 12, `MULTA_POR_DIA` fixo voltando, ou `somar_meses` errando mês curto (31/01 + 1 mês) |
 | 8 | ciclo de contrato completo | assinar → ocupar imóvel → encerrar → liberar quebrando em qualquer ponto |
 | 8 | um contrato aberto por imóvel | segundo contrato no mesmo imóvel passando, ou imóvel ficando solto pela compensação |
+| 10 | página de imóveis substituiu o catálogo | `Catalogo.jsx` ressuscitando, ou `App.jsx` sem a rota `/imoveis` |
+| 10 | frontend não inventa dados | fallback de dados falsos voltando à página, ou status de serviço fixo em `ok: true` no Sidebar |
+| 10 | frontend compila | build do Vite quebrando (pula com aviso se faltar `npm install`) |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -72,7 +75,7 @@ O que o script não alcança:
 | 2 — imóveis | 3–5 | ✅ nada pendente |
 | 3 — contratos | 6–9 | ✅ nada pendente |
 | 4 — agente | 13–14 | O agente responde a uma busca em linguagem natural e chama as tools certas |
-| 5 — frontend | 10–12 | Login, listagem, cadastro e contrato pela interface; menu sem itens mortos |
+| 5 — frontend | 10–12 | Login, listagem e cadastro ✅ conferidos no bloco 10. Falta: contrato pela interface, menu sem itens mortos, Dashboard com dados reais |
 | 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
 
 ## Semana 1 (21–27/09) — blocos 1 e 2
@@ -144,3 +147,36 @@ Blocos 5, 8 e 9 ficam como folga.
 Nota: um check meu deu falso positivo — procurava a string `MULTA_POR_DIA`, que
 aparece no comentário explicando que ela foi substituída. Passou a procurar a
 atribuição (`^\s*MULTA_POR_DIA\s*=`).
+
+## Semana 4 (12–18/10) — bloco 10
+
+**Resultado: 23 checagens, todas passando.** O sistema voltou a ser demonstrável.
+
+Entregue: `Catalogo.jsx` substituído por `Imoveis.jsx`, com os filtros estruturados
+indo ao backend (não filtragem no navegador), cards de imóvel, formulário de cadastro
+e estado de erro. Shell rebrandeado (Sidebar, Login, título da aba).
+
+Verificado no navegador, não só por script:
+
+- login com `admin@alugue.br`, 18 imóveis listados e ordenados por aluguel
+- filtro de cidade: 18 → 4 em Recife; somado a tipo=casa → 2. Conferido na aba de rede
+  que a requisição sai como `?cidade=Recife&tipo=casa` — quem filtra é o serviço
+- cadastro de imóvel novo aparece na lista e respeita os filtros ativos
+- com o backend derrubado, aparece "Falha ao carregar" com botão de retentar, e o
+  retentar recupera quando os serviços voltam
+
+Duas mentiras de tela removidas, ambas herdadas do projeto antigo:
+
+1. A página caía num array `MOCK` de livros no `.catch` — com o backend fora, você via
+   seis livros e concluía que funcionava.
+2. O Sidebar tinha a lista de serviços fixa com `ok: true` — seis pontos verdes com
+   todos os serviços derrubados. Agora consulta o `/health` do gateway a cada 10s e
+   mostra vermelho quando está fora.
+
+Lacuna encontrada: `Dashboard.jsx` não estava em nenhum item do plano e mostra números
+inventados (1.247 livros, "Clean Code", "Design Patterns"). Registrado como item 5.7.
+
+Nota sobre o validador: errei duas vezes do mesmo jeito — checagem textual procurando
+um nome que aparece no comentário que explica a remoção dele. Agora existe um helper
+`sem_comentarios()` que tira comentários antes de procurar, usado nas checagens de
+`MULTA_POR_DIA` e de `ok: true`.

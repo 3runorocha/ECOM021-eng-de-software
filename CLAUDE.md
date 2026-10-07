@@ -19,9 +19,12 @@ renomeação, não remodelagem.
 > **Estado em 27/09:** Fases 2 e 3 concluídas. O backend inteiro fala de imóveis e
 > contratos: portfólio com disponibilidade booleana, contrato de 12 meses com multa
 > proporcional (1/30 do aluguel por dia de atraso) e a regra de um contrato aberto por
-> imóvel. O frontend ainda renderiza campos do domínio antigo — só `api.js` foi
-> apontado para os endpoints novos; as telas são reescritas na Fase 5 (blocos 10–12).
-> Próximo: Fase 5 (frontend), depois Fase 4 (agente).
+> imóvel. A tela de imóveis (bloco 10) já é a nova, com filtros server-side e estado
+> de erro honesto. As telas de contratos, recomendação/agente e o Dashboard ainda são
+> do domínio antigo — blocos 11 e 12. Próximo: bloco 11 (`Contratos.jsx`).
+>
+> **Dashboard mostra números inventados** (1.247 livros, "Clean Code") vindos de um
+> fallback fixo. Lacuna do plano, registrada como item 5.7.
 
 ## Arquitetura
 

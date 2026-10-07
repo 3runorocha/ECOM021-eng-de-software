@@ -23,7 +23,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 7 | 09–11/10 | 3 | ✅ **Concluído 27/09.** `PRAZO_MESES = 12` com `somar_meses` tratando mês curto (3.4) · multa de 1/30 do aluguel por dia, calculada sobre o `valor_mensal` gravado no contrato (3.5) |
 | 8 | 12–14/10 | 3 | ✅ **Concluído 27/09.** `registrar_contrato`/`encerrar_contrato` (3.6) · um contrato aberto por imóvel, imposto no serviço **e** por índice parcial no banco (3.7) |
 | 9 | 15–17/10 | 3 | ✅ **Concluído 27/09.** `ImovelClient` com compensação se o INSERT falhar (3.8) · integração validada ponta a ponta, incluindo a app do framework e a varredura de notificações |
-| 10 | 18–20/10 | 5 | Reusar shell do frontend (5.1) · `Catalogo.jsx` → `Imoveis.jsx` (5.2) |
+| 10 | 18–20/10 | 5 | ✅ **Concluído 07/10.** Shell reusado e rebrandeado; status dos serviços agora vem do `/health` real (5.1) · `Imoveis.jsx` com filtros server-side, cards e estado de erro honesto (5.2) |
 | 11 | 21–23/10 | 5 | `Emprestimos.jsx` → `Contratos.jsx` (5.3) |
 | 12 | 24–26/10 | 5 | `Agente.jsx` (5.4) · remover `Configurador.jsx` (5.5) · rotas e menu (5.6) |
 | 13 | 27–29/10 | 4 | Serviço de agente com Claude API, componentes como tools (4.1) · busca conversacional (4.2) |
@@ -43,6 +43,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 21–27/09 | 1 e 2 | ✅ 12 checagens passando — Fase 1 fechada |
 | 28/09–04/10 | 3 e 4 | ✅ 16 checagens passando — Fase 2 fechada |
 | 05–11/10 | 6 a 9 | ✅ 20 checagens passando — Fase 3 fechada |
+| 12–18/10 | 10 | ✅ 23 checagens passando — sistema demonstrável de novo |
 
 ## Marcos
 

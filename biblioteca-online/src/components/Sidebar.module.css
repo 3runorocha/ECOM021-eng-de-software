@@ -102,3 +102,10 @@
   background: #f59e0b;
   flex-shrink: 0;
 }
+
+.dotRed {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+}
