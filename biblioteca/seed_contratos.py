@@ -88,9 +88,12 @@ def main():
             tipo = p["tipo"]
 
             # Imovel ja com contrato aberto nao recebe outro: vira historico.
+            # Reposiciona o contrato inteiro no passado, em vez de somar o prazo
+            # ao inicio recente -- isso deixava "encerrado" com data de saida no
+            # futuro, que e estado impossivel.
             if tipo in ("ativo", "atrasado") and imovel_id in ocupados:
                 tipo = "encerrado"
-                p = {**p, "saida": p["inicio"] + PRAZO_MESES}
+                p = {"inicio": -(PRAZO_MESES + 2), "tipo": "encerrado", "saida": -2}
 
             data_inicio = somar_meses(HOJE, p["inicio"])
             data_prev = somar_meses(data_inicio, PRAZO_MESES)

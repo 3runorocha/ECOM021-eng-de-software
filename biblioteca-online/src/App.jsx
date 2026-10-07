@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Imoveis from './pages/Imoveis'
-import Emprestimos from './pages/Emprestimos'
+import Contratos from './pages/Contratos'
 import Usuarios from './pages/Usuarios'
 import Notificacoes from './pages/Notificacoes'
 import Recomendacao from './pages/Recomendacao'
@@ -22,7 +22,7 @@ function AppInner() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/imoveis" element={<Imoveis />} />
-          <Route path="/emprestimos" element={<Emprestimos />} />
+          <Route path="/contratos" element={<Contratos />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/recomendacao" element={<Recomendacao />} />

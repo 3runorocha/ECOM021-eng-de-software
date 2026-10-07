@@ -86,8 +86,8 @@ export default function Sidebar() {
         <NavLink to="/imoveis" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
           🏘️ Imóveis <span className={styles.badge}>8001</span>
         </NavLink>
-        <NavLink to="/emprestimos" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
-          🔄 Empréstimos <span className={styles.badge}>8003</span>
+        <NavLink to="/contratos" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
+          📄 Contratos <span className={styles.badge}>8003</span>
         </NavLink>
         <NavLink to="/usuarios" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
           👥 Usuários <span className={styles.badge}>8002</span>

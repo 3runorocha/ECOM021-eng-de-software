@@ -81,7 +81,7 @@ O serviço `recomendacao` (8005) vira um **serviço de agente**. O encaixe já e
 |---|------|---------|
 | 5.1 | ✅ **Bloco 10.** `AuthContext.jsx` e `api.js` reusados sem mexer. `Sidebar.jsx` e `Login.jsx` precisaram de rebranding, e o Sidebar trocou a lista fixa `ok: true` por consulta ao `/health` do gateway — mostrava tudo verde com os serviços derrubados | — |
 | 5.2 | ✅ **Bloco 10.** `Imoveis.jsx`: filtros de cidade/tipo/quartos/valor enviados ao backend, cards com valor, quartos e situação, formulário de cadastro e estado de erro. Sem foto (não há imagens no projeto) | `src/pages/` |
-| 5.3 | `Emprestimos.jsx` → `Contratos.jsx` | `src/pages/` |
+| 5.3 | ✅ **Bloco 11.** `Contratos.jsx`: filtro de status enviado ao backend, tabela com aluguel/multa/dias de atraso, formulário que só oferece imóveis sem contrato em aberto, encerramento com feedback de ação em voo | `src/pages/` |
 | 5.4 | `Recomendacao.jsx` → `Agente.jsx` (interface de chat) | `src/pages/` |
 | 5.5 | Remover `Configurador.jsx` (era da LPS da disciplina antiga, fora de escopo aqui) | `src/pages/` |
 | 5.6 | Ajustar rotas e itens do menu | `App.jsx`, `Sidebar.jsx` |
