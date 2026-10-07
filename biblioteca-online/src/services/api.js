@@ -44,4 +44,9 @@ export const recomendacoesAPI = {
   porUsuario: (userId) => api.get(`/recomendacao/recomendacao/${userId}`),
 }
 
+// /health e /services sao rotas livres no gateway (nao exigem token).
+export const healthAPI = {
+  checar: () => api.get('/health'),
+}
+
 export default api

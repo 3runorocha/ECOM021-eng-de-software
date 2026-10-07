@@ -24,8 +24,8 @@ export default function Login() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '360px' }}>
-        <div style={{ fontSize: '24px', marginBottom: '4px' }}>📚</div>
-        <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '2px' }}>Biblioteca Online</div>
+        <div style={{ fontSize: '24px', marginBottom: '4px' }}>🏠</div>
+        <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '2px' }}>Aluguel de Imóveis</div>
         <div style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '1.5rem' }}>Faça login para continuar</div>
 
         <form onSubmit={handleLogin}>

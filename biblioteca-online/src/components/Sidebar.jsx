@@ -1,24 +1,79 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { healthAPI } from '../services/api'
 import styles from './Sidebar.module.css'
 
-const servicos = [
-  { porta: 8000, label: 'Gateway', ok: true },
-  { porta: 8001, label: 'Catálogo', ok: true },
-  { porta: 8002, label: 'Usuários', ok: true },
-  { porta: 8003, label: 'Empréstimos', ok: true },
-  { porta: 8004, label: 'Notificações', ok: false },
-  { porta: 8005, label: 'Recomendação', ok: true },
-]
+// O gateway não aparece dentro de /health.servicos, porque é ele quem responde;
+// entra separado na primeira linha.
+const ROTULOS = {
+  imoveis: 'Imóveis',
+  usuarios: 'Usuários',
+  contratos: 'Contratos',
+  notificacoes: 'Notificações',
+  recomendacao: 'Recomendação',
+}
+
+const INTERVALO_MS = 10000
 
 export default function Sidebar() {
   const { usuario, logout } = useAuth()
+  const [saude, setSaude] = useState(null)
+
+  // Esta lista era fixa com ok: true, então mostrava tudo verde mesmo com os
+  // serviços derrubados. Agora vem do /health do gateway, que já agrega o
+  // estado dos cinco microsserviços.
+  useEffect(() => {
+    let cancelado = false
+
+    function consultar() {
+      healthAPI
+        .checar()
+        .then((r) => {
+          if (!cancelado) setSaude(r.data)
+        })
+        .catch(() => {
+          if (!cancelado) setSaude({ gateway: 'indisponivel', servicos: null })
+        })
+    }
+
+    consultar()
+    const timer = setInterval(consultar, INTERVALO_MS)
+    return () => {
+      cancelado = true
+      clearInterval(timer)
+    }
+  }, [])
+
+  const linhas = [
+    {
+      chave: 'gateway',
+      label: 'Gateway',
+      porta: 8000,
+      status: saude ? (saude.gateway === 'ok' ? 'ok' : 'indisponivel') : null,
+    },
+    ...Object.entries(ROTULOS).map(([chave, label], i) => ({
+      chave,
+      label,
+      porta: saude?.servicos?.[chave]?.porta ?? 8001 + i,
+      status: saude ? saude.servicos?.[chave]?.status ?? 'indisponivel' : null,
+    })),
+  ]
+
+  function corDoPonto(status) {
+    if (status === 'ok') return styles.dotGreen
+    if (status === null) return styles.dotAmber
+    return styles.dotRed
+  }
+
+  const degradado = saude?.status_geral && saude.status_geral !== 'ok'
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logo}>
-        <div className={styles.logoIcon}>📚</div>
+        <div className={styles.logoIcon}>🏠</div>
         <div>
-          <div className={styles.logoText}>Biblioteca Online</div>
+          <div className={styles.logoText}>Aluguel de Imóveis</div>
           <div className={styles.logoSub}>FastAPI + React</div>
         </div>
       </div>
@@ -28,8 +83,8 @@ export default function Sidebar() {
         <NavLink to="/" end className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
           🏠 Dashboard
         </NavLink>
-        <NavLink to="/catalogo" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
-          📖 Catálogo <span className={styles.badge}>8001</span>
+        <NavLink to="/imoveis" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
+          🏘️ Imóveis <span className={styles.badge}>8001</span>
         </NavLink>
         <NavLink to="/emprestimos" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
           🔄 Empréstimos <span className={styles.badge}>8003</span>
@@ -51,11 +106,15 @@ export default function Sidebar() {
       </nav>
 
       <div className={styles.status}>
-        <div className={styles.statusLabel}>Status dos serviços</div>
-        {servicos.map((s) => (
-          <div key={s.porta} className={styles.statusRow}>
-            <span className={s.ok ? styles.dotGreen : styles.dotAmber} />
+        <div className={styles.statusLabel}>
+          Status dos serviços
+          {degradado && <span style={{ color: '#b45309', fontWeight: 600 }}> — degradado</span>}
+        </div>
+        {linhas.map((s) => (
+          <div key={s.chave} className={styles.statusRow}>
+            <span className={corDoPonto(s.status)} />
             {s.label} — :{s.porta}
+            {s.status === null && <span style={{ color: '#9ca3af' }}> (checando)</span>}
           </div>
         ))}
       </div>
