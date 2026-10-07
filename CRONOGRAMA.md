@@ -25,7 +25,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 9 | 15–17/10 | 3 | ✅ **Concluído 27/09.** `ImovelClient` com compensação se o INSERT falhar (3.8) · integração validada ponta a ponta, incluindo a app do framework e a varredura de notificações |
 | 10 | 18–20/10 | 5 | ✅ **Concluído 07/10.** Shell reusado e rebrandeado; status dos serviços agora vem do `/health` real (5.1) · `Imoveis.jsx` com filtros server-side, cards e estado de erro honesto (5.2) |
 | 11 | 21–23/10 | 5 | ✅ **Concluído 07/10.** `Contratos.jsx` com filtro de status server-side, cadastro de contrato, encerramento e feedback de ação em voo (5.3). Corrigido bug de dados no `seed_contratos.py` |
-| 12 | 24–26/10 | 5 | `Agente.jsx` (5.4) · remover `Configurador.jsx` (5.5) · rotas e menu (5.6) |
+| 12 | 24–26/10 | 5 | ✅ **Concluído 07/10.** Dashboard, Usuários, Notificações e Recomendação reescritos com dados reais (5.4, 5.7–5.9) · `Configurador.jsx` removido (5.5) · rotas e menu (5.6). A interface de chat do agente fica para a Fase 4, quando o agente existir |
 | 13 | 27–29/10 | 4 | Serviço de agente com Claude API, componentes como tools (4.1) · busca conversacional (4.2) |
 | 14 | 30/10–01/11 | 4 | Agente notifica contrato vencendo (4.3) · `App` do framework orquestrando o agente (4.4) |
 | 15 | 02–04/11 | 6 | Testes: pytest por serviço + 1 integração (6.1) · reescrever seeds (6.2) |
@@ -45,6 +45,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 05–11/10 | 6 a 9 | ✅ 20 checagens passando — Fase 3 fechada |
 | 12–18/10 | 10 | ✅ 23 checagens passando — sistema demonstrável de novo |
 | 19–25/10 | 11 | ✅ 25 checagens passando — ciclo de contrato pela interface |
+| 26/10–01/11 | 12 | ✅ 28 checagens passando — **Fase 5 fechada**, nenhuma tela mente |
 
 ## Marcos
 
@@ -53,7 +54,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | Bloco 2 (26/09) | Esqueleto saneado, roda nas duas máquinas por env var |
 | Bloco 5 (05/10) | Serviço de imóveis completo |
 | Bloco 9 (17/10) | ✅ **atingido em 27/09** — backend funcional end-to-end, mínimo do enunciado |
-| Bloco 12 (26/10) | Sistema demonstrável com interface |
+| Bloco 12 (26/10) | ✅ **atingido em 07/10** — sistema demonstrável de ponta a ponta |
 | Bloco 14 (01/11) | Agentic AI funcionando (item opcional) |
 | Bloco 16 (07/11) | Pronto para entregar |
 

@@ -13,7 +13,7 @@ from routes import criar_router
 from exceptions import ContratoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
 
 DB_PATH = os.getenv("CONTRATOS_DB", "contratos.db")
-IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
+IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://127.0.0.1:8001")
 
 database = Database(DB_PATH)
 repository = ContratoRepository(database)

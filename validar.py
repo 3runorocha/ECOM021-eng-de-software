@@ -28,7 +28,7 @@ RAIZ = Path(__file__).resolve().parent
 BIB = RAIZ / "biblioteca"
 SERVICOS = ["imoveis", "usuarios", "contratos", "notificacoes", "recomendacao"]
 PORTAS = (8000, 8001, 8002, 8003, 8004, 8005)
-GATEWAY = "http://localhost:8000"
+GATEWAY = "http://127.0.0.1:8000"
 
 sys.path.insert(0, str(RAIZ))
 import subir_servicos as launcher  # noqa: E402  (reusa a lista de servicos)
@@ -97,13 +97,20 @@ def framework_exige_os_dois_hotspots():
 
 
 def nenhuma_url_hardcoded():
-    """1.5 - toda URL de servico tem de vir de env var."""
+    """1.5 - toda URL de servico vem de env var, e nunca aponta para localhost.
+
+    O host importa: no Windows, localhost resolve ::1 antes de 127.0.0.1 e o
+    uvicorn escuta so em IPv4, entao cada chamada entre servicos espera ~2s
+    antes de cair no IPv4. Medido: 2133 ms com localhost, 20 ms com 127.0.0.1.
+    """
     problemas = []
     for caminho, texto in _fontes_py():
         for n, linha in enumerate(texto.splitlines(), 1):
-            if "localhost" in linha and "getenv" not in linha:
-                problemas.append("{0}:{1}: {2}".format(
-                    caminho.relative_to(RAIZ), n, linha.strip()))
+            rotulo = "{0}:{1}: {2}".format(caminho.relative_to(RAIZ), n, linha.strip())
+            if "http://127.0.0.1:" in linha and "getenv" not in linha:
+                problemas.append("fora de env var -> " + rotulo)
+            if "http://localhost:" in linha:
+                problemas.append("usa localhost (lento no Windows) -> " + rotulo)
 
     api_js = RAIZ / "biblioteca-online" / "src" / "services" / "api.js"
     for n, linha in enumerate(api_js.read_text(encoding="utf-8").splitlines(), 1):
@@ -442,12 +449,15 @@ def frontend_nao_inventa_dados():
     a lista de servicos fixa com ok: true -- tudo verde com os servicos
     derrubados. Os dois mascaravam falha de backend.
     """
-    pagina = sem_comentarios(
-        (RAIZ / "biblioteca-online" / "src" / "pages" / "Imoveis.jsx")
-        .read_text(encoding="utf-8"))
-    assert "MOCK" not in pagina, (
-        "Imoveis.jsx voltou a ter dados falsos de fallback")
-    assert "setErro" in pagina, "Imoveis.jsx sem estado de erro"
+    paginas = RAIZ / "biblioteca-online" / "src" / "pages"
+    for arquivo in sorted(paginas.glob("*.jsx")):
+        pagina = sem_comentarios(arquivo.read_text(encoding="utf-8"))
+        assert "MOCK" not in pagina, (
+            "{0} tem dados falsos de fallback".format(arquivo.name))
+        if arquivo.name != "Login.jsx":
+            assert "setErro" in pagina, (
+                "{0} sem estado de erro: falha de backend fica invisivel"
+                .format(arquivo.name))
 
     sidebar = sem_comentarios(
         (RAIZ / "biblioteca-online" / "src" / "components" / "Sidebar.jsx")
@@ -508,6 +518,46 @@ def tela_nao_duplica_a_regra_de_multa():
             .format(pista))
 
 
+def configurador_foi_removido():
+    """5.5 - era tela da LPS da disciplina antiga, fora de escopo aqui."""
+    paginas = RAIZ / "biblioteca-online" / "src" / "pages"
+    assert not (paginas / "Configurador.jsx").exists(), (
+        "pages/Configurador.jsx ainda existe")
+    for arquivo in ("App.jsx", "components/Sidebar.jsx"):
+        texto = (RAIZ / "biblioteca-online" / "src" / arquivo).read_text(encoding="utf-8")
+        assert "onfigurador" not in texto, (
+            "{0} ainda referencia o Configurador".format(arquivo))
+
+
+def frontend_sem_vocabulario_de_biblioteca():
+    """5.x - nenhuma tela pode continuar falando do dominio antigo."""
+    base = RAIZ / "biblioteca-online" / "src"
+    problemas = []
+    for arquivo in sorted(base.rglob("*.jsx")) + sorted(base.rglob("*.js")):
+        texto = sem_comentarios(arquivo.read_text(encoding="utf-8"))
+        for termo in ("livro", "Livro", "autor", "genero", "emprestimo", "Emprestimo"):
+            if termo in texto:
+                problemas.append("{0}: {1}".format(arquivo.name, termo))
+    assert not problemas, "vocabulario do acervo de livros no frontend: " + ", ".join(problemas)
+
+
+def recomendacao_responde_rapido(ctx):
+    """O servico de recomendacao chama imoveis uma vez por contrato do
+    historico. Com host errado isso custava 14s e estourava o gateway."""
+    inicio = time.perf_counter()
+    r = httpx.get(GATEWAY + "/recomendacao/recomendacao/perfil/1",
+                  headers=ctx["auth"], timeout=20.0)
+    duracao = time.perf_counter() - inicio
+    assert r.status_code == 200, "perfil: {0} {1}".format(r.status_code, r.text)
+    assert duracao < 5.0, (
+        "perfil levou {0:.1f}s; chamada entre servicos esta lenta (host errado?)"
+        .format(duracao))
+
+    r = httpx.get(GATEWAY + "/recomendacao/recomendacao/1",
+                  headers=ctx["auth"], timeout=20.0)
+    assert r.status_code == 200, "recomendar: {0} {1}".format(r.status_code, r.text)
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -523,6 +573,8 @@ ESTATICAS = [
     ("10", "frontend nao inventa dados", frontend_nao_inventa_dados),
     ("11", "pagina de contratos substituiu emprestimos", pagina_de_contratos_substituiu_emprestimos),
     ("11", "tela nao duplica a regra de multa", tela_nao_duplica_a_regra_de_multa),
+    ("12", "configurador foi removido", configurador_foi_removido),
+    ("12", "frontend sem vocabulario de biblioteca", frontend_sem_vocabulario_de_biblioteca),
     ("10", "frontend compila", frontend_compila),
     ("-", "todo .py compila", tudo_compila),
 ]
@@ -536,6 +588,7 @@ VIVAS = [
     ("4", "disponibilidade e booleana", disponibilidade_e_booleana),
     ("8", "ciclo de contrato completo", ciclo_de_contrato),
     ("8", "um contrato aberto por imovel", um_contrato_aberto_por_imovel),
+    ("12", "recomendacao responde rapido", recomendacao_responde_rapido),
 ]
 
 

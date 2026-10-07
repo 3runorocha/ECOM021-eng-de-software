@@ -14,8 +14,8 @@ from routes import criar_router
 from exceptions import ServicoIndisponivel
 
 DB_PATH = os.getenv("RECOMENDACAO_DB", "recomendacao.db")
-CONTRATOS_URL = os.getenv("CONTRATOS_URL", "http://localhost:8003")
-IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
+CONTRATOS_URL = os.getenv("CONTRATOS_URL", "http://127.0.0.1:8003")
+IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://127.0.0.1:8001")
 
 database = Database(DB_PATH)
 repository = RecomendacaoRepository(database)
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Aluguel de Imóveis — Recomendação",
-    description="Recomendação de livros baseada no perfil e histórico do usuário",
+    description="Recomendação de imóveis pelo perfil e histórico de contratos do inquilino",
     version="1.0.0",
     lifespan=lifespan,
 )

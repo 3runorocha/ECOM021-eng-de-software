@@ -82,10 +82,12 @@ O serviço `recomendacao` (8005) vira um **serviço de agente**. O encaixe já e
 | 5.1 | ✅ **Bloco 10.** `AuthContext.jsx` e `api.js` reusados sem mexer. `Sidebar.jsx` e `Login.jsx` precisaram de rebranding, e o Sidebar trocou a lista fixa `ok: true` por consulta ao `/health` do gateway — mostrava tudo verde com os serviços derrubados | — |
 | 5.2 | ✅ **Bloco 10.** `Imoveis.jsx`: filtros de cidade/tipo/quartos/valor enviados ao backend, cards com valor, quartos e situação, formulário de cadastro e estado de erro. Sem foto (não há imagens no projeto) | `src/pages/` |
 | 5.3 | ✅ **Bloco 11.** `Contratos.jsx`: filtro de status enviado ao backend, tabela com aluguel/multa/dias de atraso, formulário que só oferece imóveis sem contrato em aberto, encerramento com feedback de ação em voo | `src/pages/` |
-| 5.4 | `Recomendacao.jsx` → `Agente.jsx` (interface de chat) | `src/pages/` |
-| 5.5 | Remover `Configurador.jsx` (era da LPS da disciplina antiga, fora de escopo aqui) | `src/pages/` |
-| 5.6 | Ajustar rotas e itens do menu | `App.jsx`, `Sidebar.jsx` |
-| 5.7 | **Lacuna encontrada no bloco 10:** `Dashboard.jsx` não estava no plano e mostra números inventados (1.247 livros, "Clean Code", "Design Patterns") vindos de um fallback fixo. Precisa ler os serviços de verdade | `src/pages/Dashboard.jsx` |
+| 5.4 | ⚠️ **Parcial (bloco 12).** `Recomendacao.jsx` passou a usar os campos reais do serviço (perfil por tipo e cidade, score sobre 5, aluguel). A interface de chat fica para a Fase 4: batizar a tela de "Agente" antes de o agente existir seria a mesma mentira de tela que esta fase removeu | `src/pages/` |
+| 5.5 | ✅ **Bloco 12.** Removido, junto com rota e item de menu | `src/pages/` |
+| 5.6 | ✅ **Bloco 12.** | `App.jsx`, `Sidebar.jsx` |
+| 5.7 | ✅ **Bloco 12.** `Dashboard.jsx` com números reais: imóveis e disponíveis, contratos em vigor e em atraso, receita mensal contratada, usuários e notificações do usuário logado | `src/pages/Dashboard.jsx` |
+| 5.8 | ✅ **Bloco 12.** `Notificacoes.jsx` lia `criado_em` e `canal`, campos que o modelo não tem, e caía em MOCK. Agora usa `data_criacao`/`lida`/`imovel_id`, com ações de marcar lida e rodar varredura | `src/pages/Notificacoes.jsx` |
+| 5.9 | ✅ **Bloco 12.** `Usuarios.jsx` tinha MOCK com e-mails `@biblioteca.br` e uma coluna inventada de empréstimos. Agora deriva os contratos em vigor do serviço de contratos | `src/pages/Usuarios.jsx` |
 
 ## Fase 6 — Qualidade e documentação
 

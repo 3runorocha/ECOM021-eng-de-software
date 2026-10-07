@@ -6,6 +6,8 @@ class ImovelRecomendado(BaseModel):
     titulo: str
     tipo: str
     cidade: str
+    # Recomendar imovel sem dizer o aluguel nao serve para nada.
+    valor_mensal: float
     score: float
     motivo: str
 

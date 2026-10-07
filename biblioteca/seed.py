@@ -2,17 +2,17 @@ import os
 
 import httpx
 
-USUARIOS_URL = os.getenv("USUARIOS_URL", "http://localhost:8002")
-IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://localhost:8001")
+USUARIOS_URL = os.getenv("USUARIOS_URL", "http://127.0.0.1:8002")
+IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://127.0.0.1:8001")
 
 USUARIOS = [
     {"nome": "Admin",         "email": "admin@alugue.br",   "senha": "admin123", "tipo": "admin"},
-    {"nome": "Ana Souza",     "email": "ana@alugue.br",     "senha": "senha123", "tipo": "aluno"},
-    {"nome": "Carlos Lima",   "email": "carlos@alugue.br",  "senha": "senha123", "tipo": "aluno"},
-    {"nome": "Joao Melo",     "email": "joao@alugue.br",    "senha": "senha123", "tipo": "aluno"},
-    {"nome": "Maria Silva",   "email": "maria@alugue.br",   "senha": "senha123", "tipo": "aluno"},
-    {"nome": "Beatriz Rocha", "email": "beatriz@alugue.br", "senha": "senha123", "tipo": "bibliotecario"},
-    {"nome": "Pedro Alves",   "email": "pedro@alugue.br",   "senha": "senha123", "tipo": "aluno"},
+    {"nome": "Ana Souza",     "email": "ana@alugue.br",     "senha": "senha123", "tipo": "inquilino"},
+    {"nome": "Carlos Lima",   "email": "carlos@alugue.br",  "senha": "senha123", "tipo": "inquilino"},
+    {"nome": "Joao Melo",     "email": "joao@alugue.br",    "senha": "senha123", "tipo": "inquilino"},
+    {"nome": "Maria Silva",   "email": "maria@alugue.br",   "senha": "senha123", "tipo": "inquilino"},
+    {"nome": "Beatriz Rocha", "email": "beatriz@alugue.br", "senha": "senha123", "tipo": "proprietario"},
+    {"nome": "Pedro Alves",   "email": "pedro@alugue.br",   "senha": "senha123", "tipo": "inquilino"},
 ]
 
 IMOVEIS = [
