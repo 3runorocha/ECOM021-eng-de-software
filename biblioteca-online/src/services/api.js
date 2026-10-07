@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_GATEWAY_URL || 'http://127.0.0.1:8000',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -35,13 +35,20 @@ export const contratosAPI = {
   encerrar: (id) => api.post(`/contratos/contratos/${id}/encerrar`),
 }
 
+// O serviço de notificações não tem listagem global: só por usuário. Quem
+// chamava listar() sem id batia em /usuario/undefined e tomava 422.
 export const notificacoesAPI = {
-  listar: (userId) => api.get(`/notificacoes/notificacoes/usuario/${userId}`),
+  listarDoUsuario: (userId) => api.get(`/notificacoes/notificacoes/usuario/${userId}`),
   enviar: (data) => api.post('/notificacoes/notificacoes/', data),
+  marcarLida: (id) => api.patch(`/notificacoes/notificacoes/${id}/ler`),
+  marcarTodasLidas: (userId) =>
+    api.patch(`/notificacoes/notificacoes/usuario/${userId}/ler-todas`),
+  varredura: () => api.post('/notificacoes/notificacoes/varredura'),
 }
 
 export const recomendacoesAPI = {
   porUsuario: (userId) => api.get(`/recomendacao/recomendacao/${userId}`),
+  perfil: (userId) => api.get(`/recomendacao/recomendacao/perfil/${userId}`),
 }
 
 // /health e /services sao rotas livres no gateway (nao exigem token).

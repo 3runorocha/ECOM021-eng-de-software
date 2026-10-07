@@ -1,98 +1,214 @@
 import { useEffect, useState } from 'react'
 import { imoveisAPI, contratosAPI, usuariosAPI, notificacoesAPI } from '../services/api'
+import { useAuth } from '../context/useAuth'
+
+const STATUS = {
+  ativo: { label: 'Ativo', color: '#166534', bg: '#dcfce7' },
+  atrasado: { label: 'Atrasado', color: '#991b1b', bg: '#fee2e2' },
+  encerrado: { label: 'Encerrado', color: '#374151', bg: '#f3f4f6' },
+}
+
+const moeda = (v) =>
+  v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+
+const celula = { padding: '0.75rem 1rem' }
+const cabecalho = {
+  padding: '0.75rem 1rem',
+  textAlign: 'left',
+  fontSize: '11px',
+  fontWeight: 600,
+  color: '#9ca3af',
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
+  whiteSpace: 'nowrap',
+}
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ livros: 0, emprestimos: 0, usuarios: 0, notificacoes: 0 })
-  const [emprestimosRecentes, setEmprestimosRecentes] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { usuario } = useAuth()
+  const [dados, setDados] = useState(null)
+  const [erro, setErro] = useState(null)
+  const [recarga, setRecarga] = useState(0)
 
+  // Esta tela caía num bloco de números fixos (1.247 livros, "Clean Code") quando
+  // qualquer chamada falhava -- e uma delas falhava sempre, porque pedia a
+  // listagem de notificações sem id de usuário e tomava 422. Agora cada número
+  // vem do serviço correspondente, e falha aparece como falha.
   useEffect(() => {
-    async function carregar() {
-      try {
-        const [livros, emprestimos, usuarios, notifs] = await Promise.all([
-          imoveisAPI.listar(),
-          contratosAPI.listar(),
-          usuariosAPI.listar(),
-          notificacoesAPI.listar(),
-        ])
-        setStats({
-          livros: livros.data.length ?? 0,
-          emprestimos: emprestimos.data.length ?? 0,
-          usuarios: usuarios.data.length ?? 0,
-          notificacoes: notifs.data.length ?? 0,
-        })
-        setEmprestimosRecentes(emprestimos.data.slice(0, 5))
-      } catch {
-        setStats({ livros: 1247, emprestimos: 83, usuarios: 412, notificacoes: 38 })
-        setEmprestimosRecentes([
-          { id: 1, livro_titulo: 'Clean Code', usuario_nome: 'Ana Souza', data_emprestimo: '2026-05-10', data_devolucao: '2026-05-24', status: 'ativo' },
-          { id: 2, livro_titulo: 'Design Patterns', usuario_nome: 'Carlos Lima', data_emprestimo: '2026-05-08', data_devolucao: '2026-05-22', status: 'vence_breve' },
-          { id: 3, livro_titulo: 'Domain-Driven Design', usuario_nome: 'João Melo', data_emprestimo: '2026-05-01', data_devolucao: '2026-05-15', status: 'atrasado' },
-        ])
-      } finally {
-        setLoading(false)
-      }
-    }
-    carregar()
-  }, [])
+    let cancelado = false
 
-  const statusLabel = {
-    ativo: { label: 'Ativo', color: '#166534', bg: '#dcfce7' },
-    vence_breve: { label: 'Vence em breve', color: '#92400e', bg: '#fef3c7' },
-    atrasado: { label: 'Atrasado', color: '#991b1b', bg: '#fee2e2' },
+    Promise.all([
+      imoveisAPI.listar(),
+      contratosAPI.listar(),
+      usuariosAPI.listar(),
+      notificacoesAPI.listarDoUsuario(usuario.id),
+    ])
+      .then(([imoveis, contratos, usuarios, notificacoes]) => {
+        if (cancelado) return
+        setDados({
+          imoveis: imoveis.data,
+          contratos: contratos.data,
+          usuarios: usuarios.data,
+          notificacoes: notificacoes.data,
+        })
+        setErro(null)
+      })
+      .catch((e) => {
+        if (cancelado) return
+        setDados(null)
+        setErro(
+          e.response?.data?.detail ||
+            'Não foi possível montar o painel. Os seis serviços estão no ar?'
+        )
+      })
+
+    return () => {
+      cancelado = true
+    }
+  }, [usuario.id, recarga])
+
+  if (erro) {
+    return (
+      <div style={{ padding: '1.5rem' }}>
+        <div
+          style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            color: '#991b1b',
+            fontSize: '13px',
+          }}
+        >
+          <strong style={{ display: 'block', marginBottom: '4px' }}>Falha ao carregar</strong>
+          {erro}
+          <button
+            onClick={() => setRecarga((n) => n + 1)}
+            style={{
+              display: 'block',
+              marginTop: '10px',
+              background: 'none',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              color: '#991b1b',
+            }}
+          >
+            Tentar de novo
+          </button>
+        </div>
+      </div>
+    )
   }
 
-  if (loading) return <p style={{ color: '#6b7280', padding: '2rem' }}>Carregando...</p>
+  if (!dados) return <p style={{ color: '#6b7280', padding: '2rem' }}>Carregando...</p>
+
+  const disponiveis = dados.imoveis.filter((i) => i.disponivel).length
+  const ativos = dados.contratos.filter((c) => c.status === 'ativo').length
+  const atrasados = dados.contratos.filter((c) => c.status === 'atrasado').length
+  const naoLidas = dados.notificacoes.filter((n) => !n.lida).length
+  const receitaMensal = dados.contratos
+    .filter((c) => c.status !== 'encerrado')
+    .reduce((soma, c) => soma + c.valor_mensal, 0)
+
+  const cartoes = [
+    { label: 'Imóveis', valor: dados.imoveis.length, sub: `${disponiveis} disponíveis · :8001` },
+    { label: 'Contratos em vigor', valor: ativos + atrasados, sub: `${atrasados} em atraso · :8003` },
+    { label: 'Receita mensal contratada', valor: moeda(receitaMensal), sub: 'soma dos contratos em vigor' },
+    { label: 'Usuários', valor: dados.usuarios.length, sub: ':8002' },
+    { label: 'Suas notificações', valor: dados.notificacoes.length, sub: `${naoLidas} não lida(s) · :8004` },
+  ]
+
+  // Os contratos chegam ordenados por data_inicio decrescente do serviço.
+  const recentes = dados.contratos.slice(0, 6)
+  const nomeImovel = (id) => dados.imoveis.find((i) => i.id === id)?.titulo ?? `Imóvel #${id}`
+  const nomeUsuario = (id) => dados.usuarios.find((u) => u.id === id)?.nome ?? `Inquilino #${id}`
 
   return (
     <div style={{ padding: '1.5rem' }}>
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '1.5rem' }}>
-        {[
-          { label: 'Total de livros', valor: stats.livros.toLocaleString(), sub: 'via :8001' },
-          { label: 'Empréstimos ativos', valor: stats.emprestimos, sub: 'via :8003' },
-          { label: 'Usuários', valor: stats.usuarios, sub: 'via :8002' },
-          { label: 'Notificações', valor: stats.notificacoes, sub: 'via :8004' },
-        ].map((s) => (
-          <div key={s.label} style={{ background: '#f9fafb', borderRadius: '10px', padding: '1rem' }}>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>{s.label}</div>
-            <div style={{ fontSize: '22px', fontWeight: 600, color: '#111' }}>{s.valor}</div>
-            <div style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace' }}>{s.sub}</div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+          gap: '12px',
+          marginBottom: '1.5rem',
+        }}
+      >
+        {cartoes.map((c) => (
+          <div key={c.label} style={{ background: '#f9fafb', borderRadius: '10px', padding: '1rem' }}>
+            <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>{c.label}</div>
+            <div style={{ fontSize: '22px', fontWeight: 600, color: '#111' }}>{c.valor}</div>
+            <div style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace' }}>{c.sub}</div>
           </div>
         ))}
       </div>
 
-      {/* Empréstimos recentes */}
       <div style={{ fontSize: '13px', fontWeight: 500, color: '#6b7280', marginBottom: '0.75rem' }}>
-        Empréstimos recentes
+        Contratos recentes
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-              {['Livro', 'Usuário', 'Empréstimo', 'Devolução', 'Status'].map((h) => (
-                <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {emprestimosRecentes.map((e) => {
-              const s = statusLabel[e.status] ?? statusLabel.ativo
-              return (
-                <tr key={e.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '0.75rem 1rem', color: '#111', fontWeight: 500 }}>{e.livro_titulo}</td>
-                  <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{e.usuario_nome}</td>
-                  <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{e.data_emprestimo}</td>
-                  <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{e.data_devolucao}</td>
-                  <td style={{ padding: '0.75rem 1rem' }}>
-                    <span style={{ background: s.bg, color: s.color, fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 500 }}>{s.label}</span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      {recentes.length === 0 ? (
+        <p style={{ color: '#9ca3af', fontSize: '13px' }}>
+          Nenhum contrato ainda. Rode <code>python seed_contratos.py</code> ou registre um
+          na tela de Contratos.
+        </p>
+      ) : (
+        <div
+          style={{
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            overflowX: 'auto',
+          }}
+        >
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                {['Imóvel', 'Inquilino', 'Início', 'Fim previsto', 'Aluguel', 'Status'].map((h) => (
+                  <th key={h} style={cabecalho}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {recentes.map((c) => {
+                const s = STATUS[c.status] ?? STATUS.ativo
+                return (
+                  <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ ...celula, color: '#111', fontWeight: 500 }}>
+                      {nomeImovel(c.imovel_id)}
+                    </td>
+                    <td style={{ ...celula, color: '#6b7280' }}>{nomeUsuario(c.inquilino_id)}</td>
+                    <td style={{ ...celula, color: '#6b7280', whiteSpace: 'nowrap' }}>{c.data_inicio}</td>
+                    <td style={{ ...celula, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                      {c.data_fim_prevista}
+                    </td>
+                    <td style={{ ...celula, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                      {moeda(c.valor_mensal)}
+                    </td>
+                    <td style={celula}>
+                      <span
+                        style={{
+                          background: s.bg,
+                          color: s.color,
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '999px',
+                          fontWeight: 500,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {s.label}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

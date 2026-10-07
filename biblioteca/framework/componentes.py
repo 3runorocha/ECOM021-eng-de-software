@@ -10,11 +10,11 @@ from interfaces import (
 )
 
 
-URL_IMOVEIS      = os.getenv("IMOVEIS_URL",      "http://localhost:8001")
-URL_USUARIOS     = os.getenv("USUARIOS_URL",     "http://localhost:8002")
-URL_CONTRATOS    = os.getenv("CONTRATOS_URL",    "http://localhost:8003")
-URL_NOTIFICACOES = os.getenv("NOTIFICACOES_URL", "http://localhost:8004")
-URL_RECOMENDACAO = os.getenv("RECOMENDACAO_URL", "http://localhost:8005")
+URL_IMOVEIS      = os.getenv("IMOVEIS_URL",      "http://127.0.0.1:8001")
+URL_USUARIOS     = os.getenv("USUARIOS_URL",     "http://127.0.0.1:8002")
+URL_CONTRATOS    = os.getenv("CONTRATOS_URL",    "http://127.0.0.1:8003")
+URL_NOTIFICACOES = os.getenv("NOTIFICACOES_URL", "http://127.0.0.1:8004")
+URL_RECOMENDACAO = os.getenv("RECOMENDACAO_URL", "http://127.0.0.1:8005")
 
 
 class ComponenteImovelHTTP(IComponenteImovel):

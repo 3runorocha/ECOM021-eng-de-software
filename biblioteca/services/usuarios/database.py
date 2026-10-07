@@ -21,7 +21,7 @@ class Database:
                     nome        TEXT    NOT NULL,
                     email       TEXT    NOT NULL UNIQUE,
                     senha_hash  TEXT    NOT NULL,
-                    tipo        TEXT    NOT NULL DEFAULT 'aluno',
+                    tipo        TEXT    NOT NULL DEFAULT 'inquilino',
                     ativo       INTEGER NOT NULL DEFAULT 1
                 )
                 """

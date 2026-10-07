@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { healthAPI } from '../services/api'
 import styles from './Sidebar.module.css'
 
@@ -99,9 +99,6 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/recomendacao" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
           ✨ Recomendação <span className={styles.badge}>8005</span>
-        </NavLink>
-        <NavLink to="/configurador" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
-          ⚙️ Configurador
         </NavLink>
       </nav>
 

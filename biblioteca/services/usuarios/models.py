@@ -6,7 +6,7 @@ class UsuarioCreate(BaseModel):
     nome: str
     email: str
     senha: str
-    tipo: str = "aluno"   # aluno | bibliotecario | admin
+    tipo: str = "inquilino"   # inquilino | proprietario | admin
 
 
 class UsuarioLogin(BaseModel):

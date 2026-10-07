@@ -14,7 +14,7 @@ from routes import criar_router
 from exceptions import NotificacaoNaoEncontrada, ServicoIndisponivel
 
 DB_PATH = os.getenv("NOTIFICACOES_DB", "notificacoes.db")
-CONTRATOS_URL = os.getenv("CONTRATOS_URL", "http://localhost:8003")
+CONTRATOS_URL = os.getenv("CONTRATOS_URL", "http://127.0.0.1:8003")
 
 database = Database(DB_PATH)
 repository = NotificacaoRepository(database)

@@ -47,10 +47,13 @@ validador não suja seus dados de desenvolvimento.
 | 8 | ciclo de contrato completo | assinar → ocupar imóvel → encerrar → liberar quebrando em qualquer ponto |
 | 8 | um contrato aberto por imóvel | segundo contrato no mesmo imóvel passando, ou imóvel ficando solto pela compensação |
 | 10 | página de imóveis substituiu o catálogo | `Catalogo.jsx` ressuscitando, ou `App.jsx` sem a rota `/imoveis` |
-| 10 | frontend não inventa dados | fallback de dados falsos voltando à página, ou status de serviço fixo em `ok: true` no Sidebar |
+| 10 | frontend não inventa dados | fallback de dados falsos em **qualquer** página, página sem estado de erro, ou status de serviço fixo em `ok: true` no Sidebar |
 | 10 | frontend compila | build do Vite quebrando (pula com aviso se faltar `npm install`) |
 | 11 | página de contratos substituiu empréstimos | `Emprestimos.jsx` ressuscitando, rota faltando, ou a tela voltando a falar de status `devolvido` |
 | 11 | tela não duplica a regra de multa | o frontend passando a fazer conta com `valor_mensal` — a multa é do serviço |
+| 12 | configurador foi removido | a tela da LPS antiga voltando, ou rota/menu órfãos |
+| 12 | frontend sem vocabulário de biblioteca | `livro`, `autor`, `genero` ou `emprestimo` reaparecendo em qualquer tela |
+| 12 | recomendação responde rápido | chamada entre serviços lenta (host errado derruba para ~2s por chamada) |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -77,7 +80,7 @@ O que o script não alcança:
 | 2 — imóveis | 3–5 | ✅ nada pendente |
 | 3 — contratos | 6–9 | ✅ nada pendente |
 | 4 — agente | 13–14 | O agente responde a uma busca em linguagem natural e chama as tools certas |
-| 5 — frontend | 10–12 | Login, listagem, cadastro e ciclo de contrato ✅ conferidos (blocos 10 e 11). Falta: menu sem itens mortos, Dashboard com dados reais |
+| 5 — frontend | 10–12 | ✅ nada pendente |
 | 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
 
 ## Semana 1 (21–27/09) — blocos 1 e 2
@@ -215,3 +218,38 @@ mostram "Encerrando..." / "Registrando..." e ficam desabilitados durante a açã
 Nota sobre o validador: foi a terceira vez que uma checagem textual minha bateu em
 prosa em vez de código (agora o `1/30` escrito no rodapé da tela). A checagem passou a
 procurar aritmética com `valor_mensal`, não a menção da regra.
+
+## Semana 6 (26/10–01/11) — bloco 12
+
+**Resultado: 28 checagens, todas passando. Fase 5 fechada.** Nenhuma tela inventa dados,
+e o lint do frontend está zerado.
+
+Entregue: `Dashboard`, `Usuarios`, `Notificacoes` e `Recomendacao` reescritos com dados
+reais; `Configurador.jsx` removido; menu e rotas ajustados.
+
+Lacunas do plano que apareceram só olhando as telas, agora registradas como 5.7 a 5.9:
+o Dashboard, a tela de notificações e a de usuários não estavam em nenhum item da Fase 5
+e as três mostravam dados falsos.
+
+Dois achados que valem mais que o bloco:
+
+1. **`localhost` custava 2 segundos por chamada.** O serviço de recomendação levava
+   14,6 s e estourava o timeout do gateway. Causa: no Windows `localhost` resolve `::1`
+   antes de `127.0.0.1`, e o uvicorn escuta só em IPv4. Medido: 2133 ms com `localhost`
+   contra 20 ms com `127.0.0.1`. Trocadas as 17 URLs; o perfil caiu para 0,30 s e a
+   recomendação para 0,18 s. Era isto, e não "três chamadas pelo gateway", que fazia o
+   botão Encerrar demorar no bloco 11.
+2. **A recomendação se esvaziava sozinha.** `PENALIDADE_JA_RECOMENDADO` era 5, igual ao
+   score máximo (3 + 2), então todo imóvel recomendado uma vez ficava excluído para
+   sempre e a segunda chamada vinha vazia. Com 55 livros passava; com ~9 imóveis
+   disponíveis, não. Virou 1: rebaixa em vez de excluir.
+
+Também corrigidos: perfis de usuário ainda eram `aluno` e `bibliotecario` (viraram
+`inquilino` e `proprietario`); a descrição do serviço de recomendação ainda dizia
+"Recomendação de livros"; e `ImovelRecomendado` não trazia o aluguel — recomendar imóvel
+sem dizer o preço não serve para nada.
+
+Colisão de nomes no Windows: separar o hook `useAuth` em `authContext.js` quebrou o
+build, porque o Windows não diferencia maiúsculas e o Vite resolveu `./context/AuthContext`
+para o arquivo errado. Renomeado para `useAuth.js`. Em Linux teria passado — exatamente o
+tipo de divergência entre máquinas que o projeto quer evitar.

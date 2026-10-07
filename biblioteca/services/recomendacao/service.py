@@ -16,8 +16,13 @@ class RecomendacaoService:
 
     PONTOS_TIPO = 3
     PONTOS_CIDADE = 2
+    # Excluir de fato: o inquilino nao quer ver imovel que ele ja aluga.
     PENALIDADE_JA_ALUGADO = 10
-    PENALIDADE_JA_RECOMENDADO = 5
+    # Apenas rebaixar. Antes era 5, igual ao score maximo (3 + 2), entao todo
+    # imovel ja recomendado uma vez ficava excluido para sempre e a segunda
+    # chamada vinha vazia. No acervo de 55 livros isso passava despercebido;
+    # com ~9 imoveis disponiveis, esvazia na primeira chamada.
+    PENALIDADE_JA_RECOMENDADO = 1
     TOP_N_PREFERENCIAS = 3
 
     def __init__(
@@ -124,6 +129,7 @@ class RecomendacaoService:
             titulo=imovel["titulo"],
             tipo=imovel["tipo"],
             cidade=imovel["cidade"],
+            valor_mensal=imovel["valor_mensal"],
             score=score,
             motivo=" e ".join(motivo) if motivo else "recomendação geral",
         )

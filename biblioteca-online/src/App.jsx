@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { AuthProvider } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -8,7 +9,6 @@ import Contratos from './pages/Contratos'
 import Usuarios from './pages/Usuarios'
 import Notificacoes from './pages/Notificacoes'
 import Recomendacao from './pages/Recomendacao'
-import Configurador from './pages/Configurador'
 
 function AppInner() {
   const { usuario } = useAuth()
@@ -26,8 +26,7 @@ function AppInner() {
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/recomendacao" element={<Recomendacao />} />
-          <Route path="/configurador" element={<Configurador />} />
-        </Routes>
+          </Routes>
       </main>
     </div>
   )

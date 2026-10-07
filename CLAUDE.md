@@ -20,12 +20,13 @@ renomeação, não remodelagem.
 > contratos: portfólio com disponibilidade booleana, contrato de 12 meses com multa
 > proporcional (1/30 do aluguel por dia de atraso) e a regra de um contrato aberto por
 > imóvel. A tela de imóveis (bloco 10) já é a nova, com filtros server-side e estado
-> de erro honesto, e a de contratos (bloco 11) fecha o ciclo: assinar, acompanhar e
-> encerrar com multa. Faltam a tela de recomendação/agente, o Configurador (a remover)
-> e o Dashboard — bloco 12.
+> de erro honesto, e a de contratos (bloco 11) fecha o ciclo. **Fase 5 concluída no
+> bloco 12:** todas as telas usam dados reais, nenhuma inventa dados de fallback, e o
+> Configurador saiu. Próximo: Fase 4 (agente, blocos 13–14), depois Fase 6.
 >
-> **Dashboard mostra números inventados** (1.247 livros, "Clean Code") vindos de um
-> fallback fixo. Lacuna do plano, registrada como item 5.7.
+> **Atenção ao host:** use sempre `127.0.0.1`, nunca `localhost`, nas URLs entre
+> serviços. No Windows, `localhost` resolve `::1` antes de `127.0.0.1` e o uvicorn
+> escuta só em IPv4 — medido 2133 ms por chamada contra 20 ms. Há checagem no validador.
 
 ## Arquitetura
 
