@@ -65,6 +65,11 @@ async def gateway_recomendacao(request: Request, path: str):
     return await proxy_service.encaminhar(request, "recomendacao", path)
 
 
+@app.api_route("/agente/{path:path}", methods=METODOS)
+async def gateway_agente(request: Request, path: str):
+    return await proxy_service.encaminhar(request, "agente", path)
+
+
 @app.get("/health")
 async def health_check():
     return await monitor.verificar()

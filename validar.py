@@ -26,8 +26,11 @@ import httpx
 
 RAIZ = Path(__file__).resolve().parent
 BIB = RAIZ / "biblioteca"
+# Servicos com banco proprio. O agente (:8006) nao tem banco: ele so
+# orquestra os outros pelos componentes do framework.
 SERVICOS = ["imoveis", "usuarios", "contratos", "notificacoes", "recomendacao"]
-PORTAS = (8000, 8001, 8002, 8003, 8004, 8005)
+SERVICOS_TODOS = SERVICOS + ["agente"]
+PORTAS = (8000, 8001, 8002, 8003, 8004, 8005, 8006)
 GATEWAY = "http://127.0.0.1:8000"
 
 sys.path.insert(0, str(RAIZ))
@@ -154,8 +157,8 @@ def bancos_por_env_var():
 # ------------------------------------------------------- bloco 2 (estatico)
 
 def sem_api_depreciada():
-    """1.2 - on_event saiu, lifespan entrou nos 5 servicos."""
-    for servico in SERVICOS:
+    """1.2 - on_event saiu, lifespan entrou em todos os servicos."""
+    for servico in SERVICOS_TODOS:
         texto = _main_py(servico)
         assert "on_event" not in texto, servico + ": ainda usa @app.on_event"
         assert "lifespan=lifespan" in texto, (
@@ -558,6 +561,66 @@ def recomendacao_responde_rapido(ctx):
     assert r.status_code == 200, "recomendar: {0} {1}".format(r.status_code, r.text)
 
 
+def agente_usa_a_camada_de_componentes():
+    """4.1 - o argumento de arquitetura do projeto.
+
+    O agente nao pode falar HTTP direto com os servicos: as ferramentas dele
+    sao a mesma camada de componentes que as apps do framework usam. Se este
+    check cair, o agente virou um cliente paralelo e o reuso deixou de valer.
+    """
+    fonte = (BIB / "services" / "agente" / "ferramentas.py").read_text(encoding="utf-8")
+    assert "from componentes import" in fonte, (
+        "ferramentas.py nao importa a camada de componentes do framework")
+    for componente in ("ComponenteImovelHTTP", "ComponenteContratoHTTP"):
+        assert componente in fonte, "ferramentas.py sem {0}".format(componente)
+    assert "import httpx" not in sem_comentarios(fonte), (
+        "ferramentas.py fala HTTP direto; deveria passar pelos componentes")
+
+
+def ferramentas_do_agente_sao_de_leitura():
+    """4.1 - o modelo nao executa acao com efeito colateral nesta fase."""
+    fonte = sem_comentarios(
+        (BIB / "services" / "agente" / "ferramentas.py").read_text(encoding="utf-8"))
+    for escrita in ("registrar_contrato", "encerrar_contrato",
+                    "definir_disponibilidade", "cadastrar_imovel"):
+        assert escrita not in fonte, (
+            "ferramenta de escrita exposta ao modelo: {0}".format(escrita))
+
+
+def agente_usa_modelo_atual():
+    """O id do modelo tem de ser um da geracao atual, nao um inventado."""
+    fonte = (BIB / "services" / "agente" / "agente.py").read_text(encoding="utf-8")
+    assert "claude-opus-5-5" in fonte, (
+        "o agente nao esta no modelo padrao claude-opus-5-5")
+    # Ids com sufixo de data sao alucinacao comum e dao 404 na API.
+    assert not re.search(r"claude-[a-z0-9.-]*-\d{8}", fonte), (
+        "id de modelo com sufixo de data: esses nao existem")
+
+
+def agente_degrada_sem_credencial(ctx):
+    """4.1 - sem chave o servico sobe e explica; nao devolve 500.
+
+    Quando HA credencial configurada, este check NAO faz a pergunta: rodar o
+    validador nao pode gastar dinheiro na API a cada execucao.
+    """
+    r = httpx.get(GATEWAY + "/agente/agente/status", headers=ctx["auth"], timeout=15.0)
+    assert r.status_code == 200, "status: {0} {1}".format(r.status_code, r.text)
+    corpo = r.json()
+    assert "credencial_configurada" in corpo, corpo
+    assert len(corpo.get("ferramentas", [])) >= 3, corpo
+
+    if corpo["credencial_configurada"]:
+        return
+
+    r = httpx.post(GATEWAY + "/agente/agente/perguntar", headers=ctx["auth"],
+                   json={"texto": "apartamento 2 quartos em Maceio"}, timeout=30.0)
+    assert r.status_code == 503, (
+        "sem credencial deveria dar 503 com explicacao, deu {0} {1}"
+        .format(r.status_code, r.text))
+    assert "ANTHROPIC_API_KEY" in r.text, (
+        "a mensagem de erro nao diz o que configurar: " + r.text)
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -575,12 +638,15 @@ ESTATICAS = [
     ("11", "tela nao duplica a regra de multa", tela_nao_duplica_a_regra_de_multa),
     ("12", "configurador foi removido", configurador_foi_removido),
     ("12", "frontend sem vocabulario de biblioteca", frontend_sem_vocabulario_de_biblioteca),
+    ("13", "agente usa a camada de componentes", agente_usa_a_camada_de_componentes),
+    ("13", "ferramentas do agente sao de leitura", ferramentas_do_agente_sao_de_leitura),
+    ("13", "agente usa modelo atual", agente_usa_modelo_atual),
     ("10", "frontend compila", frontend_compila),
     ("-", "todo .py compila", tudo_compila),
 ]
 
 VIVAS = [
-    ("2", "health geral com os 6 no ar", health_geral),
+    ("2", "health geral com os 7 no ar", health_geral),
     ("2", "fluxo completo pelo gateway", fluxo_completo_pelo_gateway),
     ("2", "resposta comprimida intacta", resposta_comprimida_chega_intacta),
     ("2", "rota protegida exige token", rota_protegida_exige_token),
@@ -589,6 +655,7 @@ VIVAS = [
     ("8", "ciclo de contrato completo", ciclo_de_contrato),
     ("8", "um contrato aberto por imovel", um_contrato_aberto_por_imovel),
     ("12", "recomendacao responde rapido", recomendacao_responde_rapido),
+    ("13", "agente degrada sem credencial", agente_degrada_sem_credencial),
 ]
 
 
@@ -690,7 +757,7 @@ def main():
             print("  [FALHA] portas nao liberadas no shutdown: {0}".format(restantes))
             falhas.append("shutdown limpo")
         else:
-            print("  [ok]    bloco 2  shutdown liberou as 6 portas")
+            print("  [ok]    bloco 2  shutdown liberou as {0} portas".format(len(PORTAS)))
         shutil.rmtree(pasta, ignore_errors=True)
 
     return relatorio(falhas)

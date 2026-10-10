@@ -5,3 +5,7 @@ fastapi==0.141.1
 uvicorn[standard]==0.52.3
 pydantic==2.13.4
 httpx==0.28.1
+
+# Agente (servico :8006). Precisa de credencial da Anthropic em tempo de
+# execucao: ANTHROPIC_API_KEY no ambiente, ou `ant auth login`.
+anthropic==1.13.0

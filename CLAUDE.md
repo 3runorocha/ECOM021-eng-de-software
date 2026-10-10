@@ -27,6 +27,11 @@ renomeação, não remodelagem.
 > **Atenção ao host:** use sempre `127.0.0.1`, nunca `localhost`, nas URLs entre
 > serviços. No Windows, `localhost` resolve `::1` antes de `127.0.0.1` e o uvicorn
 > escuta só em IPv4 — medido 2133 ms por chamada contra 20 ms. Há checagem no validador.
+>
+> **Agente (:8006) precisa de credencial.** Sem `ANTHROPIC_API_KEY` no ambiente (ou
+> `ant auth login`), o serviço sobe e responde `/health` normalmente, mas
+> `POST /agente/perguntar` devolve 503 explicando o que falta. O resto do sistema não
+> depende dele. Nunca comite a chave: use `.env` (ignorado pelo git).
 
 ## Arquitetura
 
@@ -40,7 +45,8 @@ Cada serviço tem banco SQLite próprio e roda isolado.
 | Usuários | 8002 | ✅ sem mudança |
 | ~~Empréstimos~~ **Contratos** | 8003 | ✅ feito (blocos 6–9) |
 | Notificações | 8004 | ✅ vocabulário e multa proporcional |
-| Recomendação | 8005 | ⬜ vira agente na Fase 4 |
+| Recomendação | 8005 | ✅ pontuação por histórico |
+| **Agente** | 8006 | ✅ busca conversacional (bloco 13) |
 
 Stack: Python 3.11+, FastAPI, SQLite, React (Vite), httpx.
 
