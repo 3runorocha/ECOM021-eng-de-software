@@ -58,6 +58,10 @@ validador não suja seus dados de desenvolvimento.
 | 13 | ferramentas do agente são de leitura | ferramenta de escrita (registrar/encerrar contrato, mudar disponibilidade) exposta ao modelo |
 | 13 | agente usa modelo atual | id de modelo inventado ou com sufixo de data (esses dão 404) |
 | 13 | agente degrada sem credencial | falta de chave virando 500 em vez de 503 com instrução. **Não chama o modelo quando há credencial** — validador não pode gastar dinheiro a cada execução |
+| 14 | agente é componente do framework | `IComponenteAgente`/`ComponenteAgenteHTTP` sumindo — é o que permite a App orquestrar o agente |
+| 14 | app do framework orquestra o agente | a app deixando de estender o framework, sobrescrevendo `executar_operacao`, ou falando HTTP direto |
+| 14 | redator de aviso não faz conta | o prompt deixando o modelo calcular multa ou inventar fato |
+| 14 | aviso sai mesmo com agente fora | a resiliência quebrando: roda a app com `AGENTE_URL` numa porta morta e exige que a notificação saia com texto padrão. **Nunca chama a API** — nem com credencial |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -83,7 +87,7 @@ O que o script não alcança:
 | 1 — saneamento | 1–2 | ✅ nada pendente |
 | 2 — imóveis | 3–5 | ✅ nada pendente |
 | 3 — contratos | 6–9 | ✅ nada pendente |
-| 4 — agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel |
+| 4 — agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave: (1) na tela `/agente`, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel; (2) rodar `python apps/app_aviso_vencimento.py` e ver os avisos saírem "redigido por: agente" em vez de texto padrão |
 | 5 — frontend | 10–12 | ✅ nada pendente |
 | 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
 
@@ -302,3 +306,45 @@ Dois defeitos meus, achados no teste e corrigidos:
 **Ressalva importante:** nada aqui prova que o agente *responde bem*. Que ele escolhe a
 ferramenta certa, extrai os filtros da frase e não inventa imóvel só dá para verificar
 com uma chave real. Esse teste é o primeiro item do bloco 14.
+
+## Semana 8 (09–15/11) — bloco 14
+
+**Resultado: 36 checagens, todas passando. Fase 4 fechada** — com a ressalva de sempre:
+a qualidade da resposta do modelo continua não verificada, por falta de credencial.
+
+Entregue: `POST /agente/redigir-aviso`, `IComponenteAgente` + `ComponenteAgenteHTTP`,
+`apps/app_aviso_vencimento.py` e a tela `/agente` com o chat.
+
+A divisão de trabalho é o ponto do bloco:
+
+- quem levanta os contratos é a **App**, pelos componentes (dado é dado);
+- quem escreve o texto é o **agente** (prosa é prosa);
+- quem envia a notificação é a **App**, pelo componente de notificações.
+
+O modelo não busca dado, não faz conta e não dispara efeito colateral. A regra de multa
+continua existindo num lugar só: o serviço de contratos.
+
+Simetria que fecha o argumento de reúso: o agente **consome** componentes (as
+ferramentas dele) e **é** um componente (`IComponenteAgente`). Por isso a App orquestra
+o agente pelo mesmo Template Method que usa para qualquer outro serviço, sem nenhum
+caso especial.
+
+Verificado:
+
+- a App rodando contra os serviços de verdade: achou os 3 contratos vencidos, enviou as
+  3 notificações, e o log do framework registrou a execução inteira
+- as notificações chegaram nos inquilinos 1, 2 e 3, com o imóvel correto
+- **resiliência:** rodando a App com `AGENTE_URL` numa porta morta, o aviso sai mesmo
+  assim com texto padrão e a notificação é enviada. O aviso é a função; o agente é o
+  acabamento. Essa checagem entrou no validador e nunca chama a API, nem com credencial
+- a tela `/agente` mostra o aviso de "sem credencial" e, ao perguntar, exibe o erro real
+  em vez de fingir uma resposta
+
+Nota sobre o validador: a checagem "frontend sem vocabulário de biblioteca" acusou a tela
+nova por causa do campo `autor` — que ali significa autor da mensagem, não de livro.
+Renomeei o campo para `remetente` em vez de afrouxar a checagem: a ambiguidade era real.
+
+**O que continua pendente:** com `ANTHROPIC_API_KEY` definida, falta conferir que o
+agente escolhe a ferramenta certa, extrai os filtros da frase e não inventa imóvel; e que
+os avisos saem "redigido por: agente". Até lá, a Fase 4 está construída e integrada, mas
+não exercitada.

@@ -96,8 +96,8 @@ export default function Recomendacao() {
 
       <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '1.25rem' }}>
         O serviço monta o perfil a partir do histórico de contratos do inquilino (tipos e
-        cidades que ele já alugou) e pontua os imóveis disponíveis. Na Fase 4 esta tela
-        ganha a interface do agente, que faz a busca em linguagem natural.
+        cidades que ele já alugou) e pontua os imóveis disponíveis. Para busca em
+        linguagem natural, use a tela do Agente.
       </div>
 
       {erro && (

@@ -621,6 +621,85 @@ def agente_degrada_sem_credencial(ctx):
         "a mensagem de erro nao diz o que configurar: " + r.text)
 
 
+def agente_e_componente_do_framework():
+    """4.4 - o agente tambem E um componente, nao so consome componentes."""
+    interfaces = (BIB / "framework" / "interfaces.py").read_text(encoding="utf-8")
+    assert "class IComponenteAgente" in interfaces, "falta IComponenteAgente"
+    for metodo in ("def perguntar", "def redigir_aviso"):
+        assert metodo in interfaces, "IComponenteAgente sem {0}".format(metodo)
+
+    componentes = (BIB / "framework" / "componentes.py").read_text(encoding="utf-8")
+    assert "class ComponenteAgenteHTTP" in componentes, "falta ComponenteAgenteHTTP"
+
+
+def app_do_framework_orquestra_o_agente():
+    """4.4 - o agente e orquestrado pelo Template Method, nao por fora dele."""
+    app = (BIB / "apps" / "app_aviso_vencimento.py").read_text(encoding="utf-8")
+    assert "FrameworkBiblioteca" in app, "a app nao estende o framework"
+    assert "ComponenteAgenteHTTP" in app, "a app nao registra o componente do agente"
+    for gancho in ("def pre_processar", "def executar_logica", "def pos_processar"):
+        assert gancho in app, "a app nao implementa {0}".format(gancho)
+    assert "def executar_operacao" not in app, (
+        "a app sobrescreveu executar_operacao; o fluxo e do framework")
+    assert "import httpx" not in sem_comentarios(app), (
+        "a app fala HTTP direto em vez de usar os componentes")
+
+
+def redator_de_aviso_nao_faz_conta():
+    """4.3 - a regra de multa mora no servico de contratos, nao no prompt.
+
+    O agente escreve a prosa; os numeros vem apurados de quem chamou. Se o
+    prompt deixar o modelo calcular, a regra passa a existir em dois lugares.
+    """
+    fonte = (BIB / "services" / "agente" / "agente.py").read_text(encoding="utf-8")
+    assert "INSTRUCOES_AVISO" in fonte, "falta o prompt do redator de avisos"
+    inicio = fonte.index("INSTRUCOES_AVISO")
+    prompt = fonte[inicio:inicio + 1200]
+    assert "NÃO faça contas" in prompt, (
+        "o prompt do aviso nao proibe o modelo de calcular valores")
+    assert "Não invente" in prompt, (
+        "o prompt do aviso nao proibe o modelo de inventar fatos")
+
+
+def aviso_sai_mesmo_com_agente_fora(ctx):
+    """4.3 - resiliencia: o aviso e a funcao, o agente e o acabamento.
+
+    Roda a app com AGENTE_URL apontando para porta morta, entao o caminho do
+    modelo e impossivel -- com ou sem credencial, e sem gastar nada na API.
+    """
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    auth = ctx["auth"]
+
+    r = c.post("/imoveis/imoveis/", headers=auth, json={
+        "titulo": "Imovel para aviso", "tipo": "casa",
+        "endereco": "Rua do Aviso, 1", "cidade": "Maceio",
+        "quartos": 2, "banheiros": 1, "area_m2": 70.0, "valor_mensal": 1200.0,
+    })
+    assert r.status_code == 201, r.text
+    imovel_id = r.json()["id"]
+
+    # Prazo de 1 mes: cai dentro da janela de alerta de 30 dias.
+    r = c.post("/contratos/contratos/", headers=auth,
+               json={"inquilino_id": 1, "imovel_id": imovel_id, "meses": 1})
+    assert r.status_code == 201, r.text
+
+    ambiente = dict(os.environ)
+    ambiente["AGENTE_URL"] = "http://127.0.0.1:9"
+    saida = subprocess.run(
+        [sys.executable, "apps/app_aviso_vencimento.py", "--dias", "31"],
+        cwd=str(BIB), env=ambiente, capture_output=True, text=True, timeout=180,
+    )
+    assert saida.returncode == 0, "a app falhou:" + chr(10) + saida.stdout + saida.stderr
+    assert "texto padr" in saida.stdout, (
+        "a app nao caiu no texto padrao com o agente fora:" + chr(10) + saida.stdout)
+    assert "enviado(s)" in saida.stdout, saida.stdout
+
+    r = c.get("/notificacoes/notificacoes/usuario/1", headers=auth)
+    assert r.status_code == 200, r.text
+    assert any(n["imovel_id"] == imovel_id for n in r.json()), (
+        "o aviso nao virou notificacao para o imovel {0}".format(imovel_id))
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -641,6 +720,9 @@ ESTATICAS = [
     ("13", "agente usa a camada de componentes", agente_usa_a_camada_de_componentes),
     ("13", "ferramentas do agente sao de leitura", ferramentas_do_agente_sao_de_leitura),
     ("13", "agente usa modelo atual", agente_usa_modelo_atual),
+    ("14", "agente e componente do framework", agente_e_componente_do_framework),
+    ("14", "app do framework orquestra o agente", app_do_framework_orquestra_o_agente),
+    ("14", "redator de aviso nao faz conta", redator_de_aviso_nao_faz_conta),
     ("10", "frontend compila", frontend_compila),
     ("-", "todo .py compila", tudo_compila),
 ]
@@ -656,6 +738,7 @@ VIVAS = [
     ("8", "um contrato aberto por imovel", um_contrato_aberto_por_imovel),
     ("12", "recomendacao responde rapido", recomendacao_responde_rapido),
     ("13", "agente degrada sem credencial", agente_degrada_sem_credencial),
+    ("14", "aviso sai mesmo com agente fora", aviso_sai_mesmo_com_agente_fora),
 ]
 
 

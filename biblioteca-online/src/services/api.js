@@ -51,6 +51,12 @@ export const recomendacoesAPI = {
   perfil: (userId) => api.get(`/recomendacao/recomendacao/perfil/${userId}`),
 }
 
+export const agenteAPI = {
+  status: () => api.get('/agente/agente/status'),
+  perguntar: (texto, inquilinoId) =>
+    api.post('/agente/agente/perguntar', { texto, inquilino_id: inquilinoId }),
+}
+
 // /health e /services sao rotas livres no gateway (nao exigem token).
 export const healthAPI = {
   checar: () => api.get('/health'),

@@ -27,7 +27,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 11 | 21–23/10 | 5 | ✅ **Concluído 07/10.** `Contratos.jsx` com filtro de status server-side, cadastro de contrato, encerramento e feedback de ação em voo (5.3). Corrigido bug de dados no `seed_contratos.py` |
 | 12 | 24–26/10 | 5 | ✅ **Concluído 07/10.** Dashboard, Usuários, Notificações e Recomendação reescritos com dados reais (5.4, 5.7–5.9) · `Configurador.jsx` removido (5.5) · rotas e menu (5.6). A interface de chat do agente fica para a Fase 4, quando o agente existir |
 | 13 | 27–29/10 | 4 | ✅ **Concluído 10/10.** Serviço `agente` em :8006, com as ferramentas vindas de `framework/componentes.py` (4.1) · busca conversacional (4.2). **Não testado contra o modelo real** — falta credencial da Anthropic na máquina |
-| 14 | 30/10–01/11 | 4 | Agente notifica contrato vencendo (4.3) · `App` do framework orquestrando o agente (4.4) |
+| 14 | 30/10–01/11 | 4 | ✅ **Concluído 10/10.** `app_aviso_vencimento.py`: a App levanta os contratos pelos componentes, o agente redige o texto, a App envia (4.3, 4.4) · `IComponenteAgente` + tela `/agente` com o chat. **Resposta do modelo segue não testada** — falta credencial |
 | 15 | 02–04/11 | 6 | Testes: pytest por serviço + 1 integração (6.1) · reescrever seeds (6.2) |
 | 16 | 05–07/11 | 6 | Diagramas (6.3) · README e docs (6.4) · backlog Scrum (6.5) · **stretch: Docker** |
 
@@ -47,6 +47,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 19–25/10 | 11 | ✅ 25 checagens passando — ciclo de contrato pela interface |
 | 26/10–01/11 | 12 | ✅ 28 checagens passando — **Fase 5 fechada**, nenhuma tela mente |
 | 02–08/11 | 13 | ✅ 32 checagens passando — agente construído; falta rodar com chave |
+| 09–15/11 | 14 | ✅ 36 checagens passando — **Fase 4 fechada**, com a ressalva da credencial |
 
 ## Marcos
 
@@ -56,7 +57,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | Bloco 5 (05/10) | Serviço de imóveis completo |
 | Bloco 9 (17/10) | ✅ **atingido em 27/09** — backend funcional end-to-end, mínimo do enunciado |
 | Bloco 12 (26/10) | ✅ **atingido em 07/10** — sistema demonstrável de ponta a ponta |
-| Bloco 14 (01/11) | Agentic AI funcionando (item opcional) |
+| Bloco 14 (01/11) | ⚠️ **Construído em 10/10**, mas só roda com `ANTHROPIC_API_KEY` |
 | Bloco 16 (07/11) | Pronto para entregar |
 
 ## Ordem e risco
