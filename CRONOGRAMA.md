@@ -26,7 +26,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 10 | 18–20/10 | 5 | ✅ **Concluído 07/10.** Shell reusado e rebrandeado; status dos serviços agora vem do `/health` real (5.1) · `Imoveis.jsx` com filtros server-side, cards e estado de erro honesto (5.2) |
 | 11 | 21–23/10 | 5 | ✅ **Concluído 07/10.** `Contratos.jsx` com filtro de status server-side, cadastro de contrato, encerramento e feedback de ação em voo (5.3). Corrigido bug de dados no `seed_contratos.py` |
 | 12 | 24–26/10 | 5 | ✅ **Concluído 07/10.** Dashboard, Usuários, Notificações e Recomendação reescritos com dados reais (5.4, 5.7–5.9) · `Configurador.jsx` removido (5.5) · rotas e menu (5.6). A interface de chat do agente fica para a Fase 4, quando o agente existir |
-| 13 | 27–29/10 | 4 | Serviço de agente com Claude API, componentes como tools (4.1) · busca conversacional (4.2) |
+| 13 | 27–29/10 | 4 | ✅ **Concluído 10/10.** Serviço `agente` em :8006, com as ferramentas vindas de `framework/componentes.py` (4.1) · busca conversacional (4.2). **Não testado contra o modelo real** — falta credencial da Anthropic na máquina |
 | 14 | 30/10–01/11 | 4 | Agente notifica contrato vencendo (4.3) · `App` do framework orquestrando o agente (4.4) |
 | 15 | 02–04/11 | 6 | Testes: pytest por serviço + 1 integração (6.1) · reescrever seeds (6.2) |
 | 16 | 05–07/11 | 6 | Diagramas (6.3) · README e docs (6.4) · backlog Scrum (6.5) · **stretch: Docker** |
@@ -46,6 +46,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 12–18/10 | 10 | ✅ 23 checagens passando — sistema demonstrável de novo |
 | 19–25/10 | 11 | ✅ 25 checagens passando — ciclo de contrato pela interface |
 | 26/10–01/11 | 12 | ✅ 28 checagens passando — **Fase 5 fechada**, nenhuma tela mente |
+| 02–08/11 | 13 | ✅ 32 checagens passando — agente construído; falta rodar com chave |
 
 ## Marcos
 

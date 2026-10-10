@@ -54,6 +54,10 @@ validador não suja seus dados de desenvolvimento.
 | 12 | configurador foi removido | a tela da LPS antiga voltando, ou rota/menu órfãos |
 | 12 | frontend sem vocabulário de biblioteca | `livro`, `autor`, `genero` ou `emprestimo` reaparecendo em qualquer tela |
 | 12 | recomendação responde rápido | chamada entre serviços lenta (host errado derruba para ~2s por chamada) |
+| 13 | agente usa a camada de componentes | o agente virando cliente HTTP paralelo em vez de usar `framework/componentes.py` |
+| 13 | ferramentas do agente são de leitura | ferramenta de escrita (registrar/encerrar contrato, mudar disponibilidade) exposta ao modelo |
+| 13 | agente usa modelo atual | id de modelo inventado ou com sufixo de data (esses dão 404) |
+| 13 | agente degrada sem credencial | falta de chave virando 500 em vez de 503 com instrução. **Não chama o modelo quando há credencial** — validador não pode gastar dinheiro a cada execução |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -79,7 +83,7 @@ O que o script não alcança:
 | 1 — saneamento | 1–2 | ✅ nada pendente |
 | 2 — imóveis | 3–5 | ✅ nada pendente |
 | 3 — contratos | 6–9 | ✅ nada pendente |
-| 4 — agente | 13–14 | O agente responde a uma busca em linguagem natural e chama as tools certas |
+| 4 — agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel |
 | 5 — frontend | 10–12 | ✅ nada pendente |
 | 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
 
@@ -253,3 +257,48 @@ Colisão de nomes no Windows: separar o hook `useAuth` em `authContext.js` quebr
 build, porque o Windows não diferencia maiúsculas e o Vite resolveu `./context/AuthContext`
 para o arquivo errado. Renomeado para `useAuth.js`. Em Linux teria passado — exatamente o
 tipo de divergência entre máquinas que o projeto quer evitar.
+
+## Semana 7 (02–08/11) — bloco 13
+
+**Resultado: 32 checagens, todas passando.** Agente construído, **mas não exercitado
+contra o modelo real** — ver a ressalva no fim.
+
+Entregue: serviço `agente` em `:8006`, sétimo processo da composição. Três ferramentas
+de leitura (`buscar_imoveis`, `detalhar_imovel`, `listar_contratos`), todas cascas finas
+sobre `ComponenteImovelHTTP` e `ComponenteContratoHTTP`. O agente não fala HTTP direto
+com nenhum serviço: usa a mesma camada de componentes que as apps do framework.
+
+Decisões que valem registrar:
+
+- **Serviço novo, não substituição.** O plano dizia que `recomendacao` viraria o agente.
+  Mantive os dois: o recomendador pontua por histórico de contratos, o agente faz busca
+  em linguagem natural. São abordagens diferentes sobre a mesma camada de componentes —
+  o contraste ajuda na apresentação, e não destruí código que funciona.
+- **Ferramentas só de leitura.** Registrar contrato é ação com efeito colateral e
+  dinheiro envolvido; não fica a cargo do modelo nesta fase. Há checagem no validador
+  para que uma ferramenta de escrita não apareça sem decisão explícita.
+- **O serviço sobe sem credencial.** `/health` responde `ok` e o resto do sistema não
+  depende dele; só `POST /agente/perguntar` devolve 503 dizendo o que configurar. Uma
+  máquina sem chave não derruba a composição.
+
+Verificado:
+
+- as três ferramentas chamando os serviços de verdade pelos componentes: a busca por
+  `cidade=Maceio, tipo=apartamento, valor_max=2000` devolveu 3 imóveis corretos, e o id
+  inexistente devolveu erro tratado em vez de estourar
+- os schemas das tools gerados a partir da assinatura e do docstring
+- o caminho até a API: com uma chave inválida, a chamada chega na Anthropic e volta 401,
+  que o serviço mapeia para 503 — ou seja, a requisição é bem formada
+- sem credencial: `/agente/status` diz `false` e `perguntar` devolve 503 com instrução
+
+Dois defeitos meus, achados no teste e corrigidos:
+
+1. `/agente/status` dizia `credencial_configurada: true` sem chave nenhuma. O construtor
+   do SDK **não** falha sem credencial — ele só reclama ao montar o header. A checagem
+   passou a olhar as três fontes que o SDK aceita (`api_key`, `auth_token`, `credentials`).
+2. A falta de chave virava **500**, não 503, porque o SDK levanta `TypeError` (não uma
+   exceção da família `APIError`) quando não resolve autenticação.
+
+**Ressalva importante:** nada aqui prova que o agente *responde bem*. Que ele escolhe a
+ferramenta certa, extrai os filtros da frase e não inventa imóvel só dá para verificar
+com uma chave real. Esse teste é o primeiro item do bloco 14.

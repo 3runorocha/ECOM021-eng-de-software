@@ -23,6 +23,7 @@ SERVICOS = [
     ("contratos",    RAIZ / "services" / "contratos",    8003),
     ("notificacoes", RAIZ / "services" / "notificacoes", 8004),
     ("recomendacao", RAIZ / "services" / "recomendacao", 8005),
+    ("agente",       RAIZ / "services" / "agente",       8006),
     ("gateway",      RAIZ / "gateway",                   8000),
 ]
 

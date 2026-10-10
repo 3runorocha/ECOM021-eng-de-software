@@ -7,6 +7,7 @@ SERVICES = {
     "contratos":    {"url": os.getenv("CONTRATOS_URL",    "http://127.0.0.1:8003"), "porta": 8003, "descricao": "Locacao, encerramento e multa"},
     "notificacoes": {"url": os.getenv("NOTIFICACOES_URL", "http://127.0.0.1:8004"), "porta": 8004, "descricao": "Alertas de prazo e atraso"},
     "recomendacao": {"url": os.getenv("RECOMENDACAO_URL", "http://127.0.0.1:8005"), "porta": 8005, "descricao": "Recomendacao por perfil do usuario"},
+    "agente":       {"url": os.getenv("AGENTE_URL",       "http://127.0.0.1:8006"), "porta": 8006, "descricao": "Busca conversacional sobre o portfolio"},
 }
 
 PUBLIC_ROUTES = {

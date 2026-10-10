@@ -67,8 +67,8 @@ O serviço `recomendacao` (8005) vira um **serviço de agente**. O encaixe já e
 
 | # | Ação |
 |---|------|
-| 4.1 | Serviço de agente com a Claude API, expondo os métodos dos `IComponente*` como tools |
-| 4.2 | Caso de uso: busca conversacional ("apartamento de 2 quartos em Maceió até R$ 1.800") → o agente chama `buscar_imoveis` com os filtros que extraiu |
+| 4.1 | ✅ **Bloco 13.** Serviço `agente` em :8006. As três ferramentas (`buscar_imoveis`, `detalhar_imovel`, `listar_contratos`) são cascas finas sobre `ComponenteImovelHTTP` e `ComponenteContratoHTTP` — o agente não fala HTTP direto com serviço nenhum. Todas de leitura: registrar contrato envolve dinheiro e não fica a cargo do modelo |
+| 4.2 | ⚠️ **Bloco 13, construído mas não exercitado.** `POST /agente/perguntar` monta o loop de ferramentas com o Tool Runner do SDK. O caminho até a API foi validado (uma chave inválida devolve 401 → 503), mas **a qualidade da resposta não foi testada**: falta credencial na máquina |
 | 4.3 | Caso de uso: agente dispara notificação de contrato próximo do vencimento |
 | 4.4 | Uma `App` do framework que orquestra o agente, provando que o agente **reusa** o framework em vez de contorná-lo |
 
