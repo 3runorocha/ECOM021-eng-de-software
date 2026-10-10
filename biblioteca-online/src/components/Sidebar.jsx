@@ -12,6 +12,7 @@ const ROTULOS = {
   contratos: 'Contratos',
   notificacoes: 'Notificações',
   recomendacao: 'Recomendação',
+  agente: 'Agente',
 }
 
 const INTERVALO_MS = 10000
@@ -99,6 +100,9 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/recomendacao" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
           ✨ Recomendação <span className={styles.badge}>8005</span>
+        </NavLink>
+        <NavLink to="/agente" className={({ isActive }) => isActive ? styles.activeLink : styles.link}>
+          🤖 Agente <span className={styles.badge}>8006</span>
         </NavLink>
       </nav>
 

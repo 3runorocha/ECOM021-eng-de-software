@@ -9,6 +9,7 @@ import Contratos from './pages/Contratos'
 import Usuarios from './pages/Usuarios'
 import Notificacoes from './pages/Notificacoes'
 import Recomendacao from './pages/Recomendacao'
+import Agente from './pages/Agente'
 
 function AppInner() {
   const { usuario } = useAuth()
@@ -26,6 +27,7 @@ function AppInner() {
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/recomendacao" element={<Recomendacao />} />
+        <Route path="/agente" element={<Agente />} />
           </Routes>
       </main>
     </div>

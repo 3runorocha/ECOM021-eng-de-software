@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from models import Pergunta, Resposta
+from models import Pergunta, Resposta, PedidoAviso, Aviso
 from agente import Agente
 
 
@@ -10,6 +10,11 @@ def criar_router(agente: Agente) -> APIRouter:
     @router.post("/perguntar", response_model=Resposta)
     def perguntar(pergunta: Pergunta):
         return agente.perguntar(pergunta.texto, pergunta.inquilino_id)
+
+    @router.post("/redigir-aviso", response_model=Aviso)
+    def redigir_aviso(pedido: PedidoAviso):
+        from agente import MODELO
+        return {"mensagem": agente.redigir_aviso(pedido.fatos), "modelo": MODELO}
 
     @router.get("/status")
     def status():

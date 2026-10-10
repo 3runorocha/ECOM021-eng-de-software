@@ -57,7 +57,8 @@ class IComponenteContrato(IComponente):
         pass
 
     @abstractmethod
-    def listar_contratos(self, inquilino_id: int) -> list[dict]:
+    def listar_contratos(self, inquilino_id: int = None) -> list[dict]:
+        """inquilino_id ausente lista os contratos de todos."""
         pass
 
 
@@ -69,6 +70,23 @@ class IComponenteNotificacao(IComponente):
 
     @abstractmethod
     def listar(self, usuario_id: int) -> list[dict]:
+        pass
+
+
+class IComponenteAgente(IComponente):
+    """O agente exposto como componente.
+
+    Simetria que vale notar: o agente CONSOME componentes (as ferramentas dele)
+    e tambem E um componente. Assim uma app do framework orquestra o agente
+    pelo mesmo contrato que usa para qualquer outro servico.
+    """
+
+    @abstractmethod
+    def perguntar(self, texto: str, inquilino_id: int = None) -> dict:
+        pass
+
+    @abstractmethod
+    def redigir_aviso(self, fatos: dict) -> str:
         pass
 
 

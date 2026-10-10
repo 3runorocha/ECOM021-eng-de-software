@@ -69,8 +69,8 @@ O serviço `recomendacao` (8005) vira um **serviço de agente**. O encaixe já e
 |---|------|
 | 4.1 | ✅ **Bloco 13.** Serviço `agente` em :8006. As três ferramentas (`buscar_imoveis`, `detalhar_imovel`, `listar_contratos`) são cascas finas sobre `ComponenteImovelHTTP` e `ComponenteContratoHTTP` — o agente não fala HTTP direto com serviço nenhum. Todas de leitura: registrar contrato envolve dinheiro e não fica a cargo do modelo |
 | 4.2 | ⚠️ **Bloco 13, construído mas não exercitado.** `POST /agente/perguntar` monta o loop de ferramentas com o Tool Runner do SDK. O caminho até a API foi validado (uma chave inválida devolve 401 → 503), mas **a qualidade da resposta não foi testada**: falta credencial na máquina |
-| 4.3 | Caso de uso: agente dispara notificação de contrato próximo do vencimento |
-| 4.4 | Uma `App` do framework que orquestra o agente, provando que o agente **reusa** o framework em vez de contorná-lo |
+| 4.3 | ✅ **Bloco 14.** `POST /agente/redigir-aviso` redige o texto a partir de fatos já apurados — sem ferramentas e sem contas, para a regra de multa continuar só no serviço de contratos. Quem envia é a aplicação |
+| 4.4 | ✅ **Bloco 14.** `apps/app_aviso_vencimento.py` pelo Template Method: `pre_processar` levanta os contratos pelos componentes, `executar_logica` pede o texto ao agente, `pos_processar` envia. O agente virou `IComponenteAgente` + `ComponenteAgenteHTTP`: ele consome componentes **e é** um componente |
 
 > Argumento de arquitetura para a apresentação: o agente não é um apêndice — ele consome
 > exatamente a mesma camada de componentes que as apps convencionais.

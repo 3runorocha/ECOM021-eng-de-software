@@ -46,7 +46,7 @@ Cada serviço tem banco SQLite próprio e roda isolado.
 | ~~Empréstimos~~ **Contratos** | 8003 | ✅ feito (blocos 6–9) |
 | Notificações | 8004 | ✅ vocabulário e multa proporcional |
 | Recomendação | 8005 | ✅ pontuação por histórico |
-| **Agente** | 8006 | ✅ busca conversacional (bloco 13) |
+| **Agente** | 8006 | ✅ busca conversacional + redação de avisos (blocos 13–14) |
 
 Stack: Python 3.11+, FastAPI, SQLite, React (Vite), httpx.
 
