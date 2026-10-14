@@ -28,7 +28,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 12 | 24–26/10 | 5 | ✅ **Concluído 07/10.** Dashboard, Usuários, Notificações e Recomendação reescritos com dados reais (5.4, 5.7–5.9) · `Configurador.jsx` removido (5.5) · rotas e menu (5.6). A interface de chat do agente fica para a Fase 4, quando o agente existir |
 | 13 | 27–29/10 | 4 | ✅ **Concluído 10/10.** Serviço `agente` em :8006, com as ferramentas vindas de `framework/componentes.py` (4.1) · busca conversacional (4.2). **Não testado contra o modelo real** — falta credencial da Anthropic na máquina |
 | 14 | 30/10–01/11 | 4 | ✅ **Concluído 10/10.** `app_aviso_vencimento.py`: a App levanta os contratos pelos componentes, o agente redige o texto, a App envia (4.3, 4.4) · `IComponenteAgente` + tela `/agente` com o chat. **Resposta do modelo segue não testada** — falta credencial |
-| 15 | 02–04/11 | 6 | Testes: pytest por serviço + 1 integração (6.1) · reescrever seeds (6.2) |
+| 15 | 02–04/11 | 6 | ✅ **Concluído 13/10.** 77 testes: 73 de unidade com repositórios fake + 4 de integração pelo gateway (6.1). 6.2 já tinha saído nos blocos 3–4 e 11. Corrigido bug de fuso no token, achado pela suíte |
 | 16 | 05–07/11 | 6 | Diagramas (6.3) · README e docs (6.4) · backlog Scrum (6.5) · **stretch: Docker** |
 
 ---
@@ -48,6 +48,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 26/10–01/11 | 12 | ✅ 28 checagens passando — **Fase 5 fechada**, nenhuma tela mente |
 | 02–08/11 | 13 | ✅ 32 checagens passando — agente construído; falta rodar com chave |
 | 09–15/11 | 14 | ✅ 36 checagens passando — **Fase 4 fechada**, com a ressalva da credencial |
+| 16–22/11 | 15 | ✅ 37 checagens + 77 testes — suíte pytest no ritual |
 
 ## Marcos
 

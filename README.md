@@ -174,6 +174,24 @@ Acesse `http://localhost:5173` e faça login com `admin@alugue.br` / `admin123`.
 
 ---
 
+## Testes
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest                  # 73 de unidade, rápidos, sem serviço no ar
+python -m pytest -m integracao    # 4 pelo gateway; exige os serviços no ar
+```
+
+Os de unidade exercitam a camada de serviço com repositórios fake — sem SQLite e sem
+rede. Os de integração são pulados, não falham, quando os serviços não estão no ar.
+
+Para validar o projeto inteiro de uma vez (invariantes + suíte + integração com bancos
+temporários):
+
+```bash
+python validar.py
+```
+
 ## Endpoints úteis
 
 - **Documentação da API (Swagger):** `http://localhost:8000/docs`

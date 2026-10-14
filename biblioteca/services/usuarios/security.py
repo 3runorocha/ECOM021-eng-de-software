@@ -1,6 +1,6 @@
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from exceptions import TokenInvalido
 
@@ -23,10 +23,19 @@ class TokenService:
     def _assinar(self, raw: str) -> str:
         return hashlib.sha256((raw + self._secret).encode()).hexdigest()
 
+    @staticmethod
+    def _agora() -> datetime:
+        # Tem de ser consciente de fuso: datetime.utcnow() devolve um datetime
+        # ingenuo, e .timestamp() o interpreta como hora LOCAL. Aqui (UTC-3) o
+        # token declarava 11h de validade quando o pretendido era 8 -- a
+        # duracao efetiva saia certa porque os dois lados erravam igual, mas o
+        # campo expires gravado no token mentia para quem o lesse de fora.
+        return datetime.now(timezone.utc)
+
     def gerar(self, usuario_id: int, email: str) -> str:
         nonce = secrets.token_hex(16)
         expires = int(
-            (datetime.utcnow() + timedelta(hours=self._horas_validade)).timestamp()
+            (self._agora() + timedelta(hours=self._horas_validade)).timestamp()
         )
         raw = f"{usuario_id}:{email}:{expires}:{nonce}"
         return f"{raw}:{self._assinar(raw)}"
@@ -40,7 +49,7 @@ class TokenService:
             raw = f"{usuario_id}:{email}:{expires}:{nonce}"
             if signature != self._assinar(raw):
                 raise ValueError("Assinatura inválida")
-            if int(expires) < int(datetime.utcnow().timestamp()):
+            if int(expires) < int(self._agora().timestamp()):
                 raise ValueError("Token expirado")
             return {"usuario_id": int(usuario_id), "email": email}
         except Exception:

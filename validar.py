@@ -700,6 +700,22 @@ def aviso_sai_mesmo_com_agente_fora(ctx):
         "o aviso nao virou notificacao para o imovel {0}".format(imovel_id))
 
 
+def suite_de_testes_passa():
+    """6.1 - a suite de unidade e parte do ritual, nao um anexo.
+
+    Roda so os testes de unidade: sao rapidos e nao precisam de servico no ar.
+    Os de integracao ficam de fora porque as checagens vivas deste validador ja
+    cobrem o mesmo caminho, com bancos temporarios.
+    """
+    saida = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q"],
+        cwd=str(RAIZ), capture_output=True, text=True, timeout=300,
+    )
+    assert saida.returncode == 0, (
+        "a suite de testes falhou:" + chr(10) + saida.stdout[-3000:] + saida.stderr[-1000:]
+    )
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -724,6 +740,7 @@ ESTATICAS = [
     ("14", "app do framework orquestra o agente", app_do_framework_orquestra_o_agente),
     ("14", "redator de aviso nao faz conta", redator_de_aviso_nao_faz_conta),
     ("10", "frontend compila", frontend_compila),
+    ("15", "suite de testes passa", suite_de_testes_passa),
     ("-", "todo .py compila", tudo_compila),
 ]
 

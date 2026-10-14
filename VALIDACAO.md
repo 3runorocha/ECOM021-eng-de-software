@@ -62,6 +62,7 @@ validador não suja seus dados de desenvolvimento.
 | 14 | app do framework orquestra o agente | a app deixando de estender o framework, sobrescrevendo `executar_operacao`, ou falando HTTP direto |
 | 14 | redator de aviso não faz conta | o prompt deixando o modelo calcular multa ou inventar fato |
 | 14 | aviso sai mesmo com agente fora | a resiliência quebrando: roda a app com `AGENTE_URL` numa porta morta e exige que a notificação saia com texto padrão. **Nunca chama a API** — nem com credencial |
+| 15 | suíte de testes passa | qualquer regressão que os 73 testes de unidade peguem — a suíte virou parte do ritual, não um anexo |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -89,7 +90,7 @@ O que o script não alcança:
 | 3 — contratos | 6–9 | ✅ nada pendente |
 | 4 — agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave: (1) na tela `/agente`, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel; (2) rodar `python apps/app_aviso_vencimento.py` e ver os avisos saírem "redigido por: agente" em vez de texto padrão |
 | 5 — frontend | 10–12 | ✅ nada pendente |
-| 6 — qualidade | 15–16 | Diagramas refletem o código final; README descreve o que existe |
+| 6 — qualidade | 15–16 | Testes ✅ (bloco 15). Falta: diagramas refletirem o código final e o README descrever o que existe |
 
 ## Semana 1 (21–27/09) — blocos 1 e 2
 
@@ -348,3 +349,43 @@ Renomeei o campo para `remetente` em vez de afrouxar a checagem: a ambiguidade e
 agente escolhe a ferramenta certa, extrai os filtros da frase e não inventa imóvel; e que
 os avisos saem "redigido por: agente". Até lá, a Fase 4 está construída e integrada, mas
 não exercitada.
+
+## Semana 9 (16–22/11) — bloco 15
+
+**Resultado: 37 checagens e 77 testes, todos passando.**
+
+Entregue: `tests/` com 73 testes de unidade e 4 de integração, mais `pytest.ini` e
+`requirements-dev.txt`. A suíte entrou no `validar.py` como checagem, então o ritual
+semanal passou a cobrir unidade + invariantes + integração num comando só.
+
+Cobertura por serviço (camada `service`, com repositórios e clientes fake):
+
+| Arquivo | O que exercita |
+|---------|----------------|
+| `test_imoveis.py` | guarda de disponibilidade, filtros, faixa de valor invertida |
+| `test_contratos.py` | `somar_meses` em mês curto e ano bissexto, multa proporcional, um contrato por imóvel, **a compensação quando o INSERT falha** |
+| `test_notificacoes.py` | varredura: multa do alerta sai do contrato, não repete alerta pendente |
+| `test_recomendacao.py` | pontuação por tipo e cidade, e a penalidade que **rebaixa sem excluir** |
+| `test_seguranca.py` | hash, token adulterado, expirado, malformado |
+| `test_framework.py` | ordem do Template Method, frozen spots, log sem senha |
+| `test_integracao.py` | ciclo de locação pelo gateway (pulado se os serviços estiverem fora) |
+
+Obstáculo real resolvido no `conftest.py`: cada serviço usa imports planos, então
+`models`, `service` e `repository` **colidem em `sys.modules`** quando mais de um é
+importado no mesmo processo pytest. O helper `carregar(servico, modulo)` limpa o cache,
+aponta o `sys.path` e limpa de novo.
+
+A suíte foi testada contra regressões plantadas, como o validador: devolver
+`PENALIDADE_JA_RECOMENDADO = 5` e remover a compensação do contrato fez exatamente dois
+testes falharem, nomeando o problema. Restaurado sem diff residual.
+
+Bug achado pela suíte e corrigido: o token usava `datetime.utcnow()`, que devolve
+datetime ingênuo — e `.timestamp()` o interpreta como hora **local**. Aqui (UTC−3) um
+token de 8 horas declarava **11**. A duração efetiva saía certa porque os dois lados
+erravam igual, mas o campo `expires` gravado mentia para qualquer um que o lesse de
+fora. Trocado por `datetime.now(timezone.utc)`, com teste que fixa as 8 horas contra o
+relógio real.
+
+Um fake meu estava mais permissivo que a produção: o repositório real grava 0/1 no
+SQLite e reconverte para bool na leitura, e o fake guardava o int cru. Ajustado para
+imitar a fronteira — senão o teste esconderia erro de tipo em vez de pegá-lo.

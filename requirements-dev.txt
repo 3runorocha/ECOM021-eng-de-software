@@ -1,0 +1,7 @@
+# Dependencias so de desenvolvimento. As de execucao estao em
+# biblioteca/requirements.txt.
+#
+#   pip install -r requirements-dev.txt
+#   python -m pytest              # unidade, rapido, sem servico no ar
+#   python -m pytest -m integracao  # exige `python subir_servicos.py`
+pytest==9.1.1
