@@ -63,6 +63,9 @@ validador não suja seus dados de desenvolvimento.
 | 14 | redator de aviso não faz conta | o prompt deixando o modelo calcular multa ou inventar fato |
 | 14 | aviso sai mesmo com agente fora | a resiliência quebrando: roda a app com `AGENTE_URL` numa porta morta e exige que a notificação saia com texto padrão. **Nunca chama a API** — nem com credencial |
 | 15 | suíte de testes passa | qualquer regressão que os 73 testes de unidade peguem — a suíte virou parte do ritual, não um anexo |
+| 16 | diagramas refletem o código | PNG do domínio antigo voltando, ou diagrama sem bloco Mermaid |
+| 16 | documentação sem lastro do projeto antigo | docs voltando a falar do produto anterior ou do escopo da LPS (linhas que citam `tes-rds` são isentas: ali a menção é a origem do reúso) |
+| 16 | links dos docs existem | link quebrado em README ou diagrama — o tipo de erro que só aparece na correção |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -90,7 +93,7 @@ O que o script não alcança:
 | 3 — contratos | 6–9 | ✅ nada pendente |
 | 4 — agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave: (1) na tela `/agente`, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel; (2) rodar `python apps/app_aviso_vencimento.py` e ver os avisos saírem "redigido por: agente" em vez de texto padrão |
 | 5 — frontend | 10–12 | ✅ nada pendente |
-| 6 — qualidade | 15–16 | Testes ✅ (bloco 15). Falta: diagramas refletirem o código final e o README descrever o que existe |
+| 6 — qualidade | 15–16 | ✅ nada pendente |
 
 ## Semana 1 (21–27/09) — blocos 1 e 2
 
@@ -389,3 +392,45 @@ relógio real.
 Um fake meu estava mais permissivo que a produção: o repositório real grava 0/1 no
 SQLite e reconverte para bool na leitura, e o fake guardava o int cru. Ajustado para
 imitar a fronteira — senão o teste esconderia erro de tipo em vez de pegá-lo.
+
+## Semana 10 (23–29/11) — bloco 16
+
+**Resultado: 40 checagens e 77 testes, todos passando. Projeto concluído**, 25 dias
+antes da entrega — com a ressalva única e conhecida do agente.
+
+Entregue: cinco diagramas em Mermaid, README reescrito, `COMO_CRIAR_APP.md` atualizado
+com os componentes atuais e uma seção de como usar o agente numa app, e `scrum.md` com
+23 histórias do domínio de aluguel e as seis sprints que de fato aconteceram.
+
+Removidos: os cinco PNGs (todos do domínio de biblioteca, dois deles de modelo de
+features e OVM, que eram da Linha de Produto da disciplina anterior) e o
+`COMO_DERIVAR_PRODUTO.md`. Tudo recuperável no histórico do git.
+
+Diagrama em texto, e não imagem, por um motivo concreto: imagem não se revisa em diff
+nem se corrige junto com o código, e as cinco ficaram erradas no instante em que o
+domínio mudou. Os `.md` com Mermaid renderizam direto no GitHub.
+
+**Docker (item 6.6) não foi feito, deliberadamente.** Não está instalado em nenhuma das
+duas máquinas, então eu entregaria um `docker-compose.yml` que nunca rodou — o oposto
+da disciplina que o resto do projeto seguiu. As variáveis de ambiente da Fase 1 já
+resolvem a portabilidade e o `subir_servicos.py` sobe os sete processos num comando.
+Fica registrado como melhoria futura, não como pendência escondida.
+
+Nota sobre o validador: a checagem nova de documentação acusou o `CLAUDE.md` por citar
+"Biblioteca Online" — mas ali a menção é a **origem do reúso**, que é informação que o
+trabalho quer destacar. Em vez de reescrever a frase para contornar a checagem, isentei
+linhas que citam `tes-rds`. Foi a quinta vez no projeto que uma checagem textual minha
+bateu em prosa legítima; o padrão já está claro, e a resposta certa continua sendo
+tornar a checagem precisa, não afrouxá-la.
+
+---
+
+## Estado final
+
+| | |
+|---|---|
+| Checagens do validador | 40 |
+| Testes | 77 (73 unidade + 4 integração) |
+| Fases concluídas | 1, 2, 3, 5, 6 |
+| Fase 4 (agente, opcional) | construída e integrada; resposta do modelo não exercitada |
+| Pendência única | rodar o agente com `ANTHROPIC_API_KEY` e conferir os dois itens da tabela acima |

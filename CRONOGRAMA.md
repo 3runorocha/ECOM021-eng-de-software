@@ -6,7 +6,7 @@
 utilizável — o colchão real são os blocos 15 e 16.
 
 Cadência: bloco de 3 dias como unidade de trabalho, semana como sprint para o
-registro Scrum (`scrum_biblioteca.md`).
+registro Scrum (`scrum.md`).
 
 ---
 
@@ -29,7 +29,7 @@ registro Scrum (`scrum_biblioteca.md`).
 | 13 | 27–29/10 | 4 | ✅ **Concluído 10/10.** Serviço `agente` em :8006, com as ferramentas vindas de `framework/componentes.py` (4.1) · busca conversacional (4.2). **Não testado contra o modelo real** — falta credencial da Anthropic na máquina |
 | 14 | 30/10–01/11 | 4 | ✅ **Concluído 10/10.** `app_aviso_vencimento.py`: a App levanta os contratos pelos componentes, o agente redige o texto, a App envia (4.3, 4.4) · `IComponenteAgente` + tela `/agente` com o chat. **Resposta do modelo segue não testada** — falta credencial |
 | 15 | 02–04/11 | 6 | ✅ **Concluído 13/10.** 77 testes: 73 de unidade com repositórios fake + 4 de integração pelo gateway (6.1). 6.2 já tinha saído nos blocos 3–4 e 11. Corrigido bug de fuso no token, achado pela suíte |
-| 16 | 05–07/11 | 6 | Diagramas (6.3) · README e docs (6.4) · backlog Scrum (6.5) · **stretch: Docker** |
+| 16 | 05–07/11 | 6 | ✅ **Concluído 13/10.** Cinco diagramas reescritos em Mermaid (6.3) · README, guia do framework e `scrum.md` reescritos; `COMO_DERIVAR_PRODUTO.md` removido (6.4, 6.5). Docker (6.6) não feito — ver nota no fim |
 
 ---
 
@@ -49,6 +49,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 | 02–08/11 | 13 | ✅ 32 checagens passando — agente construído; falta rodar com chave |
 | 09–15/11 | 14 | ✅ 36 checagens passando — **Fase 4 fechada**, com a ressalva da credencial |
 | 16–22/11 | 15 | ✅ 37 checagens + 77 testes — suíte pytest no ritual |
+| 23–29/11 | 16 | ✅ 40 checagens + 77 testes — **projeto concluído**, 25 dias antes da entrega |
 
 ## Marcos
 

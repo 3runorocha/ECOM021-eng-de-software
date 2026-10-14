@@ -1,176 +1,128 @@
-# Biblioteca Online — Microsserviços e Componentes
+# Aluguel de Imóveis — Microsserviços, Componentes e Agente
 
-Sistema de gerenciamento de biblioteca construído com arquitetura de **microsserviços** (Python + FastAPI) e **frontend** em React. O projeto serve de base para dois trabalhos acadêmicos:
+Projeto da disciplina **ECOM021 — Engenharia de Software (2026.2)**: sistema de
+gerenciamento de aluguel de apartamentos e casas, construído com **microsserviços** e
+**componentes de software**, mais um **agente** (item opcional do enunciado).
 
-- **RDS (Reúso de Software):** um *framework* reusável baseado no padrão **Template Method**, com *frozen spots* e *hotspots*.
-- **TES (Tópicos em Engenharia de Software):** uma **Linha de Produto de Software (LPS)**, com modelo de features, variabilidade (OVM) e configurador para derivação de produtos.
+**Stack:** Python 3.11+, FastAPI, SQLite, React (Vite), Claude API.
+
+---
+
+## Origem: este projeto é um caso de reúso
+
+O código parte de [`3runorocha/tes-rds`](https://github.com/3runorocha/tes-rds), o
+projeto de Reúso de Software + Tópicos em Engenharia de Software do semestre anterior
+(uma biblioteca online). O primeiro commit deste repositório é aquele esqueleto **sem
+nenhuma adaptação**, de propósito: o histórico do git mostra o que foi reúso e o que foi
+construído para esta disciplina.
+
+O que sobreviveu intacto: o API Gateway, o padrão de camadas dos serviços, o framework
+com Template Method e a camada de componentes. O que mudou: o domínio inteiro.
+
+| Antes | Depois |
+|---|---|
+| `Livro` com N exemplares (`quantidade_disponivel: int`) | `Imovel` único (`disponivel: bool`) |
+| `Emprestimo` de 14 dias, multa fixa de R$ 0,50/dia | `Contrato` de 12 meses, multa de 1/30 do aluguel por dia |
+| "usuário já tem este livro" | "um contrato em aberto por imóvel", seja qual for o inquilino |
 
 ---
 
 ## Arquitetura
 
-Todas as requisições passam por um **API Gateway** que roteia para os microsserviços. Cada serviço é independente e possui seu próprio banco SQLite.
+Sete processos. Tudo entra pelo gateway; cada serviço tem banco próprio.
 
 | Serviço | Porta | Responsabilidade |
 |---------|-------|------------------|
 | API Gateway | 8000 | Ponto de entrada único, roteamento e autenticação |
-| Imóveis | 8001 | Portfólio de apartamentos e casas, busca e disponibilidade |
-| Usuários | 8002 | Cadastro e autenticação |
-| Contratos | 8003 | Locação, encerramento e multa por atraso na desocupação |
-| Notificações | 8004 | Alertas de prazo (opcional) |
-| Recomendação | 8005 | Sugestões por perfil/histórico (vira Agente na Fase 4) |
+| Imóveis | 8001 | Portfólio, busca com filtros e disponibilidade |
+| Usuários | 8002 | Cadastro, login e token |
+| Contratos | 8003 | Locação, encerramento e multa por atraso |
+| Notificações | 8004 | Alertas de prazo e atraso |
+| Recomendação | 8005 | Pontuação por histórico de contratos |
+| Agente | 8006 | Busca em linguagem natural e redação de avisos |
 
-**Stack:** Python 3.11+, FastAPI, SQLite, React (Vite), Scrum, GitHub.
+Diagramas em [`diagramas/`](diagramas/): arquitetura, componentes, framework, ciclo do
+contrato e agente.
 
----
+### Componentes
 
-## Estrutura do repositório
+O enunciado pede microsserviços **e** componentes. Os componentes são uma camada
+explícita em [`biblioteca/framework/`](biblioteca/framework/): interfaces `IComponente*`
+com ciclo de vida (`inicializar`/`finalizar`) e implementações HTTP. Quem consome não
+monta requisição — chama um método.
 
-```
-rds-tes/
-├── biblioteca/                 # Backend (microsserviços)
-│   ├── services/
-│   │   ├── catalogo/           # :8001
-│   │   ├── usuarios/           # :8002
-│   │   ├── emprestimos/        # :8003
-│   │   ├── notificacoes/       # :8004
-│   │   └── recomendacao/       # :8005
-│   ├── gateway/                # API Gateway :8000
-│   ├── framework/              # Framework reusável (RDS)
-│   │   ├── framework.py        # Classe abstrata + Template Method
-│   │   ├── interfaces.py       # Contratos dos componentes
-│   │   └── componentes.py      # Implementações HTTP
-│   ├── apps/                   # Aplicações que reusam o framework (RDS)
-│   └── requirements.txt
-├── biblioteca-online/          # Frontend React
-│   └── src/
-│       ├── pages/              # Telas (Dashboard, Catálogo, ..., Configurador)
-│       ├── components/         # Sidebar
-│       ├── context/            # AuthContext
-│       └── services/           # api.js
-├── diagramas/                  # Diagramas UML, feature model e OVM
-├── COMO_CRIAR_APP.md           # Passo a passo: nova app via framework (RDS)
-└── COMO_DERIVAR_PRODUTO.md     # Passo a passo: derivar produto da LPS (TES)
-```
-
----
-
-## Pré-requisitos
-
-- Python 3.11 ou superior
-- Node.js 18 ou superior
-- npm
+A mesma camada serve as aplicações do framework **e** as ferramentas do agente. Ver
+[`diagramas/2_componentes.md`](diagramas/2_componentes.md).
 
 ---
 
 ## Como executar
 
-### 1. Backend
+### Pré-requisitos
 
-Instale as dependências (a partir da pasta `biblioteca/`):
+Python 3.11+, Node.js 18+, npm.
 
 ```bash
-cd biblioteca
-pip install -r requirements.txt
+pip install -r biblioteca/requirements.txt
+cd biblioteca-online && npm install && cd ..
 ```
 
-Suba os seis serviços de uma vez, a partir da raiz do repositório:
+### 1. Backend
+
+Um comando sobe os sete processos. `--reload` recarrega ao salvar; `Ctrl+C` encerra
+todos. Se algum serviço morrer, o script derruba o resto e diz qual foi.
 
 ```bash
 python subir_servicos.py
 ```
 
-Use `--reload` para recarregar ao salvar durante o desenvolvimento. `Ctrl+C`
-encerra todos. Se algum serviço morrer, o script derruba o resto e diz qual foi.
+### 2. Dados de exemplo
 
-<details>
-<summary>Alternativa: um terminal por serviço</summary>
+O repositório não inclui bancos. Rode os dois seeds **nesta ordem**:
 
 ```bash
-# Catálogo
-cd biblioteca/services/catalogo && uvicorn main:app --port 8001 --reload
-
-# Usuários
-cd biblioteca/services/usuarios && uvicorn main:app --port 8002 --reload
-
-# Empréstimos
-cd biblioteca/services/emprestimos && uvicorn main:app --port 8003 --reload
-
-# Notificações
-cd biblioteca/services/notificacoes && uvicorn main:app --port 8004 --reload
-
-# Recomendação
-cd biblioteca/services/recomendacao && uvicorn main:app --port 8005 --reload
-
-# API Gateway
-cd biblioteca/gateway && uvicorn main:app --port 8000 --reload
+# 1. com os serviços no ar
+cd biblioteca && python seed.py
 ```
 
-</details>
-
-As URLs entre serviços vêm de variável de ambiente, com `localhost` como default
-— rodar numa máquina só não exige configuração nenhuma. Para mudar, copie
-`.env.example` para `.env` (e `biblioteca-online/.env.example` para o frontend).
-
-### 2. Populando o banco de dados
-
-O repositório não inclui dados. Para ter usuários, livros e empréstimos de exemplo, rode os dois scripts de seed na ordem abaixo.
-
-**Passo 1 — seed.py (serviços no ar)**
-
-Cadastra usuários e livros via HTTP. Rode com todos os serviços rodando:
-
-```bash
-cd biblioteca
-python seed.py
-```
-
-Cria 7 usuários e 18 imóveis. Login de administrador: `admin@alugue.br` / `admin123`.
+Cria 7 usuários e 18 imóveis em Maceió, Recife e João Pessoa.
+Login de administrador: `admin@alugue.br` / `admin123`.
 
 Usuários duplicados são ignorados. **Imóveis não**: diferente do livro, que tinha ISBN,
 imóvel não tem chave única de negócio — rodar de novo duplica o portfólio. Apague
 `biblioteca/services/imoveis/imoveis.db` para recomeçar.
 
-**Passo 2 — seed_contratos.py (serviços parados)**
-
-Popula a tabela de empréstimos com acesso direto ao SQLite. **Pare todos os serviços antes de rodar**, a partir da pasta `biblioteca/`:
-
 ```bash
-cd biblioteca
-python seed_contratos.py
+# 2. com os serviços PARADOS
+cd biblioteca && python seed_contratos.py
 ```
 
-Insere 42 contratos (7 inquilinos × 6 perfis): ativos, atrasados e encerrados, estes
-com multa proporcional calculada sobre o aluguel de cada imóvel. Como um imóvel é
-único, no máximo um contrato fica em aberto por imóvel — quando os imóveis livres
-acabam, os demais entram como histórico encerrado. Também marca como indisponíveis os
-imóveis com contrato aberto.
+Insere 42 contratos (7 inquilinos × 6 perfis): ativos, atrasados e encerrados, estes com
+multa proporcional ao aluguel de cada imóvel. Como um imóvel é único, no máximo um
+contrato fica em aberto por imóvel — quando os livres acabam, os demais entram como
+histórico encerrado.
 
-Após concluir, suba os serviços novamente.
-
-**Ordem completa:**
-
-```
-1. Suba os serviços
-2. python seed.py
-3. Pare os serviços
-4. python seed_contratos.py
-5. Suba os serviços novamente
-```
+Depois suba os serviços de novo.
 
 ### 3. Frontend
 
 ```bash
-cd biblioteca-online
-npm install
-npm run dev
+cd biblioteca-online && npm run dev
 ```
 
-Acesse `http://localhost:5173` e faça login com `admin@alugue.br` / `admin123`.
+Acesse `http://localhost:5173`.
 
-> As telas ainda renderizam campos do domínio antigo (autor, gênero). Só a camada
-> `api.js` foi apontada para os endpoints de imóveis; a reescrita das páginas é a
-> Fase 5 (blocos 10–12).
+### 4. Agente (opcional)
+
+O serviço de agente sobe e responde `/health` sem credencial, mas as rotas que pensam
+devolvem 503 explicando o que falta. Para ativá-lo:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...      # ou: ant auth login
+```
+
+Nenhum outro serviço depende dele. Não comite a chave — use `.env`, que está no
+`.gitignore`.
 
 ---
 
@@ -192,16 +144,58 @@ temporários):
 python validar.py
 ```
 
-## Endpoints úteis
-
-- **Documentação da API (Swagger):** `http://localhost:8000/docs`
-- **Status dos serviços:** `http://localhost:8000/health`
-- **Lista de microsserviços e portas:** `http://localhost:8000/services`
+São 37 checagens, descritas em [`VALIDACAO.md`](VALIDACAO.md). O validador sobe os
+serviços com bancos temporários, então não suja os dados de desenvolvimento.
 
 ---
 
-## Documentação adicional
+## Configuração
 
-- [`COMO_CRIAR_APP.md`](./COMO_CRIAR_APP.md) — como criar uma nova aplicação reusando o framework (RDS)
-- [`COMO_DERIVAR_PRODUTO.md`](./COMO_DERIVAR_PRODUTO.md) — como derivar um novo produto a partir da LPS (TES)
-- `diagramas/` — diagrama de classes, diagrama de componentes, feature model e OVM
+As URLs entre serviços saem de variável de ambiente, com default local — rodar numa
+máquina só não exige configuração nenhuma. Para mudar, copie `.env.example` para `.env`
+(e `biblioteca-online/.env.example` para o frontend).
+
+> Use `127.0.0.1`, nunca `localhost`. No Windows, `localhost` resolve `::1` antes de
+> `127.0.0.1` e o uvicorn escuta só em IPv4: medido **2133 ms por chamada contra 20 ms**.
+
+---
+
+## Estrutura
+
+```
+ECOM021-eng-de-software/
+├── biblioteca/                  # Backend
+│   ├── services/
+│   │   ├── imoveis/             # :8001
+│   │   ├── usuarios/            # :8002
+│   │   ├── contratos/           # :8003
+│   │   ├── notificacoes/        # :8004
+│   │   ├── recomendacao/        # :8005
+│   │   └── agente/              # :8006
+│   ├── gateway/                 # :8000
+│   ├── framework/               # Template Method + componentes
+│   ├── apps/                    # Aplicações que reusam o framework
+│   ├── seed.py, seed_contratos.py
+│   └── requirements.txt
+├── biblioteca-online/           # Frontend React
+├── diagramas/                   # Mermaid
+├── tests/                       # pytest
+├── subir_servicos.py            # sobe os 7 processos
+├── validar.py                   # 37 checagens
+├── CRONOGRAMA.md                # blocos de 3 dias, 21/09 a 07/11
+├── PLANO_DE_EXECUCAO.md         # o plano, item a item
+├── VALIDACAO.md                 # o que cada checagem pega, semana a semana
+└── COMO_CRIAR_APP.md            # criar uma app reusando o framework
+```
+
+> As pastas `biblioteca/` e `biblioteca-online/` mantêm o nome herdado do projeto
+> original. Renomeá-las quebraria a rastreabilidade do reúso no histórico do git, que é
+> justamente o que este trabalho quer mostrar.
+
+---
+
+## Endpoints úteis
+
+- **Swagger agregado:** `http://127.0.0.1:8000/docs`
+- **Saúde dos serviços:** `http://127.0.0.1:8000/health`
+- **Portas e descrições:** `http://127.0.0.1:8000/services`

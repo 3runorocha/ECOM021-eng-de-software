@@ -95,10 +95,10 @@ O serviço `recomendacao` (8005) vira um **serviço de agente**. O encaixe já e
 |---|------|
 | 6.1 | ✅ **Bloco 15.** 73 testes de unidade (imóveis, contratos, notificações, recomendação, segurança, framework) com repositórios e clientes fake, mais 4 de integração pelo gateway. `conftest.py` isola a colisão de nomes entre serviços (`models`/`service` repetem em todos) |
 | 6.2 | ✅ Já saiu nos blocos 3–4 (`seed.py`, 18 imóveis) e 11 (`seed_contratos.py`, 42 contratos) |
-| 6.3 | Diagramas: `3_componentes.png` e `5_classes_componentes.png` reusam a estrutura, só relabel. `1_feature_model.png` e `2_ovm.png` são da LPS antiga — descartar |
-| 6.4 | Reescrever `README.md`; adaptar `COMO_CRIAR_APP.md`; apagar `COMO_DERIVAR_PRODUTO.md` (LPS, fora de escopo) |
-| 6.5 | Adaptar `scrum_biblioteca.md` para o backlog novo |
-| 6.6 | **Stretch:** `docker-compose.yml` + `Dockerfile` compartilhado. Fora do caminho crítico — o enunciado não pede, e as env vars da Fase 1 já resolvem a portabilidade. Só se sobrar tempo |
+| 6.3 | ✅ **Bloco 16.** Os cinco PNGs eram do domínio de biblioteca e foram substituídos por cinco diagramas em Mermaid (arquitetura, componentes, framework, contrato, agente). Texto versionado revisa em diff; imagem não. Os PNGs seguem no histórico do git |
+| 6.4 | ✅ **Bloco 16.** README reescrito (origem do reúso, arquitetura, execução, testes); `COMO_CRIAR_APP.md` atualizado com os componentes atuais e a seção de como usar o agente numa app; `COMO_DERIVAR_PRODUTO.md` removido |
+| 6.5 | ✅ **Bloco 16.** Virou `scrum.md`: 23 histórias do domínio de aluguel, seis sprints que correspondem às fases realmente executadas, e a revisão de cada uma |
+| 6.6 | ❌ **Não feito, deliberadamente.** Docker não está instalado em nenhuma das máquinas, então eu entregaria um compose que nunca rodou — contra a disciplina do projeto, onde tudo que entra é verificado. As env vars da Fase 1 já resolvem a portabilidade e o `subir_servicos.py` resolve subir os sete processos. Fica como melhoria futura |
 
 ---
 

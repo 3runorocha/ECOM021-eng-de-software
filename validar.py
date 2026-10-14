@@ -716,6 +716,64 @@ def suite_de_testes_passa():
     )
 
 
+def diagramas_refletem_o_codigo():
+    """6.3 - diagrama em texto, versionado, e sem PNG do dominio antigo."""
+    pasta = RAIZ / "diagramas"
+    assert not list(pasta.glob("*.png")), (
+        "voltaram PNGs: os antigos eram do dominio de biblioteca")
+
+    esperados = {"1_arquitetura.md", "2_componentes.md", "3_framework.md",
+                 "4_contrato.md", "5_agente.md", "README.md"}
+    presentes = {p.name for p in pasta.glob("*.md")}
+    assert esperados <= presentes, (
+        "faltam diagramas: {0}".format(sorted(esperados - presentes)))
+
+    for arquivo in pasta.glob("[0-9]_*.md"):
+        texto = arquivo.read_text(encoding="utf-8")
+        assert "```mermaid" in texto, (
+            "{0} nao tem diagrama Mermaid".format(arquivo.name))
+
+
+def documentacao_sem_lastro_do_projeto_antigo():
+    """6.4/6.5 - os docs descrevem o que existe, nao o trabalho anterior."""
+    docs = ["README.md", "COMO_CRIAR_APP.md", "scrum.md", "CLAUDE.md"]
+    problemas = []
+    for nome in docs:
+        caminho = RAIZ / nome
+        assert caminho.exists(), "falta {0}".format(nome)
+        texto = caminho.read_text(encoding="utf-8")
+        for linha in texto.splitlines():
+            # Duas isencoes deliberadas:
+            # - as pastas biblioteca/ e biblioteca-online/ mantem o nome, para
+            #   a rastreabilidade do reuso no historico do git;
+            # - linhas que citam tes-rds falam do projeto ANTERIOR de proposito,
+            #   explicando a origem; nomear o produto antigo ali e correto.
+            if "tes-rds" in linha:
+                continue
+            for termo in ("Biblioteca Online", "acervo de livros", "LPS",
+                          "seed_emprestimos", "COMO_DERIVAR_PRODUTO"):
+                if termo in linha:
+                    problemas.append("{0}: {1}".format(nome, termo))
+    assert not problemas, "resíduo do projeto antigo: " + ", ".join(problemas)
+
+    assert not (RAIZ / "COMO_DERIVAR_PRODUTO.md").exists(), (
+        "COMO_DERIVAR_PRODUTO.md voltou; a LPS era da disciplina anterior")
+
+
+def links_dos_docs_apontam_para_arquivos_que_existem():
+    """Link quebrado em README é o tipo de erro que só aparece na correção."""
+    import re as _re
+
+    problemas = []
+    for doc in list(RAIZ.glob("*.md")) + list((RAIZ / "diagramas").glob("*.md")):
+        texto = doc.read_text(encoding="utf-8")
+        for alvo in _re.findall(r"\]\(([^)#:]+\.(?:md|py|txt|jsx|js))\)", texto):
+            destino = (doc.parent / alvo).resolve()
+            if not destino.exists():
+                problemas.append("{0} -> {1}".format(doc.name, alvo))
+    assert not problemas, "link quebrado: " + ", ".join(problemas)
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -740,6 +798,9 @@ ESTATICAS = [
     ("14", "app do framework orquestra o agente", app_do_framework_orquestra_o_agente),
     ("14", "redator de aviso nao faz conta", redator_de_aviso_nao_faz_conta),
     ("10", "frontend compila", frontend_compila),
+    ("16", "diagramas refletem o codigo", diagramas_refletem_o_codigo),
+    ("16", "documentacao sem lastro do projeto antigo", documentacao_sem_lastro_do_projeto_antigo),
+    ("16", "links dos docs existem", links_dos_docs_apontam_para_arquivos_que_existem),
     ("15", "suite de testes passa", suite_de_testes_passa),
     ("-", "todo .py compila", tudo_compila),
 ]

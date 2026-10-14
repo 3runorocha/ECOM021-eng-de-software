@@ -1,10 +1,12 @@
-# Como criar uma nova aplicação reusando o framework (RDS)
+# Como criar uma aplicação reusando o framework
 
-Este guia mostra como construir uma nova aplicação reaproveitando o framework `FrameworkBiblioteca`, implementando apenas os **hotspots** sem tocar nos **frozen spots**.
+Guia para construir uma aplicação nova aproveitando o `FrameworkBiblioteca`:
+você implementa só os **hotspots**, sem tocar nos **frozen spots**.
 
-## Conceito
+## O conceito
 
-O framework define um **Template Method** chamado `executar_operacao()`, que fixa a sequência de execução de qualquer operação da biblioteca:
+`executar_operacao()` é um **Template Method**: ele fixa a sequência de qualquer
+operação do sistema.
 
 ```
 1. [FROZEN] inicializar componentes
@@ -17,80 +19,130 @@ O framework define um **Template Method** chamado `executar_operacao()`, que fix
    [HOT]    tratar_erro()          ← você implementa (em caso de falha)
 ```
 
-Os passos **FROZEN** são fixos e garantidos pelo framework. Você só preenche os **HOTSPOTS** — os pontos de adaptação.
+Os passos **FROZEN** são garantidos pelo framework, inclusive quando sua lógica estoura:
+os componentes são finalizados e o log é registrado de qualquer jeito.
 
-## Passo 1 — Criar a classe da aplicação
+Diagrama: [`diagramas/3_framework.md`](diagramas/3_framework.md).
 
-Crie um arquivo em `biblioteca/apps/`, por exemplo `app_minha_operacao.py`, e estenda a classe abstrata:
+## Componentes disponíveis
+
+Em [`biblioteca/framework/componentes.py`](biblioteca/framework/componentes.py):
+
+| Componente | Principais métodos |
+|---|---|
+| `ComponenteImovelHTTP` | `buscar_imoveis(filtros)`, `cadastrar_imovel(dados)`, `definir_disponibilidade(id, bool)` |
+| `ComponenteUsuarioHTTP` | `registrar(dados)`, `autenticar(email, senha)`, `buscar_usuario(id)` |
+| `ComponenteContratoHTTP` | `registrar_contrato(inquilino_id, imovel_id)`, `encerrar_contrato(id)`, `listar_contratos(inquilino_id=None)` |
+| `ComponenteNotificacaoHTTP` | `enviar(usuario_id, tipo, mensagem, imovel_id)`, `listar(usuario_id)` |
+| `ComponenteRecomendacaoHTTP` | `recomendar(usuario_id, limite)`, `obter_perfil(usuario_id)` |
+| `ComponenteAgenteHTTP` | `perguntar(texto, inquilino_id)`, `redigir_aviso(fatos)` |
+
+Você nunca monta requisição HTTP: chama o método. Se precisar de uma capacidade que não
+existe, acrescente ao contrato (`IComponente*`) **e** à implementação — não contorne a
+camada.
+
+## Passo 1 — Estender o framework
+
+Crie um arquivo em `biblioteca/apps/`, por exemplo `app_minha_operacao.py`:
 
 ```python
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'framework'))
+
 from framework import FrameworkBiblioteca
-from componentes import ComponenteCatalogoHTTP, ComponenteUsuarioHTTP
+from componentes import ComponenteImovelHTTP, ComponenteNotificacaoHTTP
 
 
 class AppMinhaOperacao(FrameworkBiblioteca):
     pass
 ```
 
-## Passo 2 — Implementar os hotspots obrigatórios
+## Passo 2 — Os dois hotspots obrigatórios
 
-Toda aplicação precisa implementar pelo menos dois hotspots: `configurar_componentes()` e `executar_logica()`.
+`configurar_componentes()` e `executar_logica()` são `@abstractmethod`: sem eles a
+classe nem instancia.
 
 ```python
 class AppMinhaOperacao(FrameworkBiblioteca):
 
     def configurar_componentes(self):
-        # Registra os componentes que esta app vai usar
-        self.registrar_componente("catalogo", ComponenteCatalogoHTTP())
-        self.registrar_componente("usuarios", ComponenteUsuarioHTTP())
+        self.registrar_componente("imoveis", ComponenteImovelHTTP())
+        self.registrar_componente("notificacoes", ComponenteNotificacaoHTTP())
 
     def executar_logica(self, contexto):
-        # A operação de negócio em si
-        catalogo = self.get_componente("catalogo")
-        return catalogo.buscar_livros({"genero": contexto["genero"]})
+        imoveis = self.get_componente("imoveis")
+        return imoveis.buscar_imoveis({"cidade": contexto["cidade"]})
 ```
 
-## Passo 3 — Implementar os hotspots opcionais (se precisar)
+## Passo 3 — Os hotspots opcionais
 
-Os demais hotspots têm comportamento padrão e só são sobrescritos quando necessário:
+Têm comportamento padrão; sobrescreva só o que precisar.
 
 ```python
     def get_campos_obrigatorios(self):
-        # Garante que o contexto traga os dados necessários
-        return ["genero"]
+        # Validado antes de qualquer lógica rodar.
+        return ["cidade"]
 
     def pre_processar(self, contexto):
-        # Ex: normalizar dados de entrada
-        contexto["genero"] = contexto["genero"].strip().capitalize()
+        contexto["cidade"] = contexto["cidade"].strip().title()
 
     def pos_processar(self, contexto, resultado):
-        # Ex: registrar métrica, disparar evento
-        print(f"{len(resultado)} livros encontrados")
+        notificacoes = self.get_componente("notificacoes")
+        notificacoes.enviar(
+            usuario_id=contexto["usuario_id"],
+            tipo="busca",
+            mensagem=f"{len(resultado)} imóveis encontrados em {contexto['cidade']}",
+        )
 
     def tratar_erro(self, contexto, erro):
-        # Ex: tratamento personalizado de falha
         return {"erro": True, "mensagem": "Falha na busca", "detalhe": str(erro)}
 ```
 
-## Passo 4 — Executar a aplicação
+## Passo 4 — Executar
 
 ```python
 if __name__ == "__main__":
     app = AppMinhaOperacao()
-    resultado = app.executar_operacao({"genero": "tecnologia"})
+    resultado = app.executar_operacao({"cidade": "maceió", "usuario_id": 1})
     print(resultado)
+    for entrada in app.get_log():
+        print(entrada)
 ```
-
-Ao chamar `executar_operacao()`, o framework executa toda a sequência fixa automaticamente, invocando seus hotspots nos momentos certos.
 
 ## Resumo
 
 | Você faz | O framework garante |
 |----------|---------------------|
 | Implementa `configurar_componentes()` | Inicializa e finaliza os componentes |
-| Implementa `executar_logica()` | Valida pré-condições e registra log |
-| (Opcional) sobrescreve os demais hotspots | Mantém a ordem de execução imutável |
+| Implementa `executar_logica()` | Valida pré-condições e registra o log |
+| (Opcional) sobrescreve os demais hotspots | Mantém a ordem imutável, mesmo com erro |
 
-Repare que nenhuma aplicação reescreve `executar_operacao()` nem os métodos internos (`_inicializar_componentes`, `_validar_pre_condicoes`, etc.). É exatamente isso que caracteriza o reúso via framework: o fluxo é herdado e fixo, só os pontos de extensão variam.
+Nenhuma aplicação reescreve `executar_operacao()` nem os métodos internos — é
+exatamente isso que caracteriza o reúso via framework, e há teste que verifica.
 
-As aplicações de exemplo `app_emprestimo.py` e `app_recomendacao.py` (na pasta `apps/`) seguem esse mesmo padrão.
+## Usando o agente numa app
+
+O agente é um componente como qualquer outro. Vale a divisão de trabalho que a
+`AppAvisoVencimento` usa:
+
+- quem **levanta dado** é a app, pelos componentes;
+- quem **escreve texto** é o agente;
+- quem **dispara efeito colateral** é a app.
+
+Assim o modelo não busca dado, não faz conta e não grava nada — e a regra de negócio
+continua existindo num lugar só.
+
+```python
+    def executar_logica(self, contexto):
+        agente = self.get_componente("agente")
+        try:
+            return agente.redigir_aviso(contexto["fatos"])
+        except Exception:
+            return self._texto_padrao(contexto)   # o agente é o acabamento
+```
+
+## Exemplos no repositório
+
+- [`app_contrato.py`](biblioteca/apps/app_contrato.py) — registra contrato e notifica
+- [`app_recomendacao.py`](biblioteca/apps/app_recomendacao.py) — perfil e recomendações, com fallback
+- [`app_aviso_vencimento.py`](biblioteca/apps/app_aviso_vencimento.py) — orquestra o agente
