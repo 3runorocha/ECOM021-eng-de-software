@@ -45,7 +45,6 @@ def test_dois_tokens_do_mesmo_usuario_sao_diferentes():
 def test_token_adulterado_e_recusado():
     servico = TokenService(SEGREDO)
     token = servico.gerar(1, "ana@alugue.br")
-    # Troca o id de usuário mantendo o resto: a assinatura não fecha mais.
     partes = token.split(":")
     partes[0] = "999"
     with pytest.raises(TokenInvalido):

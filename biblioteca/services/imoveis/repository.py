@@ -13,7 +13,6 @@ class ImovelRepository:
     @staticmethod
     def _to_imovel(row: sqlite3.Row) -> Imovel:
         dados = dict(row)
-        # SQLite nao tem booleano: a coluna guarda 0/1.
         dados["disponivel"] = bool(dados["disponivel"])
         return Imovel(**dados)
 

@@ -81,8 +81,6 @@ class ImovelClientFake:
         self.chamadas.append((imovel_id, disponivel))
 
 
-# --------------------------------------------------------------- somar_meses
-
 def test_somar_meses_ajusta_mes_curto():
     """31/01 + 1 mês não existe; cai no último dia de fevereiro."""
     assert somar_meses(date(2026, 1, 31), 1) == date(2026, 2, 28)
@@ -95,8 +93,6 @@ def test_somar_meses_respeita_ano_bissexto():
 def test_somar_meses_atravessa_o_ano():
     assert somar_meses(date(2026, 3, 15), 12) == date(2027, 3, 15)
 
-
-# -------------------------------------------------------------- calcular_multa
 
 def test_sem_atraso_nao_ha_multa():
     service = ContratoService(RepoFake(), ImovelClientFake())
@@ -125,8 +121,6 @@ def test_multa_acompanha_o_valor_do_contrato():
     assert caro > barato
     assert caro / barato == pytest.approx(6.0)
 
-
-# ------------------------------------------------------------ registrar_contrato
 
 def test_contrato_novo_dura_doze_meses():
     repo, cliente = RepoFake(), ImovelClientFake()
@@ -202,8 +196,6 @@ def test_imovel_e_liberado_quando_a_insercao_falha():
         "o imóvel ficou ocupado sem contrato nenhum"
     )
 
-
-# ------------------------------------------------------------- encerrar_contrato
 
 def test_encerrar_libera_o_imovel():
     repo = RepoFake([contrato(id=1, imovel_id=5)])

@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react'
 import { notificacoesAPI } from '../services/api'
 import { useAuth } from '../context/useAuth'
 
-// Os tipos são os que o backend realmente emite: o serviço de contratos manda
-// contrato_confirmado, e a varredura do serviço de notificações gera atraso e
-// prazo_proximo.
 const TIPOS = {
   atraso: { cor: '#991b1b', bg: '#fee2e2', label: 'Atraso' },
   prazo_proximo: { cor: '#92400e', bg: '#fef3c7', label: 'Vence em breve' },
@@ -32,8 +29,6 @@ export default function Notificacoes() {
   const [emAcao, setEmAcao] = useState(false)
   const [recarga, setRecarga] = useState(0)
 
-  // A tela antiga lia criado_em e canal, campos que o modelo não tem, e caía
-  // num MOCK de livros quando a chamada falhava.
   useEffect(() => {
     let cancelado = false
 

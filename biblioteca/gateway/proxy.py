@@ -7,10 +7,6 @@ from exceptions import ServicoNaoEncontrado, ServicoIndisponivel
 
 class ProxyService:
 
-    # Headers da resposta upstream que nao podem ser repassados: o httpx ja
-    # descomprimiu o corpo, entao content-encoding/content-length descreveriam
-    # bytes que nao existem mais. Os demais sao hop-by-hop. O Starlette
-    # recalcula o content-length correto.
     HEADERS_NAO_REPASSADOS = frozenset({
         "content-encoding",
         "content-length",

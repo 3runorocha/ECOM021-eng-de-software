@@ -62,8 +62,6 @@ def main():
     imo.execute("UPDATE imoveis SET disponivel = 1")
     imo.commit()
 
-    # Offsets em meses a partir de hoje. Um contrato dura PRAZO_MESES, entao
-    # "atrasado" e um que comecou ha mais de 12 meses e nao foi encerrado.
     perfis = [
         {"inicio": -36, "tipo": "encerrado",       "saida": -23},
         {"inicio": -30, "tipo": "encerrado_multa", "saida": -16},
@@ -87,10 +85,6 @@ def main():
             valor_mensal = imovel["valor_mensal"]
             tipo = p["tipo"]
 
-            # Imovel ja com contrato aberto nao recebe outro: vira historico.
-            # Reposiciona o contrato inteiro no passado, em vez de somar o prazo
-            # ao inicio recente -- isso deixava "encerrado" com data de saida no
-            # futuro, que e estado impossivel.
             if tipo in ("ativo", "atrasado") and imovel_id in ocupados:
                 tipo = "encerrado"
                 p = {"inicio": -(PRAZO_MESES + 2), "tipo": "encerrado", "saida": -2}

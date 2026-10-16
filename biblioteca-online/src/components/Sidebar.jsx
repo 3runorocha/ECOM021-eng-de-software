@@ -4,8 +4,6 @@ import { useAuth } from '../context/useAuth'
 import { healthAPI } from '../services/api'
 import styles from './Sidebar.module.css'
 
-// O gateway não aparece dentro de /health.servicos, porque é ele quem responde;
-// entra separado na primeira linha.
 const ROTULOS = {
   imoveis: 'Imóveis',
   usuarios: 'Usuários',
@@ -21,9 +19,6 @@ export default function Sidebar() {
   const { usuario, logout } = useAuth()
   const [saude, setSaude] = useState(null)
 
-  // Esta lista era fixa com ok: true, então mostrava tudo verde mesmo com os
-  // serviços derrubados. Agora vem do /health do gateway, que já agrega o
-  // estado dos cinco microsserviços.
   useEffect(() => {
     let cancelado = false
 

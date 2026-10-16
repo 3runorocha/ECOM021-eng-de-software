@@ -96,7 +96,6 @@ class AppAvisoVencimento(FrameworkBiblioteca):
                 mensagem = agente.redigir_aviso(fatos)
                 redigido_por = "agente"
             except Exception:
-                # Agente fora do ar ou sem credencial: o aviso sai mesmo assim.
                 mensagem = self._texto_padrao(p)
                 redigido_por = "texto padrão"
 

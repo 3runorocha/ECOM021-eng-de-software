@@ -42,9 +42,6 @@ class RepoFake:
 
     def atualizar(self, imovel_id, campos):
         atual = self.imoveis[imovel_id]
-        # O repositório real grava 0/1 no SQLite e reconverte para bool na
-        # leitura (_to_imovel). O fake imita essa fronteira, senão ele seria
-        # mais permissivo que a produção e esconderia erro de tipo.
         campos = dict(campos)
         if "disponivel" in campos:
             campos["disponivel"] = bool(campos["disponivel"])

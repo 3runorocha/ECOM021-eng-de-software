@@ -35,8 +35,6 @@ export const contratosAPI = {
   encerrar: (id) => api.post(`/contratos/contratos/${id}/encerrar`),
 }
 
-// O serviço de notificações não tem listagem global: só por usuário. Quem
-// chamava listar() sem id batia em /usuario/undefined e tomava 422.
 export const notificacoesAPI = {
   listarDoUsuario: (userId) => api.get(`/notificacoes/notificacoes/usuario/${userId}`),
   enviar: (data) => api.post('/notificacoes/notificacoes/', data),
@@ -57,7 +55,6 @@ export const agenteAPI = {
     api.post('/agente/agente/perguntar', { texto, inquilino_id: inquilinoId }),
 }
 
-// /health e /services sao rotas livres no gateway (nao exigem token).
 export const healthAPI = {
   checar: () => api.get('/health'),
 }

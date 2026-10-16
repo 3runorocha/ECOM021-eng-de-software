@@ -46,12 +46,8 @@ export default function Contratos() {
   const [mostrarForm, setMostrarForm] = useState(false)
   const [novo, setNovo] = useState({ inquilino_id: '', imovel_id: '' })
   const [recarga, setRecarga] = useState(0)
-  // Encerrar dispara POST + recarga de tres listas pelo gateway, o que leva
-  // alguns segundos. Sem isto o botao parece nao ter funcionado.
   const [emAcao, setEmAcao] = useState(null)
 
-  // O filtro de status vai ao serviço de contratos como query param, igual à
-  // tela de imóveis: quem filtra é o backend.
   useEffect(() => {
     let cancelado = false
 
@@ -97,8 +93,6 @@ export default function Contratos() {
     setEmAcao(id)
     try {
       await contratosAPI.encerrar(id)
-      // Recarrega tudo: encerrar libera o imóvel, então a lista de disponíveis
-      // também muda.
       recarregar()
     } catch (e) {
       setAcaoErro(

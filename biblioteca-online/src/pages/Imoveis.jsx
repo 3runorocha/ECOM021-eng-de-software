@@ -63,13 +63,6 @@ export default function Imoveis() {
   const [novo, setNovo] = useState(IMOVEL_VAZIO)
   const [erroForm, setErroForm] = useState(null)
 
-  // Os filtros estruturados vão para o backend -- é o serviço de imóveis que
-  // filtra, não o navegador. A busca por texto fica no cliente, sobre o
-  // resultado, porque o serviço não tem filtro de texto livre.
-  //
-  // "Carregando..." aparece só na primeira carga: ao trocar um filtro a lista
-  // atual continua visível até a resposta chegar. Além de piscar menos, evita
-  // setState sincrono no corpo do efeito.
   useEffect(() => {
     const params = {}
     for (const [chave, valor] of Object.entries(filtros)) {

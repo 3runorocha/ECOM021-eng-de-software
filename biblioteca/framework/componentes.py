@@ -200,7 +200,6 @@ class ComponenteAgenteHTTP(IComponenteAgente):
         self._client = None
 
     def inicializar(self) -> None:
-        # O agente pensa antes de responder: timeout maior que o dos demais.
         self._client = httpx.Client(timeout=120.0)
 
     def finalizar(self) -> None:

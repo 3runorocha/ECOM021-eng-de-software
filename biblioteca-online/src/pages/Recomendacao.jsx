@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { recomendacoesAPI, usuariosAPI } from '../services/api'
 
-// Score máximo do serviço: 3 pontos por tipo preferido + 2 por cidade preferida.
-// A tela antiga mostrava o score como porcentagem, o que não correspondia a nada.
 const SCORE_MAXIMO = 5
 
 const moeda = (v) =>

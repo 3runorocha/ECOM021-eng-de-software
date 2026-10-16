@@ -29,10 +29,6 @@ class Database:
                 )
                 """
             )
-            # Um imovel so pode ter um contrato em aberto. O indice parcial deixa
-            # o banco impor a regra, alem da checagem no servico: se duas
-            # requisicoes passarem pela checagem ao mesmo tempo, a segunda falha
-            # no INSERT em vez de gerar contrato duplicado.
             conn.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_um_contrato_aberto

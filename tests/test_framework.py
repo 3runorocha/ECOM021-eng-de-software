@@ -54,8 +54,6 @@ def app_de_teste(registro, logica=None, campos=None):
     return AppTeste()
 
 
-# ------------------------------------------------------------------ contrato
-
 def test_os_dois_hotspots_sao_obrigatorios():
     """Sem isto, uma app que esquece configurar_componentes roda com zero
     componentes e só quebra mais tarde, em get_componente."""
@@ -81,8 +79,6 @@ def test_componente_nao_registrado_da_erro_util():
         app.get_componente("inexistente")
     assert "configurar_componentes" in str(erro.value)
 
-
-# -------------------------------------------------------------------- ordem
 
 def test_ordem_do_template_method():
     registro = []
@@ -125,8 +121,6 @@ def test_erro_na_logica_vira_resultado_tratado():
     assert "falhou no meio" in resultado["mensagem"]
 
 
-# ------------------------------------------------------------ pré-condições
-
 def test_campo_obrigatorio_ausente_barra_antes_da_logica():
     registro = []
     app_de_teste(registro, campos=["imovel_id"]).executar_operacao({})
@@ -139,8 +133,6 @@ def test_campo_obrigatorio_presente_deixa_seguir():
     app_de_teste(registro, campos=["imovel_id"]).executar_operacao({"imovel_id": 5})
     assert "executar_logica" in registro
 
-
-# ----------------------------------------------------------------------- log
 
 def test_execucao_fica_registrada_no_log():
     app = app_de_teste([])

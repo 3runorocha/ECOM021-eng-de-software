@@ -36,6 +36,4 @@ class Imovel(BaseModel):
     banheiros: int
     area_m2: float
     valor_mensal: float
-    # Um imovel e unico: ou esta livre para alugar, ou nao esta. Diferente do
-    # acervo de biblioteca, que tinha N exemplares do mesmo titulo.
     disponivel: bool

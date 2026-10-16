@@ -29,10 +29,6 @@ export default function Dashboard() {
   const [erro, setErro] = useState(null)
   const [recarga, setRecarga] = useState(0)
 
-  // Esta tela caía num bloco de números fixos (1.247 livros, "Clean Code") quando
-  // qualquer chamada falhava -- e uma delas falhava sempre, porque pedia a
-  // listagem de notificações sem id de usuário e tomava 422. Agora cada número
-  // vem do serviço correspondente, e falha aparece como falha.
   useEffect(() => {
     let cancelado = false
 
@@ -120,7 +116,6 @@ export default function Dashboard() {
     { label: 'Suas notificações', valor: dados.notificacoes.length, sub: `${naoLidas} não lida(s) · :8004` },
   ]
 
-  // Os contratos chegam ordenados por data_inicio decrescente do serviço.
   const recentes = dados.contratos.slice(0, 6)
   const nomeImovel = (id) => dados.imoveis.find((i) => i.id === id)?.titulo ?? `Imóvel #${id}`
   const nomeUsuario = (id) => dados.usuarios.find((u) => u.id === id)?.nome ?? `Inquilino #${id}`

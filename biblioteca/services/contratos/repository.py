@@ -87,8 +87,6 @@ class ContratoRepository:
             conn.commit()
             return cursor.lastrowid
         except sqlite3.IntegrityError:
-            # O indice parcial barrou: o imovel ganhou um contrato aberto entre
-            # a checagem do servico e este INSERT.
             raise RegraDeNegocio(
                 f"Imóvel {imovel_id} já possui contrato em aberto"
             )

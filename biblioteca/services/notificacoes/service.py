@@ -9,9 +9,6 @@ from exceptions import NotificacaoNaoEncontrada
 class NotificacaoService:
 
     DIAS_ALERTA_PRAZO = 2
-    # Mesma base do servico de contratos: um dia de atraso custa 1/30 do
-    # aluguel. O valor sai do proprio contrato, entao aqui nao ha constante de
-    # multa duplicada -- antes havia um MULTA_POR_DIA = 0.50 repetido.
     DIAS_BASE_MULTA = 30
     TIPOS_AUTOMATICOS = ("atraso", "prazo_proximo")
 

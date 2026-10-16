@@ -26,18 +26,14 @@ import httpx
 
 RAIZ = Path(__file__).resolve().parent
 BIB = RAIZ / "biblioteca"
-# Servicos com banco proprio. O agente (:8006) nao tem banco: ele so
-# orquestra os outros pelos componentes do framework.
 SERVICOS = ["imoveis", "usuarios", "contratos", "notificacoes", "recomendacao"]
 SERVICOS_TODOS = SERVICOS + ["agente"]
 PORTAS = (8000, 8001, 8002, 8003, 8004, 8005, 8006)
 GATEWAY = "http://127.0.0.1:8000"
 
 sys.path.insert(0, str(RAIZ))
-import subir_servicos as launcher  # noqa: E402  (reusa a lista de servicos)
+import subir_servicos as launcher
 
-
-# ---------------------------------------------------------------- utilidades
 
 def _fontes_py():
     for caminho in BIB.rglob("*.py"):
@@ -70,8 +66,6 @@ def sem_comentarios(texto, marcadores=("#", "//")):
         limpas.append(linha)
     return chr(10).join(limpas)
 
-
-# ------------------------------------------------------- bloco 1 (estatico)
 
 def framework_exige_os_dois_hotspots():
     """1.1 - o contrato de hotspot obrigatorio precisa valer de novo."""
@@ -154,8 +148,6 @@ def bancos_por_env_var():
     assert not faltando, "DB_PATH ainda hardcoded em: " + ", ".join(faltando)
 
 
-# ------------------------------------------------------- bloco 2 (estatico)
-
 def sem_api_depreciada():
     """1.2 - on_event saiu, lifespan entrou em todos os servicos."""
     for servico in SERVICOS_TODOS:
@@ -186,8 +178,6 @@ def tudo_compila():
     )
     assert saida.returncode == 0, "erro de sintaxe:\n" + saida.stdout + saida.stderr
 
-
-# ------------------------------------------------------------ checagens vivas
 
 def health_geral(ctx):
     r = httpx.get(GATEWAY + "/health", timeout=10.0)
@@ -364,11 +354,9 @@ def prazo_em_meses_e_multa_proporcional():
     assert saida.returncode == 0, "falhou ao calcular: " + saida.stderr
     linhas = saida.stdout.split()
 
-    # 31/01 + 1 mes cai em 28/02 (2026 nao e bissexto), nao em 31/02.
     assert linhas[0] == "2026-02-28", "somar_meses errou mes curto: " + linhas[0]
     assert linhas[1] == "2027-03-15", "somar_meses errou 12 meses: " + linhas[1]
     assert linhas[2] == "0.0", "sem atraso deveria dar multa 0, deu " + linhas[2]
-    # 10 dias de atraso sobre aluguel de 3000: 3000/30 = 100/dia -> 1000.
     assert linhas[3] == "1000.0", (
         "10 dias de atraso sobre R$3000 deveria dar 1000.0, deu " + linhas[3])
 
@@ -388,7 +376,6 @@ def ciclo_de_contrato(ctx):
     assert contrato["valor_mensal"] == 1800.0, (
         "contrato deveria gravar o aluguel do imovel: {0}".format(contrato))
 
-    # 12 meses depois da assinatura
     inicio = date.fromisoformat(contrato["data_inicio"])
     fim = date.fromisoformat(contrato["data_fim_prevista"])
     meses = (fim.year - inicio.year) * 12 + (fim.month - inicio.month)
@@ -419,14 +406,12 @@ def um_contrato_aberto_por_imovel(ctx):
     assert r.status_code == 201, "primeiro contrato: {0} {1}".format(r.status_code, r.text)
     primeiro = r.json()["id"]
 
-    # Outro inquilino, mesmo imovel: tem de ser barrado.
     r = c.post("/contratos/contratos/", headers=auth,
                json={"inquilino_id": 3, "imovel_id": imovel_id})
     assert r.status_code == 400, (
         "segundo contrato no mesmo imovel deveria dar 400, deu {0} {1}"
         .format(r.status_code, r.text))
 
-    # E o imovel nao pode ter ficado solto pela compensacao.
     r = c.get("/imoveis/imoveis/{0}".format(imovel_id), headers=auth)
     assert r.json()["disponivel"] is False, (
         "o imovel do contrato em vigor nao pode voltar a disponivel")
@@ -513,8 +498,6 @@ def tela_nao_duplica_a_regra_de_multa():
     pagina = sem_comentarios(
         (RAIZ / "biblioteca-online" / "src" / "pages" / "Contratos.jsx")
         .read_text(encoding="utf-8"))
-    # Procura aritmetica sobre o aluguel, nao a mencao da regra: o rodape da
-    # tela explica "1/30 do aluguel" em prosa, e isso e desejavel.
     for pista in ("valor_mensal /", "valor_mensal/", "valor_mensal *", "valor_mensal*"):
         assert pista not in pagina, (
             "Contratos.jsx faz conta com valor_mensal ({0}); a multa e do servico"
@@ -592,7 +575,6 @@ def agente_usa_modelo_atual():
     fonte = (BIB / "services" / "agente" / "agente.py").read_text(encoding="utf-8")
     assert "claude-opus-5-5" in fonte, (
         "o agente nao esta no modelo padrao claude-opus-5-5")
-    # Ids com sufixo de data sao alucinacao comum e dao 404 na API.
     assert not re.search(r"claude-[a-z0-9.-]*-\d{8}", fonte), (
         "id de modelo com sufixo de data: esses nao existem")
 
@@ -678,7 +660,6 @@ def aviso_sai_mesmo_com_agente_fora(ctx):
     assert r.status_code == 201, r.text
     imovel_id = r.json()["id"]
 
-    # Prazo de 1 mes: cai dentro da janela de alerta de 30 dias.
     r = c.post("/contratos/contratos/", headers=auth,
                json={"inquilino_id": 1, "imovel_id": imovel_id, "meses": 1})
     assert r.status_code == 201, r.text
@@ -743,11 +724,6 @@ def documentacao_sem_lastro_do_projeto_antigo():
         assert caminho.exists(), "falta {0}".format(nome)
         texto = caminho.read_text(encoding="utf-8")
         for linha in texto.splitlines():
-            # Duas isencoes deliberadas:
-            # - as pastas biblioteca/ e biblioteca-online/ mantem o nome, para
-            #   a rastreabilidade do reuso no historico do git;
-            # - linhas que citam tes-rds falam do projeto ANTERIOR de proposito,
-            #   explicando a origem; nomear o produto antigo ali e correto.
             if "tes-rds" in linha:
                 continue
             for termo in ("Biblioteca Online", "acervo de livros", "LPS",
@@ -819,8 +795,6 @@ VIVAS = [
     ("14", "aviso sai mesmo com agente fora", aviso_sai_mesmo_com_agente_fora),
 ]
 
-
-# ------------------------------------------------------------------ execucao
 
 def rodar(checagens, contexto=None):
     falhas = []

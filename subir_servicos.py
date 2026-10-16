@@ -15,8 +15,6 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent / "biblioteca"
 
-# O gateway vem por ultimo: ele so procura os servicos quando recebe uma
-# requisicao, mas subir na ordem deixa o log mais legivel.
 SERVICOS = [
     ("imoveis",      RAIZ / "services" / "imoveis",      8001),
     ("usuarios",     RAIZ / "services" / "usuarios",     8002),

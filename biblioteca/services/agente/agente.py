@@ -8,10 +8,7 @@ from exceptions import AgenteIndisponivel, RegraDeNegocio
 
 MODELO = os.getenv("AGENTE_MODELO", "claude-opus-5-5")
 MAX_TOKENS = 4096
-# Extrair filtros de uma frase e resumir o resultado e tarefa simples; o default
-# do Opus 5.5 e medium, e o skill recomenda deixar explicito.
 ESFORCO = os.getenv("AGENTE_ESFORCO", "medium")
-# Teto de voltas do loop, para uma pergunta ruim nao virar conta aberta.
 MAX_ITERACOES = 8
 
 INSTRUCOES = """Você é o assistente de uma imobiliária que aluga apartamentos e
@@ -67,9 +64,6 @@ class Agente:
 
     def _obter_cliente(self) -> anthropic.Anthropic:
         if self._cliente is None:
-            # O construtor NAO falha sem credencial: o SDK so reclama ao montar
-            # o header da requisicao, e com TypeError. Entao a checagem tem de
-            # ser feita aqui, olhando as tres fontes que ele aceita.
             cliente = anthropic.Anthropic()
             if not (cliente.api_key or cliente.auth_token or cliente.credentials):
                 raise AgenteIndisponivel(self.SEM_CREDENCIAL)
@@ -126,8 +120,6 @@ class Agente:
         except anthropic.APIConnectionError as erro:
             raise AgenteIndisponivel(f"Falha ao falar com a API da Anthropic: {erro}")
         except TypeError as erro:
-            # O SDK levanta TypeError quando nao consegue resolver autenticacao.
-            # Sem isto a falta de chave vira 500 em vez de 503.
             if "authentication" in str(erro).lower():
                 raise AgenteIndisponivel(self.SEM_CREDENCIAL)
             raise
@@ -135,7 +127,6 @@ class Agente:
         if ultima is None:
             raise AgenteIndisponivel("O modelo não devolveu resposta")
 
-        # stop_details so vem preenchido quando stop_reason == "refusal".
         if ultima.stop_reason == "refusal":
             motivo = getattr(ultima, "stop_details", None)
             raise RegraDeNegocio(

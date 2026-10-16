@@ -20,13 +20,11 @@ sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), "..", "..", "framework")
 )
 
-from componentes import (  # noqa: E402
+from componentes import (
     ComponenteImovelHTTP,
     ComponenteContratoHTTP,
 )
 
-# Instancias unicas: o ciclo de vida (inicializar/finalizar) e controlado pelo
-# lifespan do servico, em main.py.
 imoveis = ComponenteImovelHTTP()
 contratos = ComponenteContratoHTTP()
 

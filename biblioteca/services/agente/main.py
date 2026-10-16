@@ -14,8 +14,6 @@ agente = Agente()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Os componentes abrem o cliente HTTP aqui e fecham no shutdown -- é o
-    # mesmo ciclo de vida que as apps do framework usam.
     imoveis.inicializar()
     contratos.inicializar()
     yield
@@ -56,6 +54,4 @@ app.include_router(criar_router(agente))
 
 @app.get("/health")
 def health():
-    # O serviço fica "ok" mesmo sem credencial: ele sobe e responde. Quem quer
-    # saber se o agente consegue pensar consulta /agente/status.
     return {"service": "agente", "status": "ok", "port": 8006}

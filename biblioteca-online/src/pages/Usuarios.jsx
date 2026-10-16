@@ -21,9 +21,6 @@ export default function Usuarios() {
   const [erro, setErro] = useState(null)
   const [recarga, setRecarga] = useState(0)
 
-  // Esta tela caía num MOCK com e-mails @biblioteca.br e uma coluna de
-  // "empréstimos ativos" inventada. Agora a contagem de contratos em vigor é
-  // derivada do serviço de contratos.
   useEffect(() => {
     let cancelado = false
 

@@ -19,7 +19,6 @@ import pytest
 RAIZ = Path(__file__).resolve().parent.parent
 BIB = RAIZ / "biblioteca"
 
-# Nomes que todo serviço usa e que portanto colidem entre eles.
 NOMES_COMUNS = (
     "models", "service", "repository", "database",
     "exceptions", "clients", "routes", "main", "security",

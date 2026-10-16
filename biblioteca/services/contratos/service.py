@@ -23,9 +23,6 @@ def somar_meses(inicio: date, meses: int) -> date:
 class ContratoService:
 
     PRAZO_MESES = 12
-    # A multa diaria e proporcional ao aluguel contratado: um dia de atraso
-    # custa 1/30 do valor mensal. Substitui o MULTA_POR_DIA fixo de R$ 0,50 do
-    # acervo de livros, que nao faz sentido quando o bem vale milhares.
     DIAS_BASE_MULTA = 30
 
     def __init__(self, repository: ContratoRepository, imoveis: ImovelClient):
@@ -46,9 +43,6 @@ class ContratoService:
         inicio = date.today()
         fim_previsto = somar_meses(inicio, meses)
 
-        # Marca o imovel primeiro: e a operacao que pode falhar por disputa com
-        # outro contrato. Se o INSERT falhar depois, devolvemos a disponibilidade
-        # para nao deixar imovel preso sem contrato.
         self._imoveis.definir_disponibilidade(dados.imovel_id, False)
         try:
             novo_id = self._repo.inserir(

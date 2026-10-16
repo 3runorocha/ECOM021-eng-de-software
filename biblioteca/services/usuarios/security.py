@@ -25,11 +25,6 @@ class TokenService:
 
     @staticmethod
     def _agora() -> datetime:
-        # Tem de ser consciente de fuso: datetime.utcnow() devolve um datetime
-        # ingenuo, e .timestamp() o interpreta como hora LOCAL. Aqui (UTC-3) o
-        # token declarava 11h de validade quando o pretendido era 8 -- a
-        # duracao efetiva saia certa porque os dois lados erravam igual, mas o
-        # campo expires gravado no token mentia para quem o lesse de fora.
         return datetime.now(timezone.utc)
 
     def gerar(self, usuario_id: int, email: str) -> str:
