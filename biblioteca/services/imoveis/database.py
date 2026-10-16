@@ -1,4 +1,12 @@
 import sqlite3
+import unicodedata
+
+
+def sem_acento(texto):
+    if texto is None:
+        return None
+    decomposto = unicodedata.normalize("NFKD", texto)
+    return "".join(c for c in decomposto if not unicodedata.combining(c)).casefold()
 
 
 class Database:
@@ -9,6 +17,7 @@ class Database:
     def connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._db_path)
         conn.row_factory = sqlite3.Row
+        conn.create_function("sem_acento", 1, sem_acento, deterministic=True)
         return conn
 
     def init_schema(self) -> None:

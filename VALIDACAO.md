@@ -66,6 +66,9 @@ validador não suja seus dados de desenvolvimento.
 | 16 | diagramas refletem o código | PNG do domínio antigo voltando, ou diagrama sem bloco Mermaid |
 | 16 | documentação sem lastro do projeto antigo | docs voltando a falar do produto anterior ou do escopo da LPS (linhas que citam `tes-rds` são isentas: ali a menção é a origem do reúso) |
 | 16 | links dos docs existem | link quebrado em README ou diagrama — o tipo de erro que só aparece na correção |
+| rev | segredo do token fora do código | segredo literal voltando ao código, senha sem sal, ou token sem HMAC |
+| rev | cadastro público não cria admin | segundo admin pela rota pública, ou usuário comum alterando o cadastro de outro |
+| rev | filtro de cidade ignora acento | "Maceió" e "Maceio" devolvendo imóveis diferentes |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -434,3 +437,42 @@ tornar a checagem precisa, não afrouxá-la.
 | Fases concluídas | 1, 2, 3, 5, 6 |
 | Fase 4 (agente, opcional) | construída e integrada; resposta do modelo não exercitada |
 | Pendência única | rodar o agente com `ANTHROPIC_API_KEY` e conferir os dois itens da tabela acima |
+
+## Revisão de código (16/10)
+
+Revisão arquivo por arquivo, com 10 achados. Os três mais graves foram corrigidos;
+**43 checagens e 101 testes de unidade, todos passando.**
+
+1. **Segredo do token no repositório.** `SECRET = "biblioteca_secret_2025"` assinava os
+   tokens e temperava o hash de senha. Com ele público no GitHub, qualquer um gerava
+   token válido para qualquer usuário — inclusive o admin — sem senha. Agora o segredo
+   vem de `TOKEN_SECRET` ou é gerado na primeira subida e guardado no `usuarios.db`
+   (ignorado pelo git). O token passou a ser assinado com HMAC, e a senha a usar
+   PBKDF2-SHA256 com sal por usuário e 600 mil iterações (134 ms por login), sem
+   depender de segredo nenhum. Há teste provando que um token forjado com o segredo
+   antigo é recusado.
+2. **Qualquer um virava admin.** A rota pública de cadastro aceitava `tipo: "admin"`, e
+   o `PATCH /usuarios/{id}` deixava qualquer usuário logado alterar o cadastro de
+   qualquer outro — por exemplo, desativar o admin e bloquear o login dele. Agora só o
+   primeiro usuário do banco pode ser admin, só o próprio usuário ou um admin altera um
+   cadastro, e só admin muda tipo ou situação.
+3. **"Maceió" não achava nada.** O seed grava "Maceio" e "Joao Pessoa", mas o prompt do
+   agente, o exemplo da tela `/agente` e qualquer pessoa escrevem com acento; o `LIKE`
+   do SQLite ignora maiúsculas, não acento. O filtro agora compara as duas pontas sem
+   acento, por uma função registrada em cada conexão — sem mudar o schema. A busca por
+   texto da tela de Imóveis tinha o mesmo defeito e foi corrigida junto.
+
+**Consequência:** bancos de usuários criados antes desta revisão não fazem login, porque
+o formato do hash mudou. Apague os `.db` e rode os seeds de novo.
+
+**Ficaram em aberto** os outros sete achados: encerrar contrato libera o imóvel antes
+de gravar e não compensa; `marcar_atrasados` usa a data UTC do SQLite e a multa a data
+local; `subir_servicos.py --reload` deixa processos órfãos no Windows; a App de aviso
+reenvia o mesmo aviso a cada execução; o `/health` consulta os serviços em série; a
+recomendação faz uma chamada HTTP por contrato do histórico; e trocar o e-mail para um
+já existente devolve 500.
+
+Fora do alcance desta correção: a autorização entre serviços. O gateway confere que o
+token é válido, mas não quem é o dono do recurso — qualquer usuário logado ainda lê e
+encerra contratos de outros. Resolver isso pede o gateway repassar a identidade para os
+serviços, o que é uma mudança de arquitetura, não um conserto.

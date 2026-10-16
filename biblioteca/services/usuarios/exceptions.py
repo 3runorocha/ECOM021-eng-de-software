@@ -16,6 +16,11 @@ class CredenciaisInvalidas(UsuarioError):
         super().__init__(mensagem)
 
 
+class PermissaoNegada(UsuarioError):
+    def __init__(self, mensagem: str = "Sem permissão para esta operação"):
+        super().__init__(mensagem)
+
+
 class TokenInvalido(UsuarioError):
     def __init__(self, mensagem: str = "Token inválido ou expirado"):
         super().__init__(mensagem)

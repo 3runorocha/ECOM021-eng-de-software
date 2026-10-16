@@ -1,6 +1,6 @@
 import sqlite3
 
-from database import Database
+from database import Database, sem_acento
 from models import Imovel, ImovelCreate
 from exceptions import RegraDeNegocio
 
@@ -30,8 +30,8 @@ class ImovelRepository:
         params = []
 
         if cidade:
-            condicoes.append("cidade LIKE ?")
-            params.append(f"%{cidade}%")
+            condicoes.append("sem_acento(cidade) LIKE ?")
+            params.append(f"%{sem_acento(cidade)}%")
         if tipo:
             condicoes.append("tipo = ?")
             params.append(tipo)

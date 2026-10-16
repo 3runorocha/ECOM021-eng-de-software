@@ -23,8 +23,10 @@ def criar_router(service: UsuarioService) -> APIRouter:
         return service.buscar_usuario(usuario_id)
 
     @router.patch("/{usuario_id}", response_model=UsuarioPublico)
-    def atualizar_usuario(usuario_id: int, dados: UsuarioUpdate):
-        return service.atualizar_usuario(usuario_id, dados)
+    def atualizar_usuario(
+        usuario_id: int, dados: UsuarioUpdate, authorization: str = Header(...)
+    ):
+        return service.atualizar_usuario(authorization, usuario_id, dados)
 
     @router.post("/validar-token")
     def validar(authorization: str = Header(...)):

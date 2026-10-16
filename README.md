@@ -88,6 +88,13 @@ cd biblioteca && python seed.py
 Cria 7 usuários e 18 imóveis em Maceió, Recife e João Pessoa.
 Login de administrador: `admin@alugue.br` / `admin123`.
 
+O cadastro público não cria administrador: só o **primeiro** usuário do banco pode
+ser admin, e o seed cadastra o admin primeiro.
+
+> **Banco criado antes de 16/10 não faz login.** O hash de senha mudou (PBKDF2 com
+> sal, no lugar de SHA-256 com segredo fixo). Apague os `.db` em
+> `biblioteca/services/*/` e rode os dois seeds de novo.
+
 Usuários duplicados são ignorados. **Imóveis não**: diferente do livro, que tinha ISBN,
 imóvel não tem chave única de negócio — rodar de novo duplica o portfólio. Apague
 `biblioteca/services/imoveis/imoveis.db` para recomeçar.

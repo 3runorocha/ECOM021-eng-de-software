@@ -12,22 +12,47 @@ TokenInvalido = excecoes.TokenInvalido
 SEGREDO = "segredo-de-teste"
 
 
-def test_hash_e_deterministico():
-    hasher = PasswordHasher(SEGREDO)
-    assert hasher.hash("senha123") == hasher.hash("senha123")
+def test_senha_certa_verifica():
+    hasher = PasswordHasher()
+    assert hasher.verificar("senha123", hasher.hash("senha123"))
+
+
+def test_senha_errada_nao_verifica():
+    hasher = PasswordHasher()
+    assert not hasher.verificar("senha124", hasher.hash("senha123"))
 
 
 def test_hash_nao_devolve_a_senha():
-    assert "senha123" not in PasswordHasher(SEGREDO).hash("senha123")
+    assert "senha123" not in PasswordHasher().hash("senha123")
 
 
-def test_hash_muda_com_o_segredo():
-    assert PasswordHasher("a").hash("senha123") != PasswordHasher("b").hash("senha123")
+def test_mesma_senha_gera_hashes_diferentes():
+    """Sal por usuário: dois usuários com a mesma senha não têm o mesmo hash,
+    então vazar o banco não revela quem compartilha senha nem permite tabela
+    pré-calculada."""
+    hasher = PasswordHasher()
+    assert hasher.hash("senha123") != hasher.hash("senha123")
 
 
-def test_senhas_diferentes_geram_hashes_diferentes():
-    hasher = PasswordHasher(SEGREDO)
-    assert hasher.hash("senha123") != hasher.hash("senha124")
+def test_hash_nao_depende_de_segredo_no_codigo():
+    """O hash antigo era sha256(senha + segredo), com o segredo no repositório.
+    O de agora só depende da senha e do sal guardado junto."""
+    guardado = PasswordHasher().hash("senha123")
+    algoritmo, iteracoes, sal, derivada = guardado.split("$")
+    assert algoritmo == "pbkdf2_sha256"
+    assert int(iteracoes) >= 600_000
+    assert len(sal) == 32
+    assert PasswordHasher().verificar("senha123", guardado)
+
+
+@pytest.mark.parametrize("guardado", ["", "lixo", "a$b$c", "md5$1$00$ff", None])
+def test_hash_guardado_invalido_nao_verifica(guardado):
+    assert not PasswordHasher().verificar("senha123", guardado)
+
+
+def test_token_exige_segredo():
+    with pytest.raises(ValueError):
+        TokenService("")
 
 
 def test_token_gerado_valida_e_devolve_quem_e():

@@ -1,12 +1,14 @@
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel
+
+TipoUsuario = Literal["inquilino", "proprietario", "admin"]
 
 
 class UsuarioCreate(BaseModel):
     nome: str
     email: str
     senha: str
-    tipo: str = "inquilino"
+    tipo: TipoUsuario = "inquilino"
 
 
 class UsuarioLogin(BaseModel):
@@ -25,5 +27,5 @@ class UsuarioPublico(BaseModel):
 class UsuarioUpdate(BaseModel):
     nome: Optional[str] = None
     email: Optional[str] = None
-    tipo: Optional[str] = None
+    tipo: Optional[TipoUsuario] = None
     ativo: Optional[bool] = None

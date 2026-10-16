@@ -32,6 +32,9 @@ const CAMPOS_FORM = [
   ['valor_mensal', 'Aluguel mensal (R$)', 'number'],
 ]
 
+const semAcento = (texto) =>
+  texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+
 const moeda = (v) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
@@ -94,12 +97,12 @@ export default function Imoveis() {
     }
   }, [filtros])
 
-  const termo = busca.trim().toLowerCase()
+  const termo = semAcento(busca.trim())
   const visiveis = termo
     ? imoveis.filter(
         (i) =>
-          i.titulo.toLowerCase().includes(termo) ||
-          i.endereco.toLowerCase().includes(termo)
+          semAcento(i.titulo).includes(termo) ||
+          semAcento(i.endereco).includes(termo)
       )
     : imoveis
 

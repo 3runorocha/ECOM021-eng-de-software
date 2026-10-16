@@ -123,3 +123,41 @@ def test_atualizar_sem_campos_nao_toca_no_repositorio(service, repo):
     antes = repo.imoveis[1]
     depois = service.atualizar_imovel(1, modelos_update())
     assert depois == antes
+
+
+def _repositorio_real(tmp_path):
+    db_mod, repo_mod, mod = carregar("imoveis", "database", "repository", "models")
+    database = db_mod.Database(str(tmp_path / "imoveis.db"))
+    database.init_schema()
+    repo = repo_mod.ImovelRepository(database)
+    for titulo, cidade in [
+        ("Apto Ponta Verde", "Maceio"),
+        ("Casa Farol", "Maceió"),
+        ("Apto Manaira", "Joao Pessoa"),
+        ("Casa Bessa", "João Pessoa"),
+        ("Studio Casa Forte", "Recife"),
+    ]:
+        repo.inserir(mod.ImovelCreate(
+            titulo=titulo, tipo="casa", endereco="Rua X, 1", cidade=cidade,
+            quartos=2, banheiros=1, area_m2=60.0, valor_mensal=1500.0,
+        ))
+    return repo
+
+
+@pytest.mark.parametrize("busca", ["Maceió", "Maceio", "maceio", "MACEIÓ", "Macei"])
+def test_filtro_de_cidade_ignora_acento_e_caixa(tmp_path, busca):
+    """O seed grava 'Maceio' e o prompt do agente e o usuário escrevem 'Maceió';
+    com LIKE puro, 'Maceió' não achava nada."""
+    titulos = {i.titulo for i in _repositorio_real(tmp_path).listar(cidade=busca)}
+    assert titulos == {"Apto Ponta Verde", "Casa Farol"}
+
+
+def test_filtro_acha_joao_pessoa_com_e_sem_til(tmp_path):
+    repo = _repositorio_real(tmp_path)
+    com_til = {i.titulo for i in repo.listar(cidade="João Pessoa")}
+    sem_til = {i.titulo for i in repo.listar(cidade="Joao Pessoa")}
+    assert com_til == sem_til == {"Apto Manaira", "Casa Bessa"}
+
+
+def test_filtro_de_cidade_nao_vaza_para_outras_cidades(tmp_path):
+    assert [i.cidade for i in _repositorio_real(tmp_path).listar(cidade="Recife")] == ["Recife"]

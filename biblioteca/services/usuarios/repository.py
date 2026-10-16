@@ -12,7 +12,9 @@ class UsuarioRepository:
 
     @staticmethod
     def _to_publico(row: sqlite3.Row) -> UsuarioPublico:
-        return UsuarioPublico(**dict(row))
+        dados = dict(row)
+        dados.pop("senha_hash", None)
+        return UsuarioPublico(**dados)
 
     def buscar_por_id(self, usuario_id: int) -> UsuarioPublico | None:
         conn = self._db.connect()
@@ -32,21 +34,28 @@ class UsuarioRepository:
             conn.close()
         return [self._to_publico(r) for r in rows]
 
-    def buscar_por_credenciais(
-        self, email: str, senha_hash: str
-    ) -> UsuarioPublico | None:
+    def buscar_ativo_com_hash(
+        self, email: str
+    ) -> tuple[UsuarioPublico, str] | None:
         conn = self._db.connect()
         try:
             row = conn.execute(
-                """
-                SELECT * FROM usuarios
-                WHERE email = ? AND senha_hash = ? AND ativo = 1
-                """,
-                (email, senha_hash),
+                "SELECT * FROM usuarios WHERE email = ? AND ativo = 1", (email,)
             ).fetchone()
         finally:
             conn.close()
-        return self._to_publico(row) if row else None
+        if row is None:
+            return None
+        dados = dict(row)
+        senha_hash = dados.pop("senha_hash")
+        return UsuarioPublico(**dados), senha_hash
+
+    def existe_algum(self) -> bool:
+        conn = self._db.connect()
+        try:
+            return conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone() is not None
+        finally:
+            conn.close()
 
     def inserir(self, nome: str, email: str, senha_hash: str, tipo: str) -> int:
         conn = self._db.connect()

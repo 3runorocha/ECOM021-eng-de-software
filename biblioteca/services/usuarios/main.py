@@ -12,17 +12,19 @@ from service import UsuarioService
 from routes import criar_router
 from exceptions import (
     UsuarioNaoEncontrado, RegraDeNegocio,
-    CredenciaisInvalidas, TokenInvalido,
+    CredenciaisInvalidas, TokenInvalido, PermissaoNegada,
 )
 
 DB_PATH = os.getenv("USUARIOS_DB", "usuarios.db")
 
-SECRET = "biblioteca_secret_2025"
-
 database = Database(DB_PATH)
+database.init_schema()
+
 repository = UsuarioRepository(database)
-hasher = PasswordHasher(SECRET)
-token_service = TokenService(SECRET)
+hasher = PasswordHasher()
+token_service = TokenService(
+    os.getenv("TOKEN_SECRET") or database.segredo("token_secret")
+)
 service = UsuarioService(repository, hasher, token_service)
 
 
@@ -65,6 +67,11 @@ def tratar_credenciais(request: Request, exc: CredenciaisInvalidas):
 @app.exception_handler(TokenInvalido)
 def tratar_token_invalido(request: Request, exc: TokenInvalido):
     return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+
+@app.exception_handler(PermissaoNegada)
+def tratar_permissao_negada(request: Request, exc: PermissaoNegada):
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
 
 
 app.include_router(criar_router(service))

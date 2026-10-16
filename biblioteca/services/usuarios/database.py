@@ -1,3 +1,4 @@
+import secrets
 import sqlite3
 
 
@@ -26,7 +27,28 @@ class Database:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS configuracao (
+                    chave TEXT PRIMARY KEY,
+                    valor TEXT NOT NULL
+                )
+                """
+            )
             conn.commit()
         finally:
             conn.close()
-            
+
+    def segredo(self, chave: str) -> str:
+        conn = self.connect()
+        try:
+            conn.execute(
+                "INSERT OR IGNORE INTO configuracao (chave, valor) VALUES (?, ?)",
+                (chave, secrets.token_hex(32)),
+            )
+            conn.commit()
+            return conn.execute(
+                "SELECT valor FROM configuracao WHERE chave = ?", (chave,)
+            ).fetchone()["valor"]
+        finally:
+            conn.close()

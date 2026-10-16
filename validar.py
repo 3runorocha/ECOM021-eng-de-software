@@ -750,6 +750,71 @@ def links_dos_docs_apontam_para_arquivos_que_existem():
     assert not problemas, "link quebrado: " + ", ".join(problemas)
 
 
+def segredo_do_token_fora_do_codigo():
+    """Revisão de código: o segredo que assina token estava no repositório.
+
+    Com ele qualquer um forjava login de qualquer usuário. Agora vem de
+    TOKEN_SECRET ou é gerado uma vez e guardado no usuarios.db.
+    """
+    for caminho, texto in _fontes_py():
+        assert "biblioteca_secret" not in texto, (
+            "o segredo antigo voltou em {0}".format(caminho.relative_to(RAIZ)))
+
+    main_usuarios = (BIB / "services" / "usuarios" / "main.py").read_text(encoding="utf-8")
+    assert not re.search(r"SECRET\s*=\s*[\"']", main_usuarios), (
+        "usuarios/main.py voltou a ter segredo literal")
+    assert "TOKEN_SECRET" in main_usuarios, "o segredo do token não vem de TOKEN_SECRET"
+
+    seguranca = (BIB / "services" / "usuarios" / "security.py").read_text(encoding="utf-8")
+    assert "pbkdf2_hmac" in seguranca, "a senha não usa hash lento com sal"
+    assert "hmac.new" in seguranca, "o token não é assinado com HMAC"
+
+
+def cadastro_publico_nao_cria_admin(ctx):
+    """Revisão de código: qualquer um se registrava como admin pela rota
+    pública, e qualquer usuário logado alterava o cadastro de outro."""
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+
+    r = c.post("/usuarios/usuarios/registro", json={
+        "nome": "Intruso", "email": "intruso@teste.br",
+        "senha": "senha123", "tipo": "admin",
+    })
+    assert r.status_code == 403, (
+        "segundo admin pela rota pública deveria dar 403, deu {0} {1}"
+        .format(r.status_code, r.text))
+
+    r = c.post("/usuarios/usuarios/registro", json={
+        "nome": "Comum", "email": "comum@teste.br",
+        "senha": "senha123", "tipo": "inquilino",
+    })
+    assert r.status_code == 201, r.text
+    r = c.post("/usuarios/usuarios/login",
+               json={"email": "comum@teste.br", "senha": "senha123"})
+    token_comum = {"Authorization": r.json()["token"]}
+
+    r = c.patch("/usuarios/usuarios/1", headers=token_comum, json={"ativo": False})
+    assert r.status_code == 403, (
+        "usuário comum desativou o admin: deveria dar 403, deu {0}"
+        .format(r.status_code))
+
+    r = c.post("/usuarios/usuarios/login",
+               json={"email": "validador@teste.br", "senha": "senha123"})
+    assert r.status_code == 200, "o admin perdeu o acesso: " + r.text
+
+
+def filtro_de_cidade_ignora_acento(ctx):
+    """Revisão de código: 'Maceió' não achava o que estava gravado como
+    'Maceio', o que quebrava o exemplo principal da tela do agente."""
+    base = GATEWAY + "/imoveis/imoveis/"
+    sem = httpx.get(base, headers=ctx["auth"], params={"cidade": "Maceio"}, timeout=10.0)
+    com = httpx.get(base, headers=ctx["auth"], params={"cidade": "Maceió"}, timeout=10.0)
+    assert sem.status_code == com.status_code == 200
+    ids_sem = {i["id"] for i in sem.json()}
+    assert ids_sem, "o fluxo deveria ter cadastrado um imóvel em Maceio"
+    assert {i["id"] for i in com.json()} == ids_sem, (
+        "'Maceió' e 'Maceio' devolveram imóveis diferentes")
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -777,6 +842,7 @@ ESTATICAS = [
     ("16", "diagramas refletem o codigo", diagramas_refletem_o_codigo),
     ("16", "documentacao sem lastro do projeto antigo", documentacao_sem_lastro_do_projeto_antigo),
     ("16", "links dos docs existem", links_dos_docs_apontam_para_arquivos_que_existem),
+    ("rev", "segredo do token fora do codigo", segredo_do_token_fora_do_codigo),
     ("15", "suite de testes passa", suite_de_testes_passa),
     ("-", "todo .py compila", tudo_compila),
 ]
@@ -793,6 +859,8 @@ VIVAS = [
     ("12", "recomendacao responde rapido", recomendacao_responde_rapido),
     ("13", "agente degrada sem credencial", agente_degrada_sem_credencial),
     ("14", "aviso sai mesmo com agente fora", aviso_sai_mesmo_com_agente_fora),
+    ("rev", "cadastro publico nao cria admin", cadastro_publico_nao_cria_admin),
+    ("rev", "filtro de cidade ignora acento", filtro_de_cidade_ignora_acento),
 ]
 
 
