@@ -72,6 +72,12 @@ validador não suja seus dados de desenvolvimento.
 | rev | atraso usa a data local | `marcar_atrasados` voltando a comparar com a data UTC do SQLite |
 | rev | contrato só para o dono | inquilino lendo, encerrando ou assinando contrato de outro pelo gateway — inclusive mandando os headers de identidade forjados |
 | rev | aviso não se repete | a App de aviso reenviando, na segunda execução, o que já mandou na primeira |
+| rev | gateway reaproveita conexões | o `/health` voltando a consultar em série, ou o gateway abrindo um cliente HTTP por requisição |
+| rev | reload não deixa órfãos | `subir_servicos.py` voltando a matar só o processo pai no Windows |
+| rev | imóvel só quem administra | inquilino cadastrando, alterando, removendo ou mudando a disponibilidade de imóvel — inclusive com header forjado |
+| rev | encerrar não fica preso | contrato que não fecha porque o imóvel já estava livre; imóvel alugado sendo removido |
+| rev | e-mail repetido dá 400 | trocar o e-mail por um já cadastrado voltando a estourar 500 |
+| rev | recomenda onde já morou | imóvel de contrato encerrado sumindo para sempre da recomendação |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -513,9 +519,38 @@ que é UTC, enquanto a multa usa a data local. Agora o serviço passa a data do 
 mesmo tipo para o mesmo imóvel — a mesma regra da varredura. A checagem é feita antes
 de pedir o texto ao agente, para não gastar chamada redigindo aviso que não sai.
 
-Seguem em aberto, da revisão: encerrar contrato libera o imóvel antes de gravar; o
-`--reload` deixa processos órfãos no Windows; o `/health` consulta os serviços em
-série; a recomendação faz uma chamada HTTP por contrato; e trocar o e-mail para um já
-existente devolve 500. Também segue aberto que qualquer usuário logado cadastra,
-altera e remove imóveis — a identidade agora chega aos serviços, então restringir isso
-é uma linha por rota, mas não foi feito.
+Ficaram em aberto, da revisão, seis itens — fechados na rodada seguinte.
+
+### Terceira rodada (16/10)
+
+**52 checagens, 127 testes de unidade e 5 de integração, todos passando.**
+
+**Imóveis restritos a quem administra.** Qualquer usuário logado cadastrava, alterava
+e removia imóvel. Agora isso é de admin e proprietário; inquilino recebe 403, e a tela
+esconde o "+ Novo imóvel" dele. Mudar a disponibilidade à mão ficou só para admin — o
+serviço de contratos continua fazendo isso por dentro, sem identidade. Imóvel alugado
+não pode mais ser removido. Limite conhecido: o imóvel não tem dono no modelo, então um
+proprietário mexe em qualquer imóvel, não só nos seus; e o cadastro público aceita
+proprietário.
+
+**Encerrar não fica preso.** Se o imóvel já estivesse livre (um admin o liberou à mão),
+o encerramento dava 400 e o contrato nunca mais fechava. Agora isso não impede o
+encerramento. E se gravar o encerramento falhar depois de liberar o imóvel, ele volta a
+ficar ocupado — a mesma compensação que a assinatura já tinha.
+
+**E-mail repetido dá 400.** Trocar o e-mail por um já cadastrado batia no UNIQUE do
+SQLite e estourava 500.
+
+**`--reload` sem órfãos.** No Windows o `terminate()` matava só o processo pai do
+uvicorn; o filho ficava segurando a porta. Reproduzido: derrubando um serviço com
+`--reload`, a versão antiga deixou 6 portas presas; a nova, nenhuma. O script agora usa
+`taskkill /T`, que derruba a árvore.
+
+**`/health` em paralelo.** Consultava os serviços um por um: com um fora do ar, o tempo
+dele somava ao dos outros. Agora consulta todos ao mesmo tempo. O gateway também passou
+a usar um cliente HTTP só, em vez de abrir um por requisição — sem guardar cookie, para
+nada de um usuário vazar para outro.
+
+**Recomendação.** Fazia uma chamada HTTP por contrato do histórico; agora tira tipo e
+cidade do portfólio que já carregava. E a penalidade para imóvel onde a pessoa já morou
+era o dobro do score máximo, então ele nunca mais aparecia; agora só o rebaixa.

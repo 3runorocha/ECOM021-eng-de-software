@@ -28,7 +28,7 @@ class ImovelClient:
                 params={"disponivel": disponivel},
                 timeout=self._timeout,
             )
-            if resp.status_code == 400:
+            if resp.status_code in (400, 404):
                 raise RegraDeNegocio(resp.json().get("detail"))
             resp.raise_for_status()
         except httpx.RequestError:

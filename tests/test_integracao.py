@@ -34,13 +34,12 @@ def cliente():
     return httpx.Client(base_url=GATEWAY, timeout=30.0)
 
 
-@pytest.fixture(scope="module")
-def auth(cliente):
+def novo_usuario(cliente, tipo):
     """Cria um usuário próprio do teste, para não depender do seed."""
     email = f"teste-{uuid.uuid4().hex[:8]}@alugue.br"
     r = cliente.post("/usuarios/usuarios/registro", json={
         "nome": "Usuário de Teste", "email": email,
-        "senha": "senha123", "tipo": "inquilino",
+        "senha": "senha123", "tipo": tipo,
     })
     assert r.status_code == 201, r.text
     usuario_id = r.json()["id"]
@@ -51,18 +50,39 @@ def auth(cliente):
     return {"Authorization": r.json()["token"]}, usuario_id
 
 
+@pytest.fixture(scope="module")
+def auth(cliente):
+    return novo_usuario(cliente, "inquilino")
+
+
+@pytest.fixture(scope="module")
+def proprietario(cliente):
+    cabecalhos, _ = novo_usuario(cliente, "proprietario")
+    return cabecalhos
+
+
 def test_rota_protegida_exige_token(cliente):
     assert cliente.get("/imoveis/imoveis/").status_code == 401
 
 
-def test_ciclo_de_locacao_ponta_a_ponta(cliente, auth):
+def test_inquilino_nao_cadastra_imovel(cliente, auth):
+    cabecalhos, _ = auth
+    r = cliente.post("/imoveis/imoveis/", headers=cabecalhos, json={
+        "titulo": "Imóvel indevido", "tipo": "casa", "endereco": "Rua X, 1",
+        "cidade": "Maceio", "quartos": 1, "banheiros": 1,
+        "area_m2": 40.0, "valor_mensal": 900.0,
+    })
+    assert r.status_code == 403, r.text
+
+
+def test_ciclo_de_locacao_ponta_a_ponta(cliente, auth, proprietario):
     """Cadastrar imóvel, assinar, ver o imóvel ocupado, encerrar, ver liberado.
 
     Passa por três serviços (imóveis, usuários, contratos) e pelo gateway.
     """
     cabecalhos, inquilino_id = auth
 
-    r = cliente.post("/imoveis/imoveis/", headers=cabecalhos, json={
+    r = cliente.post("/imoveis/imoveis/", headers=proprietario, json={
         "titulo": f"Imóvel de teste {uuid.uuid4().hex[:6]}", "tipo": "apartamento",
         "endereco": "Rua da Integração, 1", "cidade": "Maceio",
         "quartos": 2, "banheiros": 1, "area_m2": 60.0, "valor_mensal": 1800.0,

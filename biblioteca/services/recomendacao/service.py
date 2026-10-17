@@ -16,7 +16,7 @@ class RecomendacaoService:
 
     PONTOS_TIPO = 3
     PONTOS_CIDADE = 2
-    PENALIDADE_JA_ALUGADO = 10
+    PENALIDADE_JA_MOROU = 2
     PENALIDADE_JA_RECOMENDADO = 1
     TOP_N_PREFERENCIAS = 3
 
@@ -41,7 +41,8 @@ class RecomendacaoService:
                 total_contratos=0,
             )
 
-        tipos, cidades = self._coletar_preferencias(historico)
+        por_id = self._indexar(self._imoveis.buscar_portfolio_completo())
+        tipos, cidades = self._coletar_preferencias(historico, por_id)
         return PerfilUsuario(
             usuario_id=usuario_id,
             tipos_favoritos=self._mais_frequentes(tipos),
@@ -53,17 +54,20 @@ class RecomendacaoService:
         historico = self._contratos.buscar_historico(usuario_id)
         portfolio = self._imoveis.buscar_portfolio_completo()
 
-        ids_alugados = {c["imovel_id"] for c in historico}
-        tipos, cidades = self._coletar_preferencias(historico)
+        em_aberto = {c["imovel_id"] for c in historico if c.get("status") != "encerrado"}
+        ja_morou = {c["imovel_id"] for c in historico} - em_aberto
+        tipos, cidades = self._coletar_preferencias(historico, self._indexar(portfolio))
         top_tipos = set(self._mais_frequentes(tipos))
         top_cidades = set(self._mais_frequentes(cidades))
         ja_recomendados = self._repo.listar_recomendados(usuario_id)
 
         recomendacoes = []
         for imovel in portfolio:
+            if imovel["id"] in em_aberto:
+                continue
             recomendado = self._pontuar(
                 imovel, top_tipos, top_cidades,
-                ids_alugados, ja_recomendados,
+                ja_morou, ja_recomendados,
             )
             if recomendado is not None:
                 recomendacoes.append(recomendado)
@@ -76,10 +80,20 @@ class RecomendacaoService:
         )
         return resultado
 
-    def _coletar_preferencias(self, historico: list[dict]) -> tuple[list, list]:
+    @staticmethod
+    def _indexar(portfolio: list[dict]) -> dict:
+        return {imovel["id"]: imovel for imovel in portfolio}
+
+    def _coletar_preferencias(
+        self, historico: list[dict], por_id: dict
+    ) -> tuple[list, list]:
+        """Tipo e cidade de cada imóvel do histórico.
+
+        Sai do portfólio já carregado, não de uma chamada HTTP por contrato.
+        """
         tipos, cidades = [], []
         for contrato in historico:
-            imovel = self._imoveis.buscar_imovel(contrato["imovel_id"])
+            imovel = por_id.get(contrato["imovel_id"])
             if imovel:
                 tipos.append(imovel["tipo"])
                 cidades.append(imovel["cidade"])
@@ -93,7 +107,7 @@ class RecomendacaoService:
         imovel: dict,
         top_tipos: set,
         top_cidades: set,
-        ids_alugados: set,
+        ja_morou: set,
         ja_recomendados: set,
     ) -> ImovelRecomendado | None:
         if not imovel.get("disponivel", False):
@@ -110,8 +124,9 @@ class RecomendacaoService:
             score += self.PONTOS_CIDADE
             motivo.append(f"cidade '{imovel['cidade']}' está entre suas preferidas")
 
-        if imovel["id"] in ids_alugados:
-            score -= self.PENALIDADE_JA_ALUGADO
+        if imovel["id"] in ja_morou:
+            score -= self.PENALIDADE_JA_MOROU
+            motivo.append("você já morou aqui")
 
         if imovel["id"] in ja_recomendados:
             score -= self.PENALIDADE_JA_RECOMENDADO

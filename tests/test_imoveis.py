@@ -9,9 +9,11 @@ modelos, servico_mod, excecoes = carregar(
 
 Imovel = modelos.Imovel
 ImovelCreate = modelos.ImovelCreate
+ImovelUpdate = modelos.ImovelUpdate
 ImovelService = servico_mod.ImovelService
 ImovelNaoEncontrado = excecoes.ImovelNaoEncontrado
 RegraDeNegocio = excecoes.RegraDeNegocio
+PermissaoNegada = excecoes.PermissaoNegada
 
 
 def imovel(id=1, titulo="Casa no Farol", disponivel=True, valor=3100.0,
@@ -161,3 +163,50 @@ def test_filtro_acha_joao_pessoa_com_e_sem_til(tmp_path):
 
 def test_filtro_de_cidade_nao_vaza_para_outras_cidades(tmp_path):
     assert [i.cidade for i in _repositorio_real(tmp_path).listar(cidade="Recife")] == ["Recife"]
+
+
+INQUILINO = {"id": 7, "tipo": "inquilino"}
+PROPRIETARIO = {"id": 8, "tipo": "proprietario"}
+ADMIN = {"id": 1, "tipo": "admin"}
+
+NOVO = dict(
+    titulo="Novo", tipo="apartamento", endereco="Rua Y, 2", cidade="Recife",
+    quartos=2, banheiros=1, area_m2=60.0, valor_mensal=1800.0,
+)
+
+
+def test_inquilino_nao_mexe_no_portfolio(service, repo):
+    with pytest.raises(PermissaoNegada):
+        service.cadastrar_imovel(ImovelCreate(**NOVO), INQUILINO)
+    with pytest.raises(PermissaoNegada):
+        service.atualizar_imovel(1, ImovelUpdate(valor_mensal=1.0), INQUILINO)
+    with pytest.raises(PermissaoNegada):
+        service.remover_imovel(1, INQUILINO)
+    assert repo.imoveis[1].valor_mensal == 3100.0
+
+
+def test_proprietario_administra_o_portfolio(service, repo):
+    service.cadastrar_imovel(ImovelCreate(**NOVO), PROPRIETARIO)
+    service.atualizar_imovel(1, ImovelUpdate(valor_mensal=2900.0), PROPRIETARIO)
+    assert repo.imoveis[1].valor_mensal == 2900.0
+    service.remover_imovel(1, PROPRIETARIO)
+    assert 1 not in repo.imoveis
+
+
+def test_disponibilidade_a_mao_so_admin(service):
+    for chamador in (INQUILINO, PROPRIETARIO):
+        with pytest.raises(PermissaoNegada):
+            service.definir_disponibilidade(1, False, chamador)
+    assert service.definir_disponibilidade(1, False, ADMIN)["disponivel"] is False
+
+
+def test_chamada_interna_nao_e_restrita(service):
+    """Sem identidade é o serviço de contratos ocupando ou liberando o imóvel."""
+    assert service.definir_disponibilidade(1, False)["disponivel"] is False
+
+
+def test_nao_remove_imovel_alugado(repo):
+    repo.imoveis[1] = imovel(disponivel=False)
+    with pytest.raises(RegraDeNegocio, match="alugado"):
+        ImovelService(repo).remover_imovel(1, ADMIN)
+    assert 1 in repo.imoveis

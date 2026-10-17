@@ -893,6 +893,107 @@ def aviso_nao_se_repete(ctx):
         "a segunda execução não reconheceu os avisos já enviados:" + chr(10) + saida.stdout)
 
 
+def gateway_reaproveita_conexoes():
+    """Revisão: o /health consultava os serviços um por um, e cada requisição
+    abria e fechava um cliente HTTP novo."""
+    gateway = BIB / "gateway"
+    proxy = sem_comentarios((gateway / "proxy.py").read_text(encoding="utf-8"))
+    auth = sem_comentarios((gateway / "auth.py").read_text(encoding="utf-8"))
+    for nome, fonte in (("proxy.py", proxy), ("auth.py", auth)):
+        assert "async with httpx.AsyncClient" not in fonte, (
+            nome + " voltou a abrir um cliente HTTP por requisição")
+    assert "asyncio.gather" in proxy, "o /health voltou a consultar em série"
+
+
+def reload_nao_deixa_orfaos():
+    """Revisão: no Windows, com --reload, o terminate() matava só o processo
+    pai do uvicorn e o filho ficava segurando a porta."""
+    fonte = sem_comentarios((RAIZ / "subir_servicos.py").read_text(encoding="utf-8"))
+    assert "taskkill" in fonte and '"/T"' in fonte, (
+        "subir_servicos.py não derruba a árvore de processos no Windows")
+
+
+NOVO_IMOVEL = {
+    "titulo": "Imovel de teste", "tipo": "casa", "endereco": "Rua T, 1",
+    "cidade": "Penedo", "quartos": 2, "banheiros": 1,
+    "area_m2": 70.0, "valor_mensal": 1400.0,
+}
+
+
+def imovel_so_quem_administra(ctx):
+    """Revisão: qualquer usuário logado cadastrava, alterava e removia imóvel."""
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    _, inquilino = _novo_inquilino(c, "curioso@teste.br")
+    url = "/imoveis/imoveis/{0}".format(ctx["imovel_id"])
+
+    tentativas = [
+        ("cadastrar", c.post("/imoveis/imoveis/", headers=inquilino, json=NOVO_IMOVEL)),
+        ("alterar", c.patch(url, headers=inquilino, json={"valor_mensal": 1.0})),
+        ("remover", c.delete(url, headers=inquilino)),
+        ("mudar disponibilidade", c.patch(url + "/disponibilidade", headers=inquilino,
+                                          params={"disponivel": False})),
+        ("cadastrar com header forjado", c.post(
+            "/imoveis/imoveis/", json=NOVO_IMOVEL,
+            headers=dict(inquilino, **{"X-Usuario-Tipo": "admin"}))),
+    ]
+    for acao, r in tentativas:
+        assert r.status_code == 403, "inquilino conseguiu {0}: {1}".format(acao, r.status_code)
+
+    r = c.post("/imoveis/imoveis/", headers=ctx["auth"], json=NOVO_IMOVEL)
+    assert r.status_code == 201, "admin perdeu o cadastro: " + r.text
+
+
+def encerrar_nao_fica_preso(ctx):
+    """Revisão: encerrar falhava se o imóvel já estivesse livre, e o contrato
+    não fechava nunca mais; e liberava o imóvel antes de gravar o encerramento."""
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    auth = ctx["auth"]
+    imovel_id = c.post("/imoveis/imoveis/", headers=auth, json=NOVO_IMOVEL).json()["id"]
+    r = c.post("/contratos/contratos/", headers=auth,
+               json={"inquilino_id": 1, "imovel_id": imovel_id})
+    assert r.status_code == 201, r.text
+    contrato_id = r.json()["id"]
+
+    r = c.delete("/imoveis/imoveis/{0}".format(imovel_id), headers=auth)
+    assert r.status_code == 400, "removeu imóvel alugado: {0}".format(r.status_code)
+
+    r = c.patch("/imoveis/imoveis/{0}/disponibilidade".format(imovel_id),
+                headers=auth, params={"disponivel": True})
+    assert r.status_code == 200, r.text
+
+    r = c.post("/contratos/contratos/{0}/encerrar".format(contrato_id), headers=auth)
+    assert r.status_code == 200, "contrato preso com o imóvel já livre: " + r.text
+    assert r.json()["status"] == "encerrado"
+
+
+def email_repetido_da_400(ctx):
+    """Revisão: trocar o e-mail por um que já existe estourava 500."""
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    _novo_inquilino(c, "primeiro@teste.br")
+    segundo_id, segundo = _novo_inquilino(c, "segundo@teste.br")
+    r = c.patch("/usuarios/usuarios/{0}".format(segundo_id), headers=segundo,
+                json={"email": "primeiro@teste.br"})
+    assert r.status_code == 400, "e-mail repetido deu {0}".format(r.status_code)
+
+
+def recomenda_onde_ja_morou(ctx):
+    """Revisão: quem já tinha morado num imóvel nunca mais o via recomendado."""
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    morador_id, morador = _novo_inquilino(c, "morador@teste.br")
+    imovel_id = c.post("/imoveis/imoveis/", headers=ctx["auth"], json=NOVO_IMOVEL).json()["id"]
+    r = c.post("/contratos/contratos/", headers=morador,
+               json={"inquilino_id": morador_id, "imovel_id": imovel_id})
+    assert r.status_code == 201, r.text
+    r = c.post("/contratos/contratos/{0}/encerrar".format(r.json()["id"]), headers=morador)
+    assert r.status_code == 200, r.text
+
+    r = c.get("/recomendacao/recomendacao/{0}".format(morador_id), headers=morador,
+              params={"limite": 500})
+    assert r.status_code == 200, r.text
+    assert imovel_id in [x["imovel_id"] for x in r.json()], (
+        "o imóvel do contrato encerrado sumiu da recomendação")
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -922,6 +1023,8 @@ ESTATICAS = [
     ("16", "links dos docs existem", links_dos_docs_apontam_para_arquivos_que_existem),
     ("rev", "segredo do token fora do codigo", segredo_do_token_fora_do_codigo),
     ("rev", "atraso usa a data local", atraso_usa_a_data_local),
+    ("rev", "gateway reaproveita conexoes", gateway_reaproveita_conexoes),
+    ("rev", "reload nao deixa orfaos", reload_nao_deixa_orfaos),
     ("15", "suite de testes passa", suite_de_testes_passa),
     ("-", "todo .py compila", tudo_compila),
 ]
@@ -942,6 +1045,10 @@ VIVAS = [
     ("rev", "filtro de cidade ignora acento", filtro_de_cidade_ignora_acento),
     ("rev", "contrato so para o dono", contrato_so_para_o_dono),
     ("rev", "aviso nao se repete", aviso_nao_se_repete),
+    ("rev", "imovel so quem administra", imovel_so_quem_administra),
+    ("rev", "encerrar nao fica preso", encerrar_nao_fica_preso),
+    ("rev", "email repetido da 400", email_repetido_da_400),
+    ("rev", "recomenda onde ja morou", recomenda_onde_ja_morou),
 ]
 
 

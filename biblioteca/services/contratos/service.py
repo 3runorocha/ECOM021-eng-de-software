@@ -85,9 +85,26 @@ class ContratoService:
         hoje = date.today()
         multa = self.calcular_multa(contrato, hoje)
 
-        self._imoveis.definir_disponibilidade(contrato.imovel_id, True)
-        self._repo.encerrar(contrato_id, str(hoje), multa)
+        liberou = self._liberar(contrato.imovel_id)
+        try:
+            self._repo.encerrar(contrato_id, str(hoje), multa)
+        except Exception:
+            if liberou:
+                self._imoveis.definir_disponibilidade(contrato.imovel_id, False)
+            raise
         return self._repo.buscar_por_id(contrato_id)
+
+    def _liberar(self, imovel_id: int) -> bool:
+        """Libera o imóvel; devolve False se ele já estava livre ou não existe mais.
+
+        Nenhum dos dois casos pode impedir o encerramento: o contrato acabou
+        de qualquer forma, e o imóvel já está no estado que se queria.
+        """
+        try:
+            self._imoveis.definir_disponibilidade(imovel_id, True)
+        except RegraDeNegocio:
+            return False
+        return True
 
     def calcular_multa(self, contrato: Contrato, data_saida: date) -> float:
         prevista = date.fromisoformat(contrato.data_fim_prevista)

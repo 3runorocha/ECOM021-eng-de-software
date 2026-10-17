@@ -3,8 +3,9 @@ import pytest
 
 from conftest import carregar
 
-modelos, servico_mod, seguranca, excecoes = carregar(
-    "usuarios", "models", "service", "security", "exceptions"
+modelos, servico_mod, seguranca, excecoes, db_mod, repo_mod = carregar(
+    "usuarios", "models", "service", "security", "exceptions",
+    "database", "repository",
 )
 
 UsuarioCreate = modelos.UsuarioCreate
@@ -17,6 +18,7 @@ TokenService = seguranca.TokenService
 PermissaoNegada = excecoes.PermissaoNegada
 CredenciaisInvalidas = excecoes.CredenciaisInvalidas
 TokenInvalido = excecoes.TokenInvalido
+RegraDeNegocio = excecoes.RegraDeNegocio
 
 
 class RepoFake:
@@ -175,3 +177,16 @@ def test_token_assinado_com_o_segredo_antigo_nao_vale(service):
     forjado = TokenService("biblioteca_secret_2025").gerar(1, "admin@alugue.br")
     with pytest.raises(TokenInvalido):
         service.validar_token(forjado)
+
+
+def test_trocar_para_email_de_outro_e_regra_de_negocio(tmp_path):
+    """No SQLite de verdade: o UNIQUE do e-mail vira 400, não 500."""
+    database = db_mod.Database(str(tmp_path / "usuarios.db"))
+    database.init_schema()
+    repo = repo_mod.UsuarioRepository(database)
+    repo.inserir("Ana", "ana@x.br", "h", "inquilino")
+    bia = repo.inserir("Bia", "bia@x.br", "h", "inquilino")
+
+    with pytest.raises(RegraDeNegocio, match="Email"):
+        repo.atualizar(bia, {"email": "ana@x.br"})
+    assert repo.buscar_por_id(bia).email == "bia@x.br"

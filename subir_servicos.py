@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""Sobe o API Gateway e os 5 microsservicos em um unico comando.
+"""Sobe o API Gateway e os 6 microsservicos em um unico comando.
 
     python subir_servicos.py            # normal
     python subir_servicos.py --reload   # recarrega ao salvar (desenvolvimento)
 
 Ctrl+C encerra todos. Se algum servico morrer, o script derruba o resto e
-avisa qual foi -- silenciosamente ficar com 5 de 6 no ar e mais confuso do
+avisa qual foi -- silenciosamente ficar com 6 de 7 no ar e mais confuso do
 que falhar de uma vez.
 """
 import subprocess
@@ -43,10 +43,26 @@ def iniciar(reload: bool) -> list:
     return processos
 
 
+def derrubar(processo: subprocess.Popen) -> None:
+    """Encerra o processo junto com os filhos dele.
+
+    Com --reload o uvicorn serve a porta num processo filho. No Windows o
+    terminate() mata so o pai, e o filho fica orfao segurando a porta ate
+    alguem matar na mao; o taskkill /T derruba a arvore inteira.
+    """
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/PID", str(processo.pid), "/T", "/F"],
+            capture_output=True,
+        )
+    else:
+        processo.terminate()
+
+
 def encerrar(processos: list) -> None:
     for nome, _porta, processo in processos:
         if processo.poll() is None:
-            processo.terminate()
+            derrubar(processo)
     for nome, _porta, processo in processos:
         try:
             processo.wait(timeout=10)

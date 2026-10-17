@@ -31,9 +31,10 @@ def contrato(id=1, imovel_id=5, inquilino_id=1, inicio="2025-01-10",
 
 
 class RepoFake:
-    def __init__(self, contratos=None, falhar_insercao=False):
+    def __init__(self, contratos=None, falhar_insercao=False, falhar_encerramento=False):
         self.contratos = {c.id: c for c in (contratos or [])}
         self.falhar_insercao = falhar_insercao
+        self.falhar_encerramento = falhar_encerramento
         self.atrasados_marcados = 0
         self.hoje_recebido = None
 
@@ -61,6 +62,8 @@ class RepoFake:
         return 77
 
     def encerrar(self, contrato_id, fim_real, multa):
+        if self.falhar_encerramento:
+            raise RuntimeError("disco cheio")
         atual = self.contratos[contrato_id]
         self.contratos[contrato_id] = atual.model_copy(
             update={"data_fim_real": fim_real, "status": "encerrado", "multa": multa}
@@ -72,12 +75,13 @@ class RepoFake:
 
 
 class ImovelClientFake:
-    def __init__(self, imovel=None, falhar_ao_liberar=False):
+    def __init__(self, imovel=None, ja_livre=False):
         self.imovel = imovel if imovel is not None else {
             "id": 5, "titulo": "Cobertura na Pajucara", "valor_mensal": 5200.0,
             "disponivel": True,
         }
         self.chamadas = []
+        self.ja_livre = ja_livre
 
     def buscar_imovel(self, imovel_id):
         if self.imovel is None or self.imovel["id"] != imovel_id:
@@ -86,6 +90,8 @@ class ImovelClientFake:
 
     def definir_disponibilidade(self, imovel_id, disponivel):
         self.chamadas.append((imovel_id, disponivel))
+        if disponivel and self.ja_livre:
+            raise RegraDeNegocio("Imóvel já está disponível")
 
 
 def test_somar_meses_ajusta_mes_curto():
@@ -212,6 +218,26 @@ def test_encerrar_libera_o_imovel():
 
     assert encerrado.status == "encerrado"
     assert cliente.chamadas == [(5, True)]
+
+
+def test_encerrar_com_imovel_ja_livre_ainda_encerra():
+    """Um admin liberou o imóvel à mão antes; o contrato não pode ficar preso."""
+    repo = RepoFake([contrato(id=1, imovel_id=5)])
+    service = ContratoService(repo, ImovelClientFake(ja_livre=True))
+    assert service.encerrar_contrato(1).status == "encerrado"
+
+
+def test_encerrar_que_falha_ao_gravar_reocupa_o_imovel():
+    repo = RepoFake([contrato(id=1, imovel_id=5)], falhar_encerramento=True)
+    cliente = ImovelClientFake()
+    service = ContratoService(repo, cliente)
+    with pytest.raises(RuntimeError):
+        service.encerrar_contrato(1)
+
+    assert cliente.chamadas == [(5, True), (5, False)], (
+        "o imóvel ficou livre com o contrato ainda ativo"
+    )
+    assert repo.contratos[1].status == "ativo"
 
 
 def test_encerrar_contrato_ja_encerrado_e_recusado():

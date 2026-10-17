@@ -6,23 +6,25 @@ from exceptions import GatewayError, TokenInvalido, ServicoIndisponivel
 
 class AuthClient:
 
-    def __init__(self, usuarios_url: str, timeout: float = 5.0):
+    def __init__(
+        self, usuarios_url: str, client: httpx.AsyncClient, timeout: float = 5.0
+    ):
         self._url = usuarios_url.rstrip("/")
+        self._client = client
         self._timeout = timeout
 
     async def validar_token(self, token: str) -> dict:
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.post(
-                    f"{self._url}/usuarios/validar-token",
-                    headers={"authorization": token},
-                    timeout=self._timeout,
-                )
-                if resp.status_code != 200:
-                    raise TokenInvalido("Token invalido ou expirado")
-                return resp.json()
-            except httpx.RequestError:
-                raise ServicoIndisponivel("Servico de autenticacao indisponivel")
+        try:
+            resp = await self._client.post(
+                f"{self._url}/usuarios/validar-token",
+                headers={"authorization": token},
+                timeout=self._timeout,
+            )
+        except httpx.RequestError:
+            raise ServicoIndisponivel("Servico de autenticacao indisponivel")
+        if resp.status_code != 200:
+            raise TokenInvalido("Token invalido ou expirado")
+        return resp.json()
 
 
 class Autenticador:

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { imoveisAPI } from '../services/api'
+import { useAuth } from '../context/useAuth'
 
 const TIPOS = ['apartamento', 'casa']
 
@@ -63,6 +64,8 @@ export default function Imoveis() {
   const [carregado, setCarregado] = useState(false)
   const [erro, setErro] = useState(null)
   const [mostrarForm, setMostrarForm] = useState(false)
+  const { usuario } = useAuth()
+  const podeCadastrar = ['admin', 'proprietario'].includes(usuario?.tipo)
   const [novo, setNovo] = useState(IMOVEL_VAZIO)
   const [erroForm, setErroForm] = useState(null)
 
@@ -145,9 +148,11 @@ export default function Imoveis() {
         <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace' }}>
           GET :8001/imoveis
         </span>
-        <button onClick={() => setMostrarForm(!mostrarForm)} style={estiloBotao}>
-          + Novo imóvel
-        </button>
+        {podeCadastrar && (
+          <button onClick={() => setMostrarForm(!mostrarForm)} style={estiloBotao}>
+            + Novo imóvel
+          </button>
+        )}
       </div>
 
       <div
@@ -235,7 +240,7 @@ export default function Imoveis() {
         </button>
       </div>
 
-      {mostrarForm && (
+      {podeCadastrar && mostrarForm && (
         <form
           onSubmit={handleCriar}
           style={{

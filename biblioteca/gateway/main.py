@@ -1,19 +1,30 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import SERVICES, PUBLIC_ROUTES, ROTAS_LIVRES, ServiceRegistry
 from auth import AuthClient, Autenticador
-from proxy import ProxyService, MonitorServicos
+from proxy import ProxyService, MonitorServicos, novo_cliente_http
 from exceptions import GatewayError
 
 registry = ServiceRegistry(SERVICES)
-auth_client = AuthClient(registry.url("usuarios"))
+cliente_http = novo_cliente_http()
+auth_client = AuthClient(registry.url("usuarios"), cliente_http)
 autenticador = Autenticador(auth_client, PUBLIC_ROUTES, ROTAS_LIVRES)
-proxy_service = ProxyService(registry)
-monitor = MonitorServicos(registry)
+proxy_service = ProxyService(registry, cliente_http)
+monitor = MonitorServicos(registry, cliente_http)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await cliente_http.aclose()
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="Aluguel de Imoveis - API Gateway",
     description="Ponto de entrada unico para todos os microsservicos",
     version="1.0.0",

@@ -9,3 +9,8 @@ class ImovelNaoEncontrado(ImovelError):
 
 class RegraDeNegocio(ImovelError):
     pass
+
+
+class PermissaoNegada(ImovelError):
+    def __init__(self, mensagem: str = "Sem permissão para esta operação"):
+        super().__init__(mensagem)

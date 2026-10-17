@@ -87,5 +87,7 @@ class UsuarioRepository:
                 f"UPDATE usuarios SET {set_clause} WHERE id = ?", valores
             )
             conn.commit()
+        except sqlite3.IntegrityError:
+            raise RegraDeNegocio("Email já cadastrado por outro usuário")
         finally:
             conn.close()

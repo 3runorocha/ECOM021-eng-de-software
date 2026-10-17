@@ -15,8 +15,8 @@ def imovel(id=1, tipo="apartamento", cidade="Maceio", disponivel=True,
     }
 
 
-def contrato(imovel_id=1):
-    return {"imovel_id": imovel_id}
+def contrato(imovel_id=1, status="ativo"):
+    return {"imovel_id": imovel_id, "status": status}
 
 
 class ContratoClientFake:
@@ -30,12 +30,11 @@ class ContratoClientFake:
 class ImovelClientFake:
     def __init__(self, portfolio):
         self.portfolio = portfolio
+        self.chamadas = 0
 
     def buscar_portfolio_completo(self):
+        self.chamadas += 1
         return self.portfolio
-
-    def buscar_imovel(self, imovel_id):
-        return next((i for i in self.portfolio if i["id"] == imovel_id), None)
 
 
 class RepoFake:
@@ -147,3 +146,27 @@ def test_o_que_foi_recomendado_fica_registrado():
     repo, service = montar([alugado, candidato], [contrato(1)])
     service.recomendar(1)
     assert repo.registrados == [2]
+
+
+def test_imovel_onde_ja_morou_volta_rebaixado():
+    """A penalidade era 10, o dobro do score máximo: quem já tinha morado num
+    imóvel nunca mais o via recomendado, mesmo com o contrato encerrado."""
+    antigo = imovel(id=1, tipo="casa", cidade="Recife")
+    novo = imovel(id=2, tipo="casa", cidade="Recife")
+    _, service = montar([antigo, novo], [contrato(1, status="encerrado")])
+
+    recs = service.recomendar(1)
+    assert [r.imovel_id for r in recs] == [2, 1]
+    assert "já morou" in recs[1].motivo
+
+
+def test_historico_nao_custa_uma_chamada_por_contrato():
+    portfolio = [imovel(id=i, tipo="casa", cidade="Recife") for i in range(1, 8)]
+    historico = [contrato(i, status="encerrado") for i in range(1, 7)]
+    cliente = ImovelClientFake(portfolio)
+    service = RecomendacaoService(RepoFake(), ContratoClientFake(historico), cliente)
+
+    service.recomendar(1)
+    assert cliente.chamadas == 1
+    service.obter_perfil(1)
+    assert cliente.chamadas == 2

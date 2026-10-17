@@ -1,8 +1,22 @@
+import asyncio
+from http.cookiejar import CookieJar, DefaultCookiePolicy
+
 import httpx
 from fastapi import Request, Response
 
 from config import ServiceRegistry
 from exceptions import ServicoNaoEncontrado, ServicoIndisponivel
+
+
+def novo_cliente_http(transport=None) -> httpx.AsyncClient:
+    """Cliente único do gateway, reaproveitando as conexões com os serviços.
+
+    Por ser compartilhado entre todos os usuários, ele não guarda cookie: um
+    Set-Cookie vindo de um serviço não pode ir parar na requisição de outra
+    pessoa.
+    """
+    sem_cookies = CookieJar(policy=DefaultCookiePolicy(allowed_domains=[]))
+    return httpx.AsyncClient(cookies=sem_cookies, transport=transport)
 
 
 class ProxyService:
@@ -16,8 +30,12 @@ class ProxyService:
 
     HEADERS_DE_IDENTIDADE = frozenset({"x-usuario-id", "x-usuario-tipo"})
 
-    def __init__(self, registry: ServiceRegistry, timeout: float = 10.0):
+    def __init__(
+        self, registry: ServiceRegistry, client: httpx.AsyncClient,
+        timeout: float = 10.0,
+    ):
         self._registry = registry
+        self._client = client
         self._timeout = timeout
 
     async def encaminhar(
@@ -40,20 +58,19 @@ class ProxyService:
             headers["x-usuario-id"] = str(identidade["usuario_id"])
             headers["x-usuario-tipo"] = identidade["tipo"]
 
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.request(
-                    method=request.method,
-                    url=target_url,
-                    headers=headers,
-                    params=params,
-                    content=body,
-                    timeout=self._timeout,
-                )
-            except httpx.RequestError:
-                raise ServicoIndisponivel(
-                    f"Microsservico '{service_name}' indisponivel"
-                )
+        try:
+            resp = await self._client.request(
+                method=request.method,
+                url=target_url,
+                headers=headers,
+                params=params,
+                content=body,
+                timeout=self._timeout,
+            )
+        except httpx.RequestError:
+            raise ServicoIndisponivel(
+                f"Microsservico '{service_name}' indisponivel"
+            )
 
         headers_resposta = {
             chave: valor
@@ -71,27 +88,33 @@ class ProxyService:
 
 class MonitorServicos:
 
-    def __init__(self, registry: ServiceRegistry, timeout: float = 3.0):
+    def __init__(
+        self, registry: ServiceRegistry, client: httpx.AsyncClient,
+        timeout: float = 3.0,
+    ):
         self._registry = registry
+        self._client = client
         self._timeout = timeout
 
+    async def _consultar(self, info: dict) -> dict:
+        try:
+            resp = await self._client.get(
+                f"{info['url']}/health", timeout=self._timeout
+            )
+            status = "ok" if resp.status_code == 200 else "erro"
+        except httpx.RequestError:
+            status = "indisponivel"
+        return {"status": status, "porta": info["porta"]}
+
     async def verificar(self) -> dict:
-        resultados = {}
-        async with httpx.AsyncClient() as client:
-            for nome, info in self._registry.itens():
-                try:
-                    resp = await client.get(
-                        f"{info['url']}/health", timeout=self._timeout
-                    )
-                    resultados[nome] = {
-                        "status": "ok" if resp.status_code == 200 else "erro",
-                        "porta": info["porta"],
-                    }
-                except httpx.RequestError:
-                    resultados[nome] = {
-                        "status": "indisponivel",
-                        "porta": info["porta"],
-                    }
+        """Consulta todos os serviços ao mesmo tempo.
+
+        Em série, com um serviço fora do ar o /health levava o timeout dele
+        somado ao dos outros; em paralelo, leva o do mais lento.
+        """
+        itens = list(self._registry.itens())
+        estados = await asyncio.gather(*(self._consultar(info) for _, info in itens))
+        resultados = {nome: estado for (nome, _), estado in zip(itens, estados)}
 
         todos_ok = all(s["status"] == "ok" for s in resultados.values())
         return {

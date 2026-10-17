@@ -22,6 +22,7 @@ BIB = RAIZ / "biblioteca"
 NOMES_COMUNS = (
     "models", "service", "repository", "database",
     "exceptions", "clients", "routes", "main", "security",
+    "config", "auth", "proxy",
 )
 
 
@@ -35,7 +36,8 @@ def carregar(servico: str, *modulos: str):
 
     Devolve um módulo só, ou uma tupla quando se pede mais de um.
     """
-    caminho = str(BIB / "services" / servico)
+    pasta = BIB / "services" / servico
+    caminho = str(pasta if pasta.exists() else BIB / servico)
     _limpar_cache()
     sys.path.insert(0, caminho)
     try:
