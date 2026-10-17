@@ -85,10 +85,17 @@ def test_ciclo_de_locacao_ponta_a_ponta(cliente, auth):
     assert r.json()["disponivel"] is False, "assinar deveria ocupar o imóvel"
 
     r = cliente.post("/contratos/contratos/", headers=cabecalhos, json={
-        "inquilino_id": inquilino_id + 1, "imovel_id": imovel["id"],
+        "inquilino_id": inquilino_id, "imovel_id": imovel["id"],
     })
     assert r.status_code == 400, (
         f"segundo contrato no mesmo imóvel deveria dar 400, deu {r.status_code}"
+    )
+
+    r = cliente.post("/contratos/contratos/", headers=cabecalhos, json={
+        "inquilino_id": inquilino_id + 1, "imovel_id": imovel["id"],
+    })
+    assert r.status_code == 403, (
+        f"assinar em nome de outro inquilino deveria dar 403, deu {r.status_code}"
     )
 
     r = cliente.post(f"/contratos/contratos/{contrato['id']}/encerrar",

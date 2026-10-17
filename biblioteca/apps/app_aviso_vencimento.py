@@ -74,7 +74,23 @@ class AppAvisoVencimento(FrameworkBiblioteca):
                 "vencido": dias < 0,
             })
 
-        contexto["pendentes"] = pendentes
+        notificacoes = self.get_componente("notificacoes")
+        ja_avisados = {}
+        novos = []
+        for p in pendentes:
+            p["tipo"] = "atraso" if p["vencido"] else "prazo_proximo"
+            inquilino = p["inquilino_id"]
+            if inquilino not in ja_avisados:
+                ja_avisados[inquilino] = {
+                    (n["tipo"], n["imovel_id"])
+                    for n in notificacoes.listar(inquilino)
+                    if not n["lida"]
+                }
+            if (p["tipo"], p["imovel_id"]) not in ja_avisados[inquilino]:
+                novos.append(p)
+
+        contexto["pendentes"] = novos
+        contexto["ja_avisados"] = len(pendentes) - len(novos)
 
     def executar_logica(self, contexto: dict) -> dict:
         """Pede ao agente o texto de cada aviso."""
@@ -101,7 +117,11 @@ class AppAvisoVencimento(FrameworkBiblioteca):
 
             avisos.append({**p, "mensagem": mensagem, "redigido_por": redigido_por})
 
-        return {"avisos": avisos, "total": len(avisos)}
+        return {
+            "avisos": avisos,
+            "total": len(avisos),
+            "ja_avisados": contexto.get("ja_avisados", 0),
+        }
 
     def pos_processar(self, contexto: dict, resultado: dict) -> None:
         """Envia. O efeito colateral é da app, nunca do modelo."""
@@ -112,7 +132,7 @@ class AppAvisoVencimento(FrameworkBiblioteca):
             try:
                 notificacoes.enviar(
                     usuario_id=aviso["inquilino_id"],
-                    tipo="atraso" if aviso["vencido"] else "prazo_proximo",
+                    tipo=aviso["tipo"],
                     mensagem=aviso["mensagem"],
                     imovel_id=aviso["imovel_id"],
                 )
@@ -167,7 +187,10 @@ if __name__ == "__main__":
     if resultado.get("erro"):
         print(f"\nFalhou: {resultado['mensagem']}")
     else:
-        print(f"\n{resultado['total']} aviso(s), {resultado.get('enviados', 0)} enviado(s):\n")
+        print(
+            f"\n{resultado['total']} aviso(s), {resultado.get('enviados', 0)} enviado(s), "
+            f"{resultado.get('ja_avisados', 0)} pulado(s) por já haver aviso não lido:\n"
+        )
         for aviso in resultado["avisos"]:
             marca = "VENCIDO" if aviso["vencido"] else f"faltam {aviso['dias']}d"
             print(f"  [{marca}] {aviso['imovel']} — inquilino {aviso['inquilino_id']}")

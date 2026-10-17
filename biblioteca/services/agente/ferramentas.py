@@ -13,6 +13,7 @@ colateral e dinheiro envolvido; isso nao fica a cargo do modelo nesta fase.
 import json
 import os
 import sys
+from contextvars import ContextVar
 
 from anthropic import beta_tool
 
@@ -27,6 +28,8 @@ from componentes import (
 
 imoveis = ComponenteImovelHTTP()
 contratos = ComponenteContratoHTTP()
+
+chamador_atual: ContextVar = ContextVar("chamador_atual", default=None)
 
 
 def _json(valor) -> str:
@@ -97,6 +100,9 @@ def listar_contratos(inquilino_id: int) -> str:
     Args:
         inquilino_id: Identificador do inquilino.
     """
+    chamador = chamador_atual.get()
+    if chamador and chamador["tipo"] != "admin" and inquilino_id != chamador["id"]:
+        return _json({"erro": "Sem permissão para ver contratos de outro inquilino"})
     return _json(contratos.listar_contratos(inquilino_id))
 
 

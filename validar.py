@@ -815,6 +815,84 @@ def filtro_de_cidade_ignora_acento(ctx):
         "'Maceió' e 'Maceio' devolveram imóveis diferentes")
 
 
+def atraso_usa_a_data_local():
+    """Revisão: o SQL comparava com date('now') do SQLite (UTC), enquanto a
+    multa usa a data local; em UTC-3, entre 21h e meia-noite, o contrato
+    aparecia atrasado com multa zero."""
+    repo = (BIB / "services" / "contratos" / "repository.py").read_text(encoding="utf-8")
+    assert "date('now')" not in repo, "marcar_atrasados voltou a usar a data UTC do SQLite"
+
+
+def _novo_inquilino(c, email):
+    r = c.post("/usuarios/usuarios/registro", json={
+        "nome": email.split("@")[0], "email": email,
+        "senha": "senha123", "tipo": "inquilino",
+    })
+    assert r.status_code == 201, r.text
+    usuario_id = r.json()["id"]
+    r = c.post("/usuarios/usuarios/login", json={"email": email, "senha": "senha123"})
+    return usuario_id, {"Authorization": r.json()["token"]}
+
+
+def contrato_so_para_o_dono(ctx):
+    """Revisão: qualquer usuário logado lia e encerrava contrato de outro.
+
+    Inclui a tentativa de se passar por admin mandando os headers de
+    identidade direto: o gateway descarta os do cliente e põe os verdadeiros.
+    """
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    dono_id, token_dono = _novo_inquilino(c, "dono@teste.br")
+    _, token_outro = _novo_inquilino(c, "outro@teste.br")
+
+    r = c.post("/imoveis/imoveis/", headers=ctx["auth"], json={
+        "titulo": "Imovel do dono", "tipo": "casa", "endereco": "Rua D, 1",
+        "cidade": "Recife", "quartos": 2, "banheiros": 1,
+        "area_m2": 70.0, "valor_mensal": 1500.0,
+    })
+    imovel_id = r.json()["id"]
+
+    r = c.post("/contratos/contratos/", headers=token_dono,
+               json={"inquilino_id": dono_id, "imovel_id": imovel_id})
+    assert r.status_code == 201, "o dono não conseguiu assinar: " + r.text
+    contrato_id = r.json()["id"]
+
+    listados = {x["id"] for x in c.get("/contratos/contratos/", headers=token_outro).json()}
+    assert contrato_id not in listados, "outro inquilino viu o contrato na listagem"
+
+    r = c.get(f"/contratos/contratos/{contrato_id}", headers=token_outro)
+    assert r.status_code == 404, "outro inquilino leu o contrato: {0}".format(r.status_code)
+
+    r = c.post(f"/contratos/contratos/{contrato_id}/encerrar", headers=token_outro)
+    assert r.status_code == 404, "outro inquilino encerrou o contrato: {0}".format(r.status_code)
+
+    forjado = dict(token_outro, **{"X-Usuario-Id": str(dono_id), "X-Usuario-Tipo": "admin"})
+    r = c.get(f"/contratos/contratos/{contrato_id}", headers=forjado)
+    assert r.status_code == 404, (
+        "header de identidade forjado pelo cliente passou pelo gateway: {0}".format(r.status_code))
+
+    r = c.post("/contratos/contratos/", headers=token_outro,
+               json={"inquilino_id": dono_id, "imovel_id": imovel_id})
+    assert r.status_code == 403, "assinou em nome de outro: {0}".format(r.status_code)
+
+    r = c.get(f"/contratos/contratos/{contrato_id}", headers=token_dono)
+    assert r.status_code == 200, "o próprio dono perdeu acesso: " + r.text
+
+
+def aviso_nao_se_repete(ctx):
+    """Revisão: rodar a App de aviso duas vezes mandava o mesmo aviso duas vezes."""
+    ambiente = dict(os.environ)
+    ambiente["AGENTE_URL"] = "http://127.0.0.1:9"
+    saida = subprocess.run(
+        [sys.executable, "apps/app_aviso_vencimento.py", "--dias", "31"],
+        cwd=str(BIB), env=ambiente, capture_output=True, text=True, timeout=180,
+    )
+    assert saida.returncode == 0, saida.stdout + saida.stderr
+    assert "0 enviado(s)" in saida.stdout, (
+        "a segunda execução reenviou avisos:" + chr(10) + saida.stdout)
+    assert "pulado(s)" in saida.stdout and "0 pulado(s)" not in saida.stdout, (
+        "a segunda execução não reconheceu os avisos já enviados:" + chr(10) + saida.stdout)
+
+
 ESTATICAS = [
     ("1", "framework exige os dois hotspots", framework_exige_os_dois_hotspots),
     ("1", "nenhuma URL hardcoded", nenhuma_url_hardcoded),
@@ -843,6 +921,7 @@ ESTATICAS = [
     ("16", "documentacao sem lastro do projeto antigo", documentacao_sem_lastro_do_projeto_antigo),
     ("16", "links dos docs existem", links_dos_docs_apontam_para_arquivos_que_existem),
     ("rev", "segredo do token fora do codigo", segredo_do_token_fora_do_codigo),
+    ("rev", "atraso usa a data local", atraso_usa_a_data_local),
     ("15", "suite de testes passa", suite_de_testes_passa),
     ("-", "todo .py compila", tudo_compila),
 ]
@@ -861,6 +940,8 @@ VIVAS = [
     ("14", "aviso sai mesmo com agente fora", aviso_sai_mesmo_com_agente_fora),
     ("rev", "cadastro publico nao cria admin", cadastro_publico_nao_cria_admin),
     ("rev", "filtro de cidade ignora acento", filtro_de_cidade_ignora_acento),
+    ("rev", "contrato so para o dono", contrato_so_para_o_dono),
+    ("rev", "aviso nao se repete", aviso_nao_se_repete),
 ]
 
 

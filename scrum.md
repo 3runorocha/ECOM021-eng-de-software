@@ -66,7 +66,8 @@ atravessaram a migração sem mudança — é o reúso aparecendo no planejament
 
 ## Sprint 1 — Sanear o esqueleto
 
-**Meta:** o projeto herdado tem de rodar igual nas duas máquinas de desenvolvimento.
+**Meta:** o projeto herdado tem de rodar sem ajuste manual, com a configuração vinda de
+variável de ambiente.
 
 - Corrigir o hotspot obrigatório do framework, que não era obrigatório de fato
 - Externalizar 17 URLs e 5 caminhos de banco em variável de ambiente

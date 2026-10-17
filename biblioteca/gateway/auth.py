@@ -55,7 +55,7 @@ class Autenticador:
             )
 
         try:
-            await self._auth.validar_token(token)
+            identidade = await self._auth.validar_token(token)
         except GatewayError as e:
             return Response(
                 content=f'{{"detail": "{e.detail}"}}',
@@ -63,4 +63,5 @@ class Autenticador:
                 media_type="application/json",
             )
 
+        request.state.identidade = identidade
         return await call_next(request)

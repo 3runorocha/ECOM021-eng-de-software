@@ -69,6 +69,9 @@ validador não suja seus dados de desenvolvimento.
 | rev | segredo do token fora do código | segredo literal voltando ao código, senha sem sal, ou token sem HMAC |
 | rev | cadastro público não cria admin | segundo admin pela rota pública, ou usuário comum alterando o cadastro de outro |
 | rev | filtro de cidade ignora acento | "Maceió" e "Maceio" devolvendo imóveis diferentes |
+| rev | atraso usa a data local | `marcar_atrasados` voltando a comparar com a data UTC do SQLite |
+| rev | contrato só para o dono | inquilino lendo, encerrando ou assinando contrato de outro pelo gateway — inclusive mandando os headers de identidade forjados |
+| rev | aviso não se repete | a App de aviso reenviando, na segunda execução, o que já mandou na primeira |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -476,3 +479,43 @@ Fora do alcance desta correção: a autorização entre serviços. O gateway con
 token é válido, mas não quem é o dono do recurso — qualquer usuário logado ainda lê e
 encerra contratos de outros. Resolver isso pede o gateway repassar a identidade para os
 serviços, o que é uma mudança de arquitetura, não um conserto.
+
+### Segunda rodada (16/10)
+
+**46 checagens e 115 testes de unidade, todos passando.**
+
+**Contratos restritos ao dono.** O gateway validava o token mas não contava aos
+serviços quem estava pedindo, então nenhum serviço tinha como restringir nada. Agora,
+depois de validar, ele injeta `x-usuario-id` e `x-usuario-tipo` na requisição que
+repassa — e descarta os headers com esses nomes que vierem do cliente, para ninguém se
+passar por admin. No serviço de contratos, quem não é admin só lista, lê, assina e
+encerra os próprios; contrato de outro responde 404, para não revelar que existe.
+Chamada sem identidade é de outro serviço (notificações e recomendação leem contratos
+por dentro) e segue sem restrição.
+
+O agente contornava isso: a ferramenta `listar_contratos` dele chama o serviço por
+dentro, e o `inquilino_id` vinha do corpo da requisição, controlado pelo cliente.
+Agora o agente usa a identidade do gateway, e a ferramenta recusa contrato de outro
+inquilino. O schema das ferramentas que o modelo vê continua idêntico.
+
+A validação do token também passou a conferir se o usuário segue ativo: desativar
+alguém agora corta o acesso na hora, em vez de esperar o token expirar.
+
+Na tela de Contratos, quem não é admin vê só o próprio nome no seletor de inquilino.
+
+Conferido contra a regressão: com o gateway repassando os headers do cliente sem
+injetar a identidade, a checagem "contrato só para o dono" falha.
+
+**Atraso pela data local.** `marcar_atrasados` comparava com `date('now')` do SQLite,
+que é UTC, enquanto a multa usa a data local. Agora o serviço passa a data do Python.
+
+**Aviso sem repetição.** A App de aviso pula o contrato que já tem aviso não lido do
+mesmo tipo para o mesmo imóvel — a mesma regra da varredura. A checagem é feita antes
+de pedir o texto ao agente, para não gastar chamada redigindo aviso que não sai.
+
+Seguem em aberto, da revisão: encerrar contrato libera o imóvel antes de gravar; o
+`--reload` deixa processos órfãos no Windows; o `/health` consulta os serviços em
+série; a recomendação faz uma chamada HTTP por contrato; e trocar o e-mail para um já
+existente devolve 500. Também segue aberto que qualquer usuário logado cadastra,
+altera e remove imóveis — a identidade agora chega aos serviços, então restringir isso
+é uma linha por rota, mas não foi feito.

@@ -137,8 +137,8 @@ Nenhum outro serviço depende dele. Não comite a chave — use `.env`, que est�
 
 ```bash
 pip install -r requirements-dev.txt
-python -m pytest                  # 73 de unidade, rápidos, sem serviço no ar
-python -m pytest -m integracao    # 4 pelo gateway; exige os serviços no ar
+python -m pytest                  # unidade: rápidos, sem serviço no ar
+python -m pytest -m integracao    # pelo gateway; exige os serviços no ar
 ```
 
 Os de unidade exercitam a camada de serviço com repositórios fake — sem SQLite e sem
@@ -151,7 +151,7 @@ temporários):
 python validar.py
 ```
 
-São 37 checagens, descritas em [`VALIDACAO.md`](VALIDACAO.md). O validador sobe os
+As checagens estão descritas em [`VALIDACAO.md`](VALIDACAO.md). O validador sobe os
 serviços com bancos temporários, então não suja os dados de desenvolvimento.
 
 ---
@@ -188,7 +188,7 @@ ECOM021-eng-de-software/
 ├── diagramas/                   # Mermaid
 ├── tests/                       # pytest
 ├── subir_servicos.py            # sobe os 7 processos
-├── validar.py                   # 37 checagens
+├── validar.py                   # checagens do projeto inteiro
 ├── CRONOGRAMA.md                # blocos de 3 dias, 21/09 a 07/11
 ├── PLANO_DE_EXECUCAO.md         # o plano, item a item
 ├── VALIDACAO.md                 # o que cada checagem pega, semana a semana

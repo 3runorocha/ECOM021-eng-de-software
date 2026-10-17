@@ -13,3 +13,8 @@ class RegraDeNegocio(ContratoError):
 
 class ServicoIndisponivel(ContratoError):
     pass
+
+
+class PermissaoNegada(ContratoError):
+    def __init__(self, mensagem: str = "Sem permissão para esta operação"):
+        super().__init__(mensagem)

@@ -10,7 +10,9 @@ from repository import ContratoRepository
 from clients import ImovelClient
 from service import ContratoService
 from routes import criar_router
-from exceptions import ContratoNaoEncontrado, RegraDeNegocio, ServicoIndisponivel
+from exceptions import (
+    ContratoNaoEncontrado, PermissaoNegada, RegraDeNegocio, ServicoIndisponivel,
+)
 
 DB_PATH = os.getenv("CONTRATOS_DB", "contratos.db")
 IMOVEIS_URL = os.getenv("IMOVEIS_URL", "http://127.0.0.1:8001")
@@ -50,6 +52,11 @@ def tratar_nao_encontrado(request: Request, exc: ContratoNaoEncontrado):
 @app.exception_handler(RegraDeNegocio)
 def tratar_regra_de_negocio(request: Request, exc: RegraDeNegocio):
     return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+@app.exception_handler(PermissaoNegada)
+def tratar_permissao_negada(request: Request, exc: PermissaoNegada):
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
 
 
 @app.exception_handler(ServicoIndisponivel)

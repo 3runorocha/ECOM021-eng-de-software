@@ -11,10 +11,12 @@ modelos, servico_mod, excecoes = carregar(
 )
 
 Contrato = modelos.Contrato
+Chamador = modelos.Chamador
 ContratoCreate = modelos.ContratoCreate
 ContratoService = servico_mod.ContratoService
 somar_meses = servico_mod.somar_meses
 ContratoNaoEncontrado = excecoes.ContratoNaoEncontrado
+PermissaoNegada = excecoes.PermissaoNegada
 RegraDeNegocio = excecoes.RegraDeNegocio
 
 
@@ -33,6 +35,7 @@ class RepoFake:
         self.contratos = {c.id: c for c in (contratos or [])}
         self.falhar_insercao = falhar_insercao
         self.atrasados_marcados = 0
+        self.hoje_recebido = None
 
     def buscar_por_id(self, contrato_id):
         return self.contratos.get(contrato_id)
@@ -44,7 +47,10 @@ class RepoFake:
         )
 
     def listar(self, inquilino_id=None, status=None):
-        return list(self.contratos.values())
+        return [
+            c for c in self.contratos.values()
+            if inquilino_id is None or c.inquilino_id == inquilino_id
+        ]
 
     def inserir(self, inquilino_id, imovel_id, inicio, fim, valor_mensal):
         if self.falhar_insercao:
@@ -60,8 +66,9 @@ class RepoFake:
             update={"data_fim_real": fim_real, "status": "encerrado", "multa": multa}
         )
 
-    def marcar_atrasados(self):
+    def marcar_atrasados(self, hoje):
         self.atrasados_marcados += 1
+        self.hoje_recebido = hoje
 
 
 class ImovelClientFake:
@@ -226,3 +233,85 @@ def test_listar_marca_atrasados_antes_de_devolver():
     service = ContratoService(repo, ImovelClientFake())
     service.listar_contratos()
     assert repo.atrasados_marcados == 1
+
+
+def test_atraso_usa_a_mesma_data_que_a_multa():
+    """O SQL comparava com date('now') do SQLite, que é UTC, enquanto a multa
+    usa date.today(), local. Em UTC-3, entre 21h e meia-noite, o contrato
+    aparecia atrasado com multa zero. Agora a data vem do Python."""
+    repo = RepoFake([contrato()])
+    ContratoService(repo, ImovelClientFake()).listar_contratos()
+    assert repo.hoje_recebido == str(date.today())
+
+
+ANA = Chamador(id=1, tipo="inquilino")
+BIA = Chamador(id=2, tipo="inquilino")
+ADMIN = Chamador(id=9, tipo="admin")
+
+
+def _dois_inquilinos():
+    return RepoFake([
+        contrato(id=1, imovel_id=5, inquilino_id=1),
+        contrato(id=2, imovel_id=6, inquilino_id=2),
+    ])
+
+
+def test_inquilino_so_ve_os_proprios_contratos():
+    service = ContratoService(_dois_inquilinos(), ImovelClientFake())
+    assert [c.id for c in service.listar_contratos(chamador=ANA)] == [1]
+
+
+def test_inquilino_nao_lista_contratos_de_outro():
+    service = ContratoService(_dois_inquilinos(), ImovelClientFake())
+    with pytest.raises(PermissaoNegada):
+        service.listar_contratos(inquilino_id=2, chamador=ANA)
+
+
+def test_contrato_de_outro_inquilino_parece_inexistente():
+    """404 em vez de 403: não revela que o contrato existe."""
+    service = ContratoService(_dois_inquilinos(), ImovelClientFake())
+    with pytest.raises(ContratoNaoEncontrado):
+        service.buscar_contrato(2, chamador=ANA)
+
+
+def test_inquilino_nao_encerra_contrato_de_outro():
+    cliente = ImovelClientFake()
+    service = ContratoService(_dois_inquilinos(), cliente)
+    with pytest.raises(ContratoNaoEncontrado):
+        service.encerrar_contrato(2, chamador=ANA)
+    assert cliente.chamadas == [], "o imóvel do outro não pode ter sido liberado"
+
+
+def test_inquilino_encerra_o_proprio_contrato():
+    service = ContratoService(_dois_inquilinos(), ImovelClientFake())
+    assert service.encerrar_contrato(1, chamador=ANA).status == "encerrado"
+
+
+def test_inquilino_nao_assina_em_nome_de_outro():
+    service = ContratoService(RepoFake(), ImovelClientFake())
+    with pytest.raises(PermissaoNegada):
+        service.registrar_contrato(
+            ContratoCreate(inquilino_id=2, imovel_id=5), chamador=ANA
+        )
+
+
+def test_inquilino_assina_o_proprio_contrato():
+    service = ContratoService(RepoFake(), ImovelClientFake())
+    novo = service.registrar_contrato(
+        ContratoCreate(inquilino_id=1, imovel_id=5), chamador=ANA
+    )
+    assert novo.inquilino_id == 1
+
+
+def test_admin_ve_e_mexe_em_tudo():
+    service = ContratoService(_dois_inquilinos(), ImovelClientFake())
+    assert {c.id for c in service.listar_contratos(chamador=ADMIN)} == {1, 2}
+    assert service.buscar_contrato(2, chamador=ADMIN).inquilino_id == 2
+    assert service.encerrar_contrato(2, chamador=ADMIN).status == "encerrado"
+
+
+def test_chamada_interna_sem_identidade_nao_e_restrita():
+    """Notificações e recomendação chamam contratos direto, sem passar pelo
+    gateway; sem identidade, a chamada é de outro serviço e vê tudo."""
+    service = ContratoService(_dois_inquilinos(), ImovelClientFake())
+    assert {c.id for c in service.listar_contratos()} == {1, 2}

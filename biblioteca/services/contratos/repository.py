@@ -108,7 +108,7 @@ class ContratoRepository:
         finally:
             conn.close()
 
-    def marcar_atrasados(self) -> None:
+    def marcar_atrasados(self, hoje: str) -> None:
         conn = self._db.connect()
         try:
             conn.execute(
@@ -116,8 +116,9 @@ class ContratoRepository:
                 UPDATE contratos
                 SET status = 'atrasado'
                 WHERE status = 'ativo'
-                  AND data_fim_prevista < date('now')
-                """
+                  AND data_fim_prevista < ?
+                """,
+                (hoje,),
             )
             conn.commit()
         finally:

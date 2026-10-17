@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { contratosAPI, imoveisAPI, usuariosAPI } from '../services/api'
+import { useAuth } from '../context/useAuth'
 
 const STATUS = {
   ativo: { label: 'Ativo', color: '#166534', bg: '#dcfce7' },
@@ -36,6 +37,9 @@ function diasDeAtraso(contrato) {
 }
 
 export default function Contratos() {
+  const { usuario } = useAuth()
+  const eAdmin = usuario?.tipo === 'admin'
+  const novoVazio = { inquilino_id: eAdmin ? '' : String(usuario.id), imovel_id: '' }
   const [contratos, setContratos] = useState([])
   const [imoveis, setImoveis] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -44,7 +48,7 @@ export default function Contratos() {
   const [erro, setErro] = useState(null)
   const [acaoErro, setAcaoErro] = useState(null)
   const [mostrarForm, setMostrarForm] = useState(false)
-  const [novo, setNovo] = useState({ inquilino_id: '', imovel_id: '' })
+  const [novo, setNovo] = useState(novoVazio)
   const [recarga, setRecarga] = useState(0)
   const [emAcao, setEmAcao] = useState(null)
 
@@ -112,7 +116,7 @@ export default function Contratos() {
         inquilino_id: Number(novo.inquilino_id),
         imovel_id: Number(novo.imovel_id),
       })
-      setNovo({ inquilino_id: '', imovel_id: '' })
+      setNovo(novoVazio)
       setMostrarForm(false)
       recarregar()
     } catch (e) {
@@ -176,7 +180,7 @@ export default function Contratos() {
               style={{ ...estiloInput, width: '100%' }}
             >
               <option value="">selecione</option>
-              {usuarios.map((u) => (
+              {usuarios.filter((u) => eAdmin || u.id === usuario.id).map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.nome}
                 </option>

@@ -4,6 +4,15 @@ from pydantic import BaseModel, Field
 STATUS_EM_ABERTO = ("ativo", "atrasado")
 
 
+class Chamador(BaseModel):
+    id: int
+    tipo: str
+
+    @property
+    def admin(self) -> bool:
+        return self.tipo == "admin"
+
+
 class ContratoCreate(BaseModel):
     inquilino_id: int
     imovel_id: int

@@ -14,6 +14,8 @@ class ProxyService:
         "connection",
     })
 
+    HEADERS_DE_IDENTIDADE = frozenset({"x-usuario-id", "x-usuario-tipo"})
+
     def __init__(self, registry: ServiceRegistry, timeout: float = 10.0):
         self._registry = registry
         self._timeout = timeout
@@ -27,8 +29,16 @@ class ProxyService:
         target_url = f"{self._registry.url(service_name)}/{path}"
         params = dict(request.query_params)
         body = await request.body()
-        headers = dict(request.headers)
-        headers.pop("host", None)
+        headers = {
+            chave: valor
+            for chave, valor in request.headers.items()
+            if chave.lower() != "host"
+            and chave.lower() not in self.HEADERS_DE_IDENTIDADE
+        }
+        identidade = getattr(request.state, "identidade", None)
+        if identidade:
+            headers["x-usuario-id"] = str(identidade["usuario_id"])
+            headers["x-usuario-tipo"] = identidade["tipo"]
 
         async with httpx.AsyncClient() as client:
             try:

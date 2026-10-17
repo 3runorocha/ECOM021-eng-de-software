@@ -1,7 +1,9 @@
 from models import UsuarioCreate, UsuarioLogin, UsuarioPublico, UsuarioUpdate
 from repository import UsuarioRepository
 from security import PasswordHasher, TokenService
-from exceptions import UsuarioNaoEncontrado, CredenciaisInvalidas, PermissaoNegada
+from exceptions import (
+    UsuarioNaoEncontrado, CredenciaisInvalidas, PermissaoNegada, TokenInvalido,
+)
 
 CAMPOS_SO_DE_ADMIN = {"tipo", "ativo"}
 
@@ -85,4 +87,7 @@ class UsuarioService:
     def validar_token(self, authorization: str) -> dict:
         token = authorization.replace("Bearer ", "")
         payload = self._tokens.validar(token)
-        return {"valido": True, **payload}
+        usuario = self._repo.buscar_por_id(payload["usuario_id"])
+        if usuario is None or not usuario.ativo:
+            raise TokenInvalido()
+        return {"valido": True, **payload, "tipo": usuario.tipo}

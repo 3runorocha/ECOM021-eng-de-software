@@ -3,7 +3,7 @@ import os
 
 import anthropic
 
-from ferramentas import FERRAMENTAS
+from ferramentas import FERRAMENTAS, chamador_atual
 from exceptions import AgenteIndisponivel, RegraDeNegocio
 
 MODELO = os.getenv("AGENTE_MODELO", "claude-opus-5-5")
@@ -77,12 +77,17 @@ class Agente:
         except AgenteIndisponivel:
             return False
 
-    def perguntar(self, pergunta: str, inquilino_id: int = None) -> dict:
+    def perguntar(
+        self, pergunta: str, inquilino_id: int = None, chamador: dict = None
+    ) -> dict:
         texto = (pergunta or "").strip()
         if not texto:
             raise RegraDeNegocio("A pergunta não pode estar vazia")
 
         cliente = self._obter_cliente()
+
+        if chamador is not None:
+            inquilino_id = chamador["id"]
 
         contexto = texto
         if inquilino_id is not None:
@@ -90,6 +95,7 @@ class Agente:
                 f"[inquilino_id do usuário autenticado: {inquilino_id}]\n{texto}"
             )
 
+        marca = chamador_atual.set(chamador)
         try:
             runner = cliente.beta.messages.tool_runner(
                 model=MODELO,
@@ -123,6 +129,8 @@ class Agente:
             if "authentication" in str(erro).lower():
                 raise AgenteIndisponivel(self.SEM_CREDENCIAL)
             raise
+        finally:
+            chamador_atual.reset(marca)
 
         if ultima is None:
             raise AgenteIndisponivel("O modelo não devolveu resposta")
