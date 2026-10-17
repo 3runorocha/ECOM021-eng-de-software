@@ -65,6 +65,10 @@ def main():
                 r = client.post(f"{USUARIOS_URL}/usuarios/registro", json=dados)
                 if r.status_code == 201:
                     print(f"  + {u['nome']} ({u['email']})")
+                elif r.status_code == 403 and u["tipo"] == "admin":
+                    print(f"  ! {u['email']} nao foi criado: o banco ja tem usuarios, e so o")
+                    print("    primeiro pode nascer admin. Pare os servicos, apague os .db de")
+                    print("    biblioteca/services/*/ e rode o seed de novo, com o banco vazio.")
                 else:
                     print(f"  . {u['email']} ja existe ou invalido (status {r.status_code})")
             except httpx.RequestError:
