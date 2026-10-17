@@ -87,10 +87,21 @@ def test_cadastro_publico_nao_cria_segundo_admin(service):
         cadastrar(service, "intruso@alugue.br", tipo="admin")
 
 
-def test_inquilino_e_proprietario_se_cadastram_livremente(service):
+def test_cadastro_publico_cria_so_inquilino(service):
+    """Proprietário administra o portfólio; virar um não pode ser autoatendimento."""
     cadastrar(service, "admin@alugue.br", tipo="admin")
     assert cadastrar(service, "ana@alugue.br").tipo == "inquilino"
-    assert cadastrar(service, "bia@alugue.br", tipo="proprietario").tipo == "proprietario"
+    with pytest.raises(PermissaoNegada):
+        cadastrar(service, "bia@alugue.br", tipo="proprietario")
+
+
+def test_admin_promove_inquilino_a_proprietario(service):
+    cadastrar(service, "admin@alugue.br", tipo="admin")
+    bia = cadastrar(service, "bia@alugue.br")
+    promovida = service.atualizar_usuario(
+        token_de(service, "admin@alugue.br"), bia.id, UsuarioUpdate(tipo="proprietario")
+    )
+    assert promovida.tipo == "proprietario"
 
 
 def test_tipo_fora_da_lista_e_recusado_pelo_modelo():

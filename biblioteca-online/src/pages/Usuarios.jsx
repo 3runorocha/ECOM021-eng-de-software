@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { usuariosAPI, contratosAPI } from '../services/api'
+import { useAuth } from '../context/useAuth'
+
+const PERFIS = ['inquilino', 'proprietario', 'admin']
 
 const celula = { padding: '0.75rem 1rem' }
 const cabecalho = {
@@ -20,6 +23,17 @@ export default function Usuarios() {
   const [carregado, setCarregado] = useState(false)
   const [erro, setErro] = useState(null)
   const [recarga, setRecarga] = useState(0)
+  const [erroPerfil, setErroPerfil] = useState(null)
+  const { usuario } = useAuth()
+  const eAdmin = usuario?.tipo === 'admin'
+
+  function mudarPerfil(id, tipo) {
+    setErroPerfil(null)
+    usuariosAPI
+      .atualizar(id, { tipo })
+      .then(() => setRecarga((n) => n + 1))
+      .catch((e) => setErroPerfil(e.response?.data?.detail || 'Não foi possível mudar o perfil.'))
+  }
 
   useEffect(() => {
     let cancelado = false
@@ -83,6 +97,10 @@ export default function Usuarios() {
         </span>
       </div>
 
+      {erroPerfil && (
+        <p style={{ color: '#991b1b', fontSize: '13px', marginBottom: '1rem' }}>{erroPerfil}</p>
+      )}
+
       {erro ? (
         <div
           style={{
@@ -141,7 +159,23 @@ export default function Usuarios() {
                 <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ ...celula, color: '#111', fontWeight: 500 }}>{u.nome}</td>
                   <td style={{ ...celula, color: '#6b7280' }}>{u.email}</td>
-                  <td style={{ ...celula, color: '#6b7280' }}>{u.tipo}</td>
+                  <td style={{ ...celula, color: '#6b7280' }}>
+                    {eAdmin && u.id !== usuario.id ? (
+                      <select
+                        value={u.tipo}
+                        onChange={(e) => mudarPerfil(u.id, e.target.value)}
+                        style={{ fontSize: '13px', padding: '2px 6px', borderRadius: '6px' }}
+                      >
+                        {PERFIS.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      u.tipo
+                    )}
+                  </td>
                   <td style={{ ...celula, color: '#6b7280' }}>{contratosEmVigor(u.id)}</td>
                   <td style={celula}>
                     <span

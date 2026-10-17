@@ -893,6 +893,29 @@ def aviso_nao_se_repete(ctx):
         "a segunda execução não reconheceu os avisos já enviados:" + chr(10) + saida.stdout)
 
 
+def proprietario_so_por_promocao(ctx):
+    """Revisão: o cadastro público aceitava proprietário, e qualquer pessoa
+    ganhava acesso ao portfólio se cadastrando com esse perfil."""
+    c = httpx.Client(base_url=GATEWAY, timeout=20.0)
+    r = c.post("/usuarios/usuarios/registro", json={
+        "nome": "Falso", "email": "falso-dono@teste.br",
+        "senha": "senha123", "tipo": "proprietario",
+    })
+    assert r.status_code == 403, "proprietário pela rota pública: {0}".format(r.status_code)
+
+    usuario_id, token = _novo_inquilino(c, "futuro-dono@teste.br")
+    r = c.patch("/usuarios/usuarios/{0}".format(usuario_id), headers=token,
+                json={"tipo": "proprietario"})
+    assert r.status_code == 403, "inquilino se promoveu: {0}".format(r.status_code)
+
+    r = c.patch("/usuarios/usuarios/{0}".format(usuario_id), headers=ctx["auth"],
+                json={"tipo": "proprietario"})
+    assert r.status_code == 200, "admin não conseguiu promover: " + r.text
+
+    r = c.post("/imoveis/imoveis/", headers=token, json=NOVO_IMOVEL)
+    assert r.status_code == 201, "proprietário promovido não cadastra imóvel: " + r.text
+
+
 def gateway_reaproveita_conexoes():
     """Revisão: o /health consultava os serviços um por um, e cada requisição
     abria e fechava um cliente HTTP novo."""
@@ -1049,6 +1072,7 @@ VIVAS = [
     ("rev", "encerrar nao fica preso", encerrar_nao_fica_preso),
     ("rev", "email repetido da 400", email_repetido_da_400),
     ("rev", "recomenda onde ja morou", recomenda_onde_ja_morou),
+    ("rev", "proprietario so por promocao", proprietario_so_por_promocao),
 ]
 
 

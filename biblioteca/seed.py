@@ -37,12 +37,32 @@ IMOVEIS = [
 ]
 
 
+def promover_proprietarios(client: httpx.Client) -> None:
+    """O cadastro publico so cria inquilino; quem promove a proprietario e o admin."""
+    admin = USUARIOS[0]
+    r = client.post(f"{USUARIOS_URL}/usuarios/login",
+                    json={"email": admin["email"], "senha": admin["senha"]})
+    if r.status_code != 200:
+        print(f"  ! login do admin falhou (status {r.status_code}); proprietarios nao promovidos")
+        return
+    auth = {"Authorization": r.json()["token"]}
+    por_email = {u["email"]: u for u in client.get(f"{USUARIOS_URL}/usuarios/").json()}
+    for u in USUARIOS:
+        cadastrado = por_email.get(u["email"])
+        if u["tipo"] != "proprietario" or cadastrado is None or cadastrado["tipo"] == "proprietario":
+            continue
+        r = client.patch(f"{USUARIOS_URL}/usuarios/{cadastrado['id']}",
+                         headers=auth, json={"tipo": "proprietario"})
+        print(f"  ^ {u['nome']} promovido a proprietario (status {r.status_code})")
+
+
 def main():
     with httpx.Client(timeout=10.0) as client:
         print("== Cadastrando usuarios ==")
         for u in USUARIOS:
+            dados = dict(u, tipo="inquilino") if u["tipo"] == "proprietario" else u
             try:
-                r = client.post(f"{USUARIOS_URL}/usuarios/registro", json=u)
+                r = client.post(f"{USUARIOS_URL}/usuarios/registro", json=dados)
                 if r.status_code == 201:
                     print(f"  + {u['nome']} ({u['email']})")
                 else:
@@ -50,6 +70,7 @@ def main():
             except httpx.RequestError:
                 print(f"  ! falha ao conectar em {USUARIOS_URL} - o servico de Usuarios esta no ar?")
                 return
+        promover_proprietarios(client)
 
         print(f"\n== Cadastrando imoveis ({len(IMOVEIS)}) ==")
         ok = 0

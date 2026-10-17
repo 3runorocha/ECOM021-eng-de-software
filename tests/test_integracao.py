@@ -57,7 +57,19 @@ def auth(cliente):
 
 @pytest.fixture(scope="module")
 def proprietario(cliente):
-    cabecalhos, _ = novo_usuario(cliente, "proprietario")
+    """Um inquilino novo, promovido pelo admin do seed (ou ADMIN_EMAIL/ADMIN_SENHA)."""
+    r = cliente.post("/usuarios/usuarios/login", json={
+        "email": os.getenv("ADMIN_EMAIL", "admin@alugue.br"),
+        "senha": os.getenv("ADMIN_SENHA", "admin123"),
+    })
+    if r.status_code != 200:
+        pytest.skip("sem admin para promover o proprietário — rode biblioteca/seed.py")
+    admin = {"Authorization": r.json()["token"]}
+
+    cabecalhos, usuario_id = novo_usuario(cliente, "inquilino")
+    r = cliente.patch(f"/usuarios/usuarios/{usuario_id}", headers=admin,
+                      json={"tipo": "proprietario"})
+    assert r.status_code == 200, r.text
     return cabecalhos
 
 

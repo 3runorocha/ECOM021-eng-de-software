@@ -78,6 +78,7 @@ validador não suja seus dados de desenvolvimento.
 | rev | encerrar não fica preso | contrato que não fecha porque o imóvel já estava livre; imóvel alugado sendo removido |
 | rev | e-mail repetido dá 400 | trocar o e-mail por um já cadastrado voltando a estourar 500 |
 | rev | recomenda onde já morou | imóvel de contrato encerrado sumindo para sempre da recomendação |
+| rev | proprietário só por promoção | alguém virando proprietário pelo cadastro público, ou se promovendo sozinho |
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
@@ -523,15 +524,15 @@ Ficaram em aberto, da revisão, seis itens — fechados na rodada seguinte.
 
 ### Terceira rodada (16/10)
 
-**52 checagens, 127 testes de unidade e 5 de integração, todos passando.**
+**53 checagens, 128 testes de unidade e 5 de integração, todos passando.**
 
 **Imóveis restritos a quem administra.** Qualquer usuário logado cadastrava, alterava
 e removia imóvel. Agora isso é de admin e proprietário; inquilino recebe 403, e a tela
 esconde o "+ Novo imóvel" dele. Mudar a disponibilidade à mão ficou só para admin — o
 serviço de contratos continua fazendo isso por dentro, sem identidade. Imóvel alugado
 não pode mais ser removido. Limite conhecido: o imóvel não tem dono no modelo, então um
-proprietário mexe em qualquer imóvel, não só nos seus; e o cadastro público aceita
-proprietário.
+proprietário mexe em qualquer imóvel, não só nos seus. (O cadastro público aceitar
+proprietário também era limite; foi fechado em seguida, ver abaixo.)
 
 **Encerrar não fica preso.** Se o imóvel já estivesse livre (um admin o liberou à mão),
 o encerramento dava 400 e o contrato nunca mais fechava. Agora isso não impede o
@@ -554,3 +555,13 @@ nada de um usuário vazar para outro.
 **Recomendação.** Fazia uma chamada HTTP por contrato do histórico; agora tira tipo e
 cidade do portfólio que já carregava. E a penalidade para imóvel onde a pessoa já morou
 era o dobro do score máximo, então ele nunca mais aparecia; agora só o rebaixa.
+
+**Proprietário só por promoção.** O cadastro público aceitava `proprietario`, e
+qualquer pessoa ganhava acesso ao portfólio se cadastrando assim — a restrição de
+imóveis virava fachada. Agora o cadastro público cria só inquilino; proprietário e
+admin são promovidos por um admin, que ganhou um seletor de perfil na tela de
+Usuários. O seed cadastra a proprietária como inquilina e o admin a promove.
+
+Fica de fora, por decisão: o imóvel continua sem dono no modelo, então um proprietário
+mexe em qualquer imóvel. Para um projeto acadêmico, o custo (modelo, banco, seed, tela
+e testes) não compensa.

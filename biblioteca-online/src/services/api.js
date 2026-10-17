@@ -25,6 +25,7 @@ export const usuariosAPI = {
   listar: () => api.get('/usuarios/usuarios/'),
   buscar: (id) => api.get(`/usuarios/usuarios/${id}`),
   criar: (data) => api.post('/usuarios/usuarios/registro', data),
+  atualizar: (id, data) => api.patch(`/usuarios/usuarios/${id}`, data),
   login: (data) => api.post('/usuarios/usuarios/login', data),
 }
 

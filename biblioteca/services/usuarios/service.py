@@ -22,9 +22,10 @@ class UsuarioService:
         self._hash_falso = hasher.hash("senha-para-equalizar-tempo")
 
     def registrar(self, usuario: UsuarioCreate) -> UsuarioPublico:
-        if usuario.tipo == "admin" and self._repo.existe_algum():
+        if usuario.tipo != "inquilino" and self._repo.existe_algum():
             raise PermissaoNegada(
-                "Cadastro público não cria administrador; só o primeiro usuário pode ser admin"
+                "Cadastro público cria só inquilino; proprietário e admin são "
+                "definidos por um admin (só o primeiro usuário nasce admin)"
             )
         senha_hash = self._hasher.hash(usuario.senha)
         novo_id = self._repo.inserir(
