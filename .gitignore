@@ -28,3 +28,5 @@ Thumbs.db
 
 # pytest
 .pytest_cache/
+
+e2e/resultados/
