@@ -58,6 +58,7 @@ opcional do enunciado (Agentic AI).
 | 4 | Interface web honesta | US06, US12, US14, US18, US19 | 19 | ✅ |
 | 5 | Agente | US21, US22 | 13 | ⚠️ construído, não exercitado |
 | 6 | Qualidade e documentação | US23 | 8 | ✅ |
+| 7 | Revisão de código e testes de ponta a ponta | US05, US16, US23 (refinadas) | - | ✅ |
 
 US04, US05, US15 e US16 (usuários e gateway) vieram prontas do projeto anterior e
 atravessaram a migração sem mudança - é o reúso aparecendo no planejamento.
@@ -137,6 +138,24 @@ história e mostravam dados inventados. Entraram como US06, US12 e US19 revisada
 
 **Revisão:** a suíte achou um bug de fuso no token (declarava 11 horas de validade em
 vez de 8) que nenhuma checagem anterior pegava.
+
+## Sprint 7 - Revisão de código e testes de ponta a ponta
+
+**Meta:** revisar o projeto inteiro e testar os fluxos pelo navegador, como um usuário.
+Sprint extra, aberta com a folga do cronograma; não traz histórias novas, refina as já
+entregues.
+
+- Revisão de código arquivo por arquivo
+- Senha com PBKDF2-SHA256 (600 mil iterações, sal por usuário) e segredo do token fora
+  do código
+- Gateway repassa a identidade aos serviços; contratos restritos ao dono
+- Imóveis restritos a admin e proprietário; cadastro público cria só inquilino
+- `/health` em paralelo, encerramento com compensação, e-mail repetido devolvendo 400
+- 29 casos de ponta a ponta com Playwright (`e2e/`) e demonstração gravada
+
+**Revisão:** a suíte de ponta a ponta passa em 27 dos 29 casos. As duas falhas são
+defeitos reais, registrados e mantidos em aberto: o serviço de recomendação não confere
+quem está pedindo, e no celular o menu lateral espreme o conteúdo.
 
 ---
 

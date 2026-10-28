@@ -154,6 +154,25 @@ python validar.py
 As checagens estão descritas em [`VALIDACAO.md`](VALIDACAO.md). O validador sobe os
 serviços com bancos temporários, então não suja os dados de desenvolvimento.
 
+### Testes de ponta a ponta
+
+A pasta [`e2e/`](e2e/) testa o sistema pelo navegador, com Playwright: 29 cenários em
+Gherkin ([`e2e/casos.feature`](e2e/casos.feature)), um teste para cada. Exigem os
+serviços e o frontend no ar, com os dados de exemplo do `seed.py` e do
+`seed_contratos.py`. Os bancos são copiados antes e restaurados a cada caso.
+
+```bash
+cd e2e
+pip install -r requirements.txt
+python -m playwright install chromium
+python -m pytest test_prototipo.py -v
+```
+
+Passam 27 de 29: o CT26 e o CT29 expõem dois defeitos conhecidos (recomendação sem
+restrição por usuário e menu lateral no celular). O passo a passo para Windows, a
+gravação da demonstração narrada e o relatório HTML estão no
+[`e2e/README.md`](e2e/README.md).
+
 ---
 
 ## Configuração
@@ -187,6 +206,7 @@ ECOM021-eng-de-software/
 ├── biblioteca-online/           # Frontend React
 ├── diagramas/                   # Mermaid
 ├── tests/                       # pytest
+├── e2e/                         # testes pelo navegador (Playwright)
 ├── subir_servicos.py            # sobe os 7 processos
 ├── validar.py                   # checagens do projeto inteiro
 ├── CRONOGRAMA.md                # blocos de 3 dias, 21/09 a 07/11
