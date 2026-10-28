@@ -2,7 +2,7 @@
 
 Problema que este arquivo resolve: cada microsserviço usa imports planos
 (`from models import ...`), porque cada um roda com o uvicorn a partir da sua
-própria pasta. Isso é proposital e está documentado no CLAUDE.md -- mas
+própria pasta. Isso é proposital, mas
 significa que `models`, `service` e `repository` são nomes que COLIDEM em
 `sys.modules` quando mais de um serviço é importado no mesmo processo pytest.
 

@@ -38,10 +38,10 @@ Em [`biblioteca/framework/componentes.py`](biblioteca/framework/componentes.py):
 | `ComponenteAgenteHTTP` | `perguntar(texto, inquilino_id)`, `redigir_aviso(fatos)` |
 
 Você nunca monta requisição HTTP: chama o método. Se precisar de uma capacidade que não
-existe, acrescente ao contrato (`IComponente*`) **e** à implementação — não contorne a
+existe, acrescente ao contrato (`IComponente*`) **e** à implementação - não contorne a
 camada.
 
-## Passo 1 — Estender o framework
+## Passo 1 - Estender o framework
 
 Crie um arquivo em `biblioteca/apps/`, por exemplo `app_minha_operacao.py`:
 
@@ -57,7 +57,7 @@ class AppMinhaOperacao(FrameworkBiblioteca):
     pass
 ```
 
-## Passo 2 — Os dois hotspots obrigatórios
+## Passo 2 - Os dois hotspots obrigatórios
 
 `configurar_componentes()` e `executar_logica()` são `@abstractmethod`: sem eles a
 classe nem instancia.
@@ -74,7 +74,7 @@ class AppMinhaOperacao(FrameworkBiblioteca):
         return imoveis.buscar_imoveis({"cidade": contexto["cidade"]})
 ```
 
-## Passo 3 — Os hotspots opcionais
+## Passo 3 - Os hotspots opcionais
 
 Têm comportamento padrão; sobrescreva só o que precisar.
 
@@ -98,7 +98,7 @@ Têm comportamento padrão; sobrescreva só o que precisar.
         return {"erro": True, "mensagem": "Falha na busca", "detalhe": str(erro)}
 ```
 
-## Passo 4 — Executar
+## Passo 4 - Executar
 
 ```python
 if __name__ == "__main__":
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 | Implementa `executar_logica()` | Valida pré-condições e registra o log |
 | (Opcional) sobrescreve os demais hotspots | Mantém a ordem imutável, mesmo com erro |
 
-Nenhuma aplicação reescreve `executar_operacao()` nem os métodos internos — é
+Nenhuma aplicação reescreve `executar_operacao()` nem os métodos internos - é
 exatamente isso que caracteriza o reúso via framework, e há teste que verifica.
 
 ## Usando o agente numa app
@@ -129,7 +129,7 @@ O agente é um componente como qualquer outro. Vale a divisão de trabalho que a
 - quem **escreve texto** é o agente;
 - quem **dispara efeito colateral** é a app.
 
-Assim o modelo não busca dado, não faz conta e não grava nada — e a regra de negócio
+Assim o modelo não busca dado, não faz conta e não grava nada - e a regra de negócio
 continua existindo num lugar só.
 
 ```python
@@ -143,6 +143,6 @@ continua existindo num lugar só.
 
 ## Exemplos no repositório
 
-- [`app_contrato.py`](biblioteca/apps/app_contrato.py) — registra contrato e notifica
-- [`app_recomendacao.py`](biblioteca/apps/app_recomendacao.py) — perfil e recomendações, com fallback
-- [`app_aviso_vencimento.py`](biblioteca/apps/app_aviso_vencimento.py) — orquestra o agente
+- [`app_contrato.py`](biblioteca/apps/app_contrato.py) - registra contrato e notifica
+- [`app_recomendacao.py`](biblioteca/apps/app_recomendacao.py) - perfil e recomendações, com fallback
+- [`app_aviso_vencimento.py`](biblioteca/apps/app_aviso_vencimento.py) - orquestra o agente

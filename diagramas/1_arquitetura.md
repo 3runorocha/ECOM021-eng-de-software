@@ -1,4 +1,4 @@
-# 1 — Arquitetura de microsserviços
+# 1 - Arquitetura de microsserviços
 
 Sete processos. Toda requisição do navegador entra pelo API Gateway, que autentica e
 encaminha. Cada serviço tem banco próprio e não fala com o banco de nenhum outro:

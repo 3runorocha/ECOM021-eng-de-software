@@ -1,4 +1,4 @@
-# 3 — Framework reusável (Template Method)
+# 3 - Framework reusável (Template Method)
 
 Herdado do trabalho de Reúso de Software e mantido intacto na migração de domínio: o
 framework não menciona imóvel nem contrato em lugar nenhum. O que mudou foram as apps.
@@ -80,13 +80,13 @@ Dois hotspots são **obrigatórios** (`configurar_componentes` e `executar_logic
 `@abstractmethod`, então uma subclasse que esqueça um deles não instancia.
 
 > Isso valia no projeto original só na intenção: `configurar_componentes` estava
-> declarado duas vezes, e a segunda definição — concreta e vazia — apagava a primeira.
+> declarado duas vezes, e a segunda definição - concreta e vazia - apagava a primeira.
 > `__abstractmethods__` continha apenas `executar_logica`, e uma app sem componentes
 > rodava até falhar mais tarde em `get_componente()`. Corrigido no bloco 1, com teste.
 
 ## Garantias
 
-- A ordem é do framework. Nenhuma app sobrescreve `executar_operacao()` — há teste.
+- A ordem é do framework. Nenhuma app sobrescreve `executar_operacao()` - há teste.
 - Componentes são finalizados **mesmo quando a lógica estoura**.
 - Toda execução vira entrada de log com duração e status; o log **não guarda senha**.
 

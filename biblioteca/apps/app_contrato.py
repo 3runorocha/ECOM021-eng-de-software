@@ -48,7 +48,7 @@ class AppContrato(FrameworkBiblioteca):
     def pos_processar(self, contexto: dict, resultado: dict) -> None:
         notificacoes = self.get_componente("notificacoes")
         titulo = contexto.get("titulo_imovel", f"ID {contexto['imovel_id']}")
-        fim = resultado.get("data_fim_prevista", "—")
+        fim = resultado.get("data_fim_prevista", "-")
         valor = resultado.get("valor_mensal", contexto.get("valor_mensal", 0))
 
         notificacoes.enviar(
@@ -80,13 +80,13 @@ class AppContrato(FrameworkBiblioteca):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="App 1 — Contrato com Notificação")
+    parser = argparse.ArgumentParser(description="App 1 - Contrato com Notificação")
     parser.add_argument("--inquilino", type=int, default=1, help="ID do inquilino")
     parser.add_argument("--imovel",    type=int, required=True, help="ID do imóvel")
     args = parser.parse_args()
 
     print("=" * 60)
-    print("APP 1 — Contrato de Aluguel com Notificação Automática")
+    print("APP 1 - Contrato de Aluguel com Notificação Automática")
     print("=" * 60)
 
     app = AppContrato()

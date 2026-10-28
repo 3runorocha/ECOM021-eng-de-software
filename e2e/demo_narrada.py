@@ -131,7 +131,7 @@ def p07(page):
 
 
 def p08(page):
-    apontar(page, "text=Gateway — :8000")
+    apontar(page, "text=Gateway - :8000")
     page.mouse.move(120, 760, steps=25)
 
 

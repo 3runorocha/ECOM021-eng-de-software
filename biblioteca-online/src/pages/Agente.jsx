@@ -105,7 +105,7 @@ export default function Agente() {
             <>
               Ferramentas disponíveis ao agente:{' '}
               <strong>{(status.ferramentas || []).join(', ')}</strong>. Ele consulta os
-              microsserviços pela camada de componentes do framework — não inventa imóvel.
+              microsserviços pela camada de componentes do framework - não inventa imóvel.
             </>
           )}
         </div>

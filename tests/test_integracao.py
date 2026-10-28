@@ -30,7 +30,7 @@ def servicos_no_ar():
 @pytest.fixture(scope="module")
 def cliente():
     if not servicos_no_ar():
-        pytest.skip(f"serviços fora do ar em {GATEWAY} — rode subir_servicos.py")
+        pytest.skip(f"serviços fora do ar em {GATEWAY} - rode subir_servicos.py")
     return httpx.Client(base_url=GATEWAY, timeout=30.0)
 
 
@@ -63,7 +63,7 @@ def proprietario(cliente):
         "senha": os.getenv("ADMIN_SENHA", "admin123"),
     })
     if r.status_code != 200:
-        pytest.skip("sem admin para promover o proprietário — rode biblioteca/seed.py")
+        pytest.skip("sem admin para promover o proprietário - rode biblioteca/seed.py")
     admin = {"Authorization": r.json()["token"]}
 
     cabecalhos, usuario_id = novo_usuario(cliente, "inquilino")

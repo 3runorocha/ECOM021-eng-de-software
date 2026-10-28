@@ -410,7 +410,7 @@ function CardImovel({ imovel }) {
       </div>
 
       <div style={{ fontSize: '12px', color: '#6b7280' }}>
-        {imovel.endereco} — {imovel.cidade}
+        {imovel.endereco} - {imovel.cidade}
       </div>
 
       <div style={{ fontSize: '12px', color: '#6b7280' }}>

@@ -16,7 +16,7 @@ e sai com código 1.
 
 Depois, a checagem manual da semana (tabela abaixo) e o commit do que faltou.
 
-`python validar.py --estatico` roda só o que não precisa subir serviço — útil
+`python validar.py --estatico` roda só o que não precisa subir serviço - útil
 quando você já está com os serviços no ar e não quer derrubá-los.
 
 ## O que o script cobre
@@ -37,7 +37,7 @@ validador não suja seus dados de desenvolvimento.
 | 2 | resposta comprimida intacta | corpo corrompido por header obsoleto |
 | 2 | rota protegida exige token | autenticação furada (sem token ou token falso passando) |
 | 2 | shutdown liberou as 6 portas | processo órfão segurando porta |
-| — | todo `.py` compila | erro de sintaxe em qualquer arquivo |
+| - | todo `.py` compila | erro de sintaxe em qualquer arquivo |
 | 3 | modelo Imovel substituiu o Livro | campo de acervo (isbn, genero, autor, quantidade) voltando ao modelo |
 | 4 | componente usa disponibilidade booleana | `IComponenteImovel` sem `definir_disponibilidade`, ou `IComponenteCatalogo` ressuscitado |
 | 4 | filtros de imóvel filtram | cidade/tipo/quartos_min/valor vazando resultado errado |
@@ -50,31 +50,31 @@ validador não suja seus dados de desenvolvimento.
 | 10 | frontend não inventa dados | fallback de dados falsos em **qualquer** página, página sem estado de erro, ou status de serviço fixo em `ok: true` no Sidebar |
 | 10 | frontend compila | build do Vite quebrando (pula com aviso se faltar `npm install`) |
 | 11 | página de contratos substituiu empréstimos | `Emprestimos.jsx` ressuscitando, rota faltando, ou a tela voltando a falar de status `devolvido` |
-| 11 | tela não duplica a regra de multa | o frontend passando a fazer conta com `valor_mensal` — a multa é do serviço |
+| 11 | tela não duplica a regra de multa | o frontend passando a fazer conta com `valor_mensal` - a multa é do serviço |
 | 12 | configurador foi removido | a tela da LPS antiga voltando, ou rota/menu órfãos |
 | 12 | frontend sem vocabulário de biblioteca | `livro`, `autor`, `genero` ou `emprestimo` reaparecendo em qualquer tela |
 | 12 | recomendação responde rápido | chamada entre serviços lenta (host errado derruba para ~2s por chamada) |
 | 13 | agente usa a camada de componentes | o agente virando cliente HTTP paralelo em vez de usar `framework/componentes.py` |
 | 13 | ferramentas do agente são de leitura | ferramenta de escrita (registrar/encerrar contrato, mudar disponibilidade) exposta ao modelo |
 | 13 | agente usa modelo atual | id de modelo inventado ou com sufixo de data (esses dão 404) |
-| 13 | agente degrada sem credencial | falta de chave virando 500 em vez de 503 com instrução. **Não chama o modelo quando há credencial** — validador não pode gastar dinheiro a cada execução |
-| 14 | agente é componente do framework | `IComponenteAgente`/`ComponenteAgenteHTTP` sumindo — é o que permite a App orquestrar o agente |
+| 13 | agente degrada sem credencial | falta de chave virando 500 em vez de 503 com instrução. **Não chama o modelo quando há credencial** - validador não pode gastar dinheiro a cada execução |
+| 14 | agente é componente do framework | `IComponenteAgente`/`ComponenteAgenteHTTP` sumindo - é o que permite a App orquestrar o agente |
 | 14 | app do framework orquestra o agente | a app deixando de estender o framework, sobrescrevendo `executar_operacao`, ou falando HTTP direto |
 | 14 | redator de aviso não faz conta | o prompt deixando o modelo calcular multa ou inventar fato |
-| 14 | aviso sai mesmo com agente fora | a resiliência quebrando: roda a app com `AGENTE_URL` numa porta morta e exige que a notificação saia com texto padrão. **Nunca chama a API** — nem com credencial |
-| 15 | suíte de testes passa | qualquer regressão que os 73 testes de unidade peguem — a suíte virou parte do ritual, não um anexo |
+| 14 | aviso sai mesmo com agente fora | a resiliência quebrando: roda a app com `AGENTE_URL` numa porta morta e exige que a notificação saia com texto padrão. **Nunca chama a API** - nem com credencial |
+| 15 | suíte de testes passa | qualquer regressão que os 73 testes de unidade peguem - a suíte virou parte do ritual, não um anexo |
 | 16 | diagramas refletem o código | PNG do domínio antigo voltando, ou diagrama sem bloco Mermaid |
 | 16 | documentação sem lastro do projeto antigo | docs voltando a falar do produto anterior ou do escopo da LPS (linhas que citam `tes-rds` são isentas: ali a menção é a origem do reúso) |
-| 16 | links dos docs existem | link quebrado em README ou diagrama — o tipo de erro que só aparece na correção |
+| 16 | links dos docs existem | link quebrado em README ou diagrama - o tipo de erro que só aparece na correção |
 | rev | segredo do token fora do código | segredo literal voltando ao código, senha sem sal, ou token sem HMAC |
 | rev | cadastro público não cria admin | segundo admin pela rota pública, ou usuário comum alterando o cadastro de outro |
 | rev | filtro de cidade ignora acento | "Maceió" e "Maceio" devolvendo imóveis diferentes |
 | rev | atraso usa a data local | `marcar_atrasados` voltando a comparar com a data UTC do SQLite |
-| rev | contrato só para o dono | inquilino lendo, encerrando ou assinando contrato de outro pelo gateway — inclusive mandando os headers de identidade forjados |
+| rev | contrato só para o dono | inquilino lendo, encerrando ou assinando contrato de outro pelo gateway - inclusive mandando os headers de identidade forjados |
 | rev | aviso não se repete | a App de aviso reenviando, na segunda execução, o que já mandou na primeira |
 | rev | gateway reaproveita conexões | o `/health` voltando a consultar em série, ou o gateway abrindo um cliente HTTP por requisição |
 | rev | reload não deixa órfãos | `subir_servicos.py` voltando a matar só o processo pai no Windows |
-| rev | imóvel só quem administra | inquilino cadastrando, alterando, removendo ou mudando a disponibilidade de imóvel — inclusive com header forjado |
+| rev | imóvel só quem administra | inquilino cadastrando, alterando, removendo ou mudando a disponibilidade de imóvel - inclusive com header forjado |
 | rev | encerrar não fica preso | contrato que não fecha porque o imóvel já estava livre; imóvel alugado sendo removido |
 | rev | e-mail repetido dá 400 | trocar o e-mail por um já cadastrado voltando a estourar 500 |
 | rev | recomenda onde já morou | imóvel de contrato encerrado sumindo para sempre da recomendação |
@@ -82,7 +82,7 @@ validador não suja seus dados de desenvolvimento.
 
 O validador foi testado contra regressões plantadas de propósito: reintroduzir o
 bug do framework e voltar uma URL hardcoded faz as checagens falharem com
-arquivo e linha. Um validador que nunca falha não vale nada — se você mudar algo
+arquivo e linha. Um validador que nunca falha não vale nada - se você mudar algo
 grande, vale repetir esse teste.
 
 ## Regra para os blocos seguintes
@@ -101,14 +101,14 @@ O que o script não alcança:
 
 | Fase | Blocos | Verificar à mão |
 |------|--------|-----------------|
-| 1 — saneamento | 1–2 | ✅ nada pendente |
-| 2 — imóveis | 3–5 | ✅ nada pendente |
-| 3 — contratos | 6–9 | ✅ nada pendente |
-| 4 — agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave: (1) na tela `/agente`, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel; (2) rodar `python apps/app_aviso_vencimento.py` e ver os avisos saírem "redigido por: agente" em vez de texto padrão |
-| 5 — frontend | 10–12 | ✅ nada pendente |
-| 6 — qualidade | 15–16 | ✅ nada pendente |
+| 1 - saneamento | 1–2 | ✅ nada pendente |
+| 2 - imóveis | 3–5 | ✅ nada pendente |
+| 3 - contratos | 6–9 | ✅ nada pendente |
+| 4 - agente | 13–14 | ⚠️ **Pendente e bloqueado:** exige `ANTHROPIC_API_KEY`. Com a chave: (1) na tela `/agente`, perguntar "apartamento de 2 quartos em Maceió até 2000" e conferir que ele chama `buscar_imoveis` com esses filtros e não inventa imóvel; (2) rodar `python apps/app_aviso_vencimento.py` e ver os avisos saírem "redigido por: agente" em vez de texto padrão |
+| 5 - frontend | 10–12 | ✅ nada pendente |
+| 6 - qualidade | 15–16 | ✅ nada pendente |
 
-## Semana 1 (21–27/09) — blocos 1 e 2
+## Semana 1 (21–27/09) - blocos 1 e 2
 
 **Resultado: 12 checagens, todas passando.** Fase 1 fechada, 5 dias adiantado.
 
@@ -121,7 +121,7 @@ Descartado: o path duplicado em `PUBLIC_ROUTES` não era bug (o gateway consome 
 primeiro segmento como seletor de serviço). A limpeza do prefixo duplo ficou para
 as Fases 2–3, que já renomeiam essas rotas.
 
-## Semana 2 (28/09–04/10) — blocos 3 e 4
+## Semana 2 (28/09–04/10) - blocos 3 e 4
 
 **Resultado: 16 checagens, todas passando.** Fase 2 fechada, uma semana adiantado.
 
@@ -137,19 +137,19 @@ Verificado à mão, além do validador:
   respeitando a restrição de um contrato aberto por imóvel (9 de 18 ficaram ocupados)
 - integração empréstimo → imóveis pelo `ImovelClient` booleano: alugar marca o imóvel
   indisponível, devolver libera
-- tentar alugar imóvel já alugado devolve `400 Imóvel 'X' já está indisponível` — a
+- tentar alugar imóvel já alugado devolve `400 Imóvel 'X' já está indisponível` - a
   regra da Fase 3 (um contrato por imóvel) já fica parcialmente imposta pelo serviço
   de imóveis
 
 Antecipado: item 2.6 (interfaces e componentes) saiu junto, porque renomear o serviço
-quebra os componentes que o consomem — não dava para deixar o repositório incoerente
+quebra os componentes que o consomem - não dava para deixar o repositório incoerente
 entre blocos. Item 2.5 (busca por ISBN) caiu sozinho: o modelo novo não tem ISBN.
 Com isso o bloco 5 ficou vazio e vira folga.
 
-Corrigido de passagem: `api.js` chamava `devolver` com PATCH, mas a rota é POST — o
+Corrigido de passagem: `api.js` chamava `devolver` com PATCH, mas a rota é POST - o
 botão de devolução estava quebrado desde o projeto antigo.
 
-## Semana 3 (05–11/10) — blocos 6 a 9
+## Semana 3 (05–11/10) - blocos 6 a 9
 
 **Resultado: 20 checagens, todas passando.** Fase 3 fechada, duas semanas adiantado.
 Com isso o **marco do bloco 9 caiu em 27/09**: o mínimo exigido pelo enunciado
@@ -163,22 +163,22 @@ um contrato aberto por imóvel, imposta no serviço e por índice parcial no ban
 Verificado à mão, além do validador:
 
 - app do framework (`apps/app_contrato.py`) registra contrato pelo Template Method,
-  puxa o aluguel do imóvel e dispara a notificação — o argumento de reúso continua de pé
+  puxa o aluguel do imóvel e dispara a notificação - o argumento de reúso continua de pé
 - `seed_contratos.py` insere 42 contratos respeitando a restrição (9 de 18 imóveis
   ocupados); multa do histórico confere na conta (61 dias × R$ 3900/30 = R$ 7930)
 - varredura de notificações gera 3 alertas de atraso, cada um com multa proporcional ao
-  aluguel do seu imóvel (R$ 10.746,67 / R$ 3.513,33 / R$ 11.160) — que é justamente o
+  aluguel do seu imóvel (R$ 10.746,67 / R$ 3.513,33 / R$ 11.160) - que é justamente o
   que a multa fixa de R$ 0,50 não conseguia expressar
 
 Colapsado: os blocos 8 e 9 saíram junto com 6 e 7. Renomear entidade é operação
-atômica — mexer nos campos arrasta métodos, regra e cliente. Mesmo padrão do 2.6.
+atômica - mexer nos campos arrasta métodos, regra e cliente. Mesmo padrão do 2.6.
 Blocos 5, 8 e 9 ficam como folga.
 
-Nota: um check meu deu falso positivo — procurava a string `MULTA_POR_DIA`, que
+Nota: um check meu deu falso positivo - procurava a string `MULTA_POR_DIA`, que
 aparece no comentário explicando que ela foi substituída. Passou a procurar a
 atribuição (`^\s*MULTA_POR_DIA\s*=`).
 
-## Semana 4 (12–18/10) — bloco 10
+## Semana 4 (12–18/10) - bloco 10
 
 **Resultado: 23 checagens, todas passando.** O sistema voltou a ser demonstrável.
 
@@ -190,28 +190,28 @@ Verificado no navegador, não só por script:
 
 - login com `admin@alugue.br`, 18 imóveis listados e ordenados por aluguel
 - filtro de cidade: 18 → 4 em Recife; somado a tipo=casa → 2. Conferido na aba de rede
-  que a requisição sai como `?cidade=Recife&tipo=casa` — quem filtra é o serviço
+  que a requisição sai como `?cidade=Recife&tipo=casa` - quem filtra é o serviço
 - cadastro de imóvel novo aparece na lista e respeita os filtros ativos
 - com o backend derrubado, aparece "Falha ao carregar" com botão de retentar, e o
   retentar recupera quando os serviços voltam
 
 Duas mentiras de tela removidas, ambas herdadas do projeto antigo:
 
-1. A página caía num array `MOCK` de livros no `.catch` — com o backend fora, você via
+1. A página caía num array `MOCK` de livros no `.catch` - com o backend fora, você via
    seis livros e concluía que funcionava.
-2. O Sidebar tinha a lista de serviços fixa com `ok: true` — seis pontos verdes com
+2. O Sidebar tinha a lista de serviços fixa com `ok: true` - seis pontos verdes com
    todos os serviços derrubados. Agora consulta o `/health` do gateway a cada 10s e
    mostra vermelho quando está fora.
 
 Lacuna encontrada: `Dashboard.jsx` não estava em nenhum item do plano e mostra números
 inventados (1.247 livros, "Clean Code", "Design Patterns"). Registrado como item 5.7.
 
-Nota sobre o validador: errei duas vezes do mesmo jeito — checagem textual procurando
+Nota sobre o validador: errei duas vezes do mesmo jeito - checagem textual procurando
 um nome que aparece no comentário que explica a remoção dele. Agora existe um helper
 `sem_comentarios()` que tira comentários antes de procurar, usado nas checagens de
 `MULTA_POR_DIA` e de `ok: true`.
 
-## Semana 5 (19–25/10) — bloco 11
+## Semana 5 (19–25/10) - bloco 11
 
 **Resultado: 25 checagens, todas passando.** O ciclo de contrato fecha pela interface.
 
@@ -224,19 +224,19 @@ Verificado no navegador:
 
 - filtro `?status=atrasado` conferido na aba de rede: 3 contratos
 - encerrar o #47 (R$ 5.200, 61 dias de atraso) gerou multa de **R$ 10.573,33**, e o #59
-  (R$ 5.400) gerou **R$ 10.980,00** — exatamente 61 × aluguel / 30, calculado pelo serviço
+  (R$ 5.400) gerou **R$ 10.980,00** - exatamente 61 × aluguel / 30, calculado pelo serviço
 - encerrar devolve o imóvel ao portfólio: os imóveis 5, 11 e 17 reapareceram no
   formulário de novo contrato
 - contrato novo (#85) criado pela tela: 2026-10-07 a 2027-10-07, 12 meses exatos
 
 Bug de dados corrigido: o `seed_contratos.py` somava o prazo ao início recente ao
 rebaixar um contrato aberto para histórico, o que gerava contratos "encerrados" com
-data de saída em 2027 — estado impossível. Agora reposiciona o contrato inteiro no
+data de saída em 2027 - estado impossível. Agora reposiciona o contrato inteiro no
 passado. Conferido: zero contratos com `data_fim_real` no futuro.
 
 Diagnóstico que errei duas vezes antes de acertar: ao clicar em Encerrar, a lista não
 mudava. Culpei o HMR do Vite, depois meu próprio código. Nenhum dos dois: a sonda de
-2,5s era curta — o refetch faz três chamadas pelo gateway e leva ~3s. O código estava
+2,5s era curta - o refetch faz três chamadas pelo gateway e leva ~3s. O código estava
 certo, mas o silêncio de três segundos era problema real de UX, então os botões agora
 mostram "Encerrando..." / "Registrando..." e ficam desabilitados durante a ação.
 
@@ -244,7 +244,7 @@ Nota sobre o validador: foi a terceira vez que uma checagem textual minha bateu 
 prosa em vez de código (agora o `1/30` escrito no rodapé da tela). A checagem passou a
 procurar aritmética com `valor_mensal`, não a menção da regra.
 
-## Semana 6 (26/10–01/11) — bloco 12
+## Semana 6 (26/10–01/11) - bloco 12
 
 **Resultado: 28 checagens, todas passando. Fase 5 fechada.** Nenhuma tela inventa dados,
 e o lint do frontend está zerado.
@@ -271,18 +271,18 @@ Dois achados que valem mais que o bloco:
 
 Também corrigidos: perfis de usuário ainda eram `aluno` e `bibliotecario` (viraram
 `inquilino` e `proprietario`); a descrição do serviço de recomendação ainda dizia
-"Recomendação de livros"; e `ImovelRecomendado` não trazia o aluguel — recomendar imóvel
+"Recomendação de livros"; e `ImovelRecomendado` não trazia o aluguel - recomendar imóvel
 sem dizer o preço não serve para nada.
 
 Colisão de nomes no Windows: separar o hook `useAuth` em `authContext.js` quebrou o
 build, porque o Windows não diferencia maiúsculas e o Vite resolveu `./context/AuthContext`
-para o arquivo errado. Renomeado para `useAuth.js`. Em Linux teria passado — exatamente o
+para o arquivo errado. Renomeado para `useAuth.js`. Em Linux teria passado - exatamente o
 tipo de divergência entre máquinas que o projeto quer evitar.
 
-## Semana 7 (02–08/11) — bloco 13
+## Semana 7 (02–08/11) - bloco 13
 
 **Resultado: 32 checagens, todas passando.** Agente construído, **mas não exercitado
-contra o modelo real** — ver a ressalva no fim.
+contra o modelo real** - ver a ressalva no fim.
 
 Entregue: serviço `agente` em `:8006`, sétimo processo da composição. Três ferramentas
 de leitura (`buscar_imoveis`, `detalhar_imovel`, `listar_contratos`), todas cascas finas
@@ -293,7 +293,7 @@ Decisões que valem registrar:
 
 - **Serviço novo, não substituição.** O plano dizia que `recomendacao` viraria o agente.
   Mantive os dois: o recomendador pontua por histórico de contratos, o agente faz busca
-  em linguagem natural. São abordagens diferentes sobre a mesma camada de componentes —
+  em linguagem natural. São abordagens diferentes sobre a mesma camada de componentes -
   o contraste ajuda na apresentação, e não destruí código que funciona.
 - **Ferramentas só de leitura.** Registrar contrato é ação com efeito colateral e
   dinheiro envolvido; não fica a cargo do modelo nesta fase. Há checagem no validador
@@ -309,13 +309,13 @@ Verificado:
   inexistente devolveu erro tratado em vez de estourar
 - os schemas das tools gerados a partir da assinatura e do docstring
 - o caminho até a API: com uma chave inválida, a chamada chega na Anthropic e volta 401,
-  que o serviço mapeia para 503 — ou seja, a requisição é bem formada
+  que o serviço mapeia para 503 - ou seja, a requisição é bem formada
 - sem credencial: `/agente/status` diz `false` e `perguntar` devolve 503 com instrução
 
 Dois defeitos meus, achados no teste e corrigidos:
 
 1. `/agente/status` dizia `credencial_configurada: true` sem chave nenhuma. O construtor
-   do SDK **não** falha sem credencial — ele só reclama ao montar o header. A checagem
+   do SDK **não** falha sem credencial - ele só reclama ao montar o header. A checagem
    passou a olhar as três fontes que o SDK aceita (`api_key`, `auth_token`, `credentials`).
 2. A falta de chave virava **500**, não 503, porque o SDK levanta `TypeError` (não uma
    exceção da família `APIError`) quando não resolve autenticação.
@@ -324,9 +324,9 @@ Dois defeitos meus, achados no teste e corrigidos:
 ferramenta certa, extrai os filtros da frase e não inventa imóvel só dá para verificar
 com uma chave real. Esse teste é o primeiro item do bloco 14.
 
-## Semana 8 (09–15/11) — bloco 14
+## Semana 8 (09–15/11) - bloco 14
 
-**Resultado: 36 checagens, todas passando. Fase 4 fechada** — com a ressalva de sempre:
+**Resultado: 36 checagens, todas passando. Fase 4 fechada** - com a ressalva de sempre:
 a qualidade da resposta do modelo continua não verificada, por falta de credencial.
 
 Entregue: `POST /agente/redigir-aviso`, `IComponenteAgente` + `ComponenteAgenteHTTP`,
@@ -358,7 +358,7 @@ Verificado:
   em vez de fingir uma resposta
 
 Nota sobre o validador: a checagem "frontend sem vocabulário de biblioteca" acusou a tela
-nova por causa do campo `autor` — que ali significa autor da mensagem, não de livro.
+nova por causa do campo `autor` - que ali significa autor da mensagem, não de livro.
 Renomeei o campo para `remetente` em vez de afrouxar a checagem: a ambiguidade era real.
 
 **O que continua pendente:** com `ANTHROPIC_API_KEY` definida, falta conferir que o
@@ -366,7 +366,7 @@ agente escolhe a ferramenta certa, extrai os filtros da frase e não inventa im�
 os avisos saem "redigido por: agente". Até lá, a Fase 4 está construída e integrada, mas
 não exercitada.
 
-## Semana 9 (16–22/11) — bloco 15
+## Semana 9 (16–22/11) - bloco 15
 
 **Resultado: 37 checagens e 77 testes, todos passando.**
 
@@ -396,7 +396,7 @@ A suíte foi testada contra regressões plantadas, como o validador: devolver
 testes falharem, nomeando o problema. Restaurado sem diff residual.
 
 Bug achado pela suíte e corrigido: o token usava `datetime.utcnow()`, que devolve
-datetime ingênuo — e `.timestamp()` o interpreta como hora **local**. Aqui (UTC−3) um
+datetime ingênuo - e `.timestamp()` o interpreta como hora **local**. Aqui (UTC−3) um
 token de 8 horas declarava **11**. A duração efetiva saía certa porque os dois lados
 erravam igual, mas o campo `expires` gravado mentia para qualquer um que o lesse de
 fora. Trocado por `datetime.now(timezone.utc)`, com teste que fixa as 8 horas contra o
@@ -404,12 +404,12 @@ relógio real.
 
 Um fake meu estava mais permissivo que a produção: o repositório real grava 0/1 no
 SQLite e reconverte para bool na leitura, e o fake guardava o int cru. Ajustado para
-imitar a fronteira — senão o teste esconderia erro de tipo em vez de pegá-lo.
+imitar a fronteira - senão o teste esconderia erro de tipo em vez de pegá-lo.
 
-## Semana 10 (23–29/11) — bloco 16
+## Semana 10 (23–29/11) - bloco 16
 
 **Resultado: 40 checagens e 77 testes, todos passando. Projeto concluído**, 25 dias
-antes da entrega — com a ressalva única e conhecida do agente.
+antes da entrega - com a ressalva única e conhecida do agente.
 
 Entregue: cinco diagramas em Mermaid, README reescrito, `COMO_CRIAR_APP.md` atualizado
 com os componentes atuais e uma seção de como usar o agente numa app, e `scrum.md` com
@@ -424,13 +424,13 @@ nem se corrige junto com o código, e as cinco ficaram erradas no instante em qu
 domínio mudou. Os `.md` com Mermaid renderizam direto no GitHub.
 
 **Docker (item 6.6) não foi feito, deliberadamente.** Não está instalado em nenhuma das
-duas máquinas, então eu entregaria um `docker-compose.yml` que nunca rodou — o oposto
+duas máquinas, então eu entregaria um `docker-compose.yml` que nunca rodou - o oposto
 da disciplina que o resto do projeto seguiu. As variáveis de ambiente da Fase 1 já
 resolvem a portabilidade e o `subir_servicos.py` sobe os sete processos num comando.
 Fica registrado como melhoria futura, não como pendência escondida.
 
-Nota sobre o validador: a checagem nova de documentação acusou o `CLAUDE.md` por citar
-"Biblioteca Online" — mas ali a menção é a **origem do reúso**, que é informação que o
+Nota sobre o validador: a checagem nova de documentação acusou uma nota interna por citar
+"Biblioteca Online" - mas ali a menção é a **origem do reúso**, que é informação que o
 trabalho quer destacar. Em vez de reescrever a frase para contornar a checagem, isentei
 linhas que citam `tes-rds`. Foi a quinta vez no projeto que uma checagem textual minha
 bateu em prosa legítima; o padrão já está claro, e a resposta certa continua sendo
@@ -455,7 +455,7 @@ Revisão arquivo por arquivo, com 10 achados. Os três mais graves foram corrigi
 
 1. **Segredo do token no repositório.** `SECRET = "biblioteca_secret_2025"` assinava os
    tokens e temperava o hash de senha. Com ele público no GitHub, qualquer um gerava
-   token válido para qualquer usuário — inclusive o admin — sem senha. Agora o segredo
+   token válido para qualquer usuário - inclusive o admin - sem senha. Agora o segredo
    vem de `TOKEN_SECRET` ou é gerado na primeira subida e guardado no `usuarios.db`
    (ignorado pelo git). O token passou a ser assinado com HMAC, e a senha a usar
    PBKDF2-SHA256 com sal por usuário e 600 mil iterações (134 ms por login), sem
@@ -463,13 +463,13 @@ Revisão arquivo por arquivo, com 10 achados. Os três mais graves foram corrigi
    antigo é recusado.
 2. **Qualquer um virava admin.** A rota pública de cadastro aceitava `tipo: "admin"`, e
    o `PATCH /usuarios/{id}` deixava qualquer usuário logado alterar o cadastro de
-   qualquer outro — por exemplo, desativar o admin e bloquear o login dele. Agora só o
+   qualquer outro - por exemplo, desativar o admin e bloquear o login dele. Agora só o
    primeiro usuário do banco pode ser admin, só o próprio usuário ou um admin altera um
    cadastro, e só admin muda tipo ou situação.
 3. **"Maceió" não achava nada.** O seed grava "Maceio" e "Joao Pessoa", mas o prompt do
    agente, o exemplo da tela `/agente` e qualquer pessoa escrevem com acento; o `LIKE`
    do SQLite ignora maiúsculas, não acento. O filtro agora compara as duas pontas sem
-   acento, por uma função registrada em cada conexão — sem mudar o schema. A busca por
+   acento, por uma função registrada em cada conexão - sem mudar o schema. A busca por
    texto da tela de Imóveis tinha o mesmo defeito e foi corrigida junto.
 
 **Consequência:** bancos de usuários criados antes desta revisão não fazem login, porque
@@ -483,7 +483,7 @@ recomendação faz uma chamada HTTP por contrato do histórico; e trocar o e-mai
 já existente devolve 500.
 
 Fora do alcance desta correção: a autorização entre serviços. O gateway confere que o
-token é válido, mas não quem é o dono do recurso — qualquer usuário logado ainda lê e
+token é válido, mas não quem é o dono do recurso - qualquer usuário logado ainda lê e
 encerra contratos de outros. Resolver isso pede o gateway repassar a identidade para os
 serviços, o que é uma mudança de arquitetura, não um conserto.
 
@@ -494,7 +494,7 @@ serviços, o que é uma mudança de arquitetura, não um conserto.
 **Contratos restritos ao dono.** O gateway validava o token mas não contava aos
 serviços quem estava pedindo, então nenhum serviço tinha como restringir nada. Agora,
 depois de validar, ele injeta `x-usuario-id` e `x-usuario-tipo` na requisição que
-repassa — e descarta os headers com esses nomes que vierem do cliente, para ninguém se
+repassa - e descarta os headers com esses nomes que vierem do cliente, para ninguém se
 passar por admin. No serviço de contratos, quem não é admin só lista, lê, assina e
 encerra os próprios; contrato de outro responde 404, para não revelar que existe.
 Chamada sem identidade é de outro serviço (notificações e recomendação leem contratos
@@ -517,10 +517,10 @@ injetar a identidade, a checagem "contrato só para o dono" falha.
 que é UTC, enquanto a multa usa a data local. Agora o serviço passa a data do Python.
 
 **Aviso sem repetição.** A App de aviso pula o contrato que já tem aviso não lido do
-mesmo tipo para o mesmo imóvel — a mesma regra da varredura. A checagem é feita antes
+mesmo tipo para o mesmo imóvel - a mesma regra da varredura. A checagem é feita antes
 de pedir o texto ao agente, para não gastar chamada redigindo aviso que não sai.
 
-Ficaram em aberto, da revisão, seis itens — fechados na rodada seguinte.
+Ficaram em aberto, da revisão, seis itens - fechados na rodada seguinte.
 
 ### Terceira rodada (16/10)
 
@@ -528,7 +528,7 @@ Ficaram em aberto, da revisão, seis itens — fechados na rodada seguinte.
 
 **Imóveis restritos a quem administra.** Qualquer usuário logado cadastrava, alterava
 e removia imóvel. Agora isso é de admin e proprietário; inquilino recebe 403, e a tela
-esconde o "+ Novo imóvel" dele. Mudar a disponibilidade à mão ficou só para admin — o
+esconde o "+ Novo imóvel" dele. Mudar a disponibilidade à mão ficou só para admin - o
 serviço de contratos continua fazendo isso por dentro, sem identidade. Imóvel alugado
 não pode mais ser removido. Limite conhecido: o imóvel não tem dono no modelo, então um
 proprietário mexe em qualquer imóvel, não só nos seus. (O cadastro público aceitar
@@ -537,7 +537,7 @@ proprietário também era limite; foi fechado em seguida, ver abaixo.)
 **Encerrar não fica preso.** Se o imóvel já estivesse livre (um admin o liberou à mão),
 o encerramento dava 400 e o contrato nunca mais fechava. Agora isso não impede o
 encerramento. E se gravar o encerramento falhar depois de liberar o imóvel, ele volta a
-ficar ocupado — a mesma compensação que a assinatura já tinha.
+ficar ocupado - a mesma compensação que a assinatura já tinha.
 
 **E-mail repetido dá 400.** Trocar o e-mail por um já cadastrado batia no UNIQUE do
 SQLite e estourava 500.
@@ -549,7 +549,7 @@ uvicorn; o filho ficava segurando a porta. Reproduzido: derrubando um serviço c
 
 **`/health` em paralelo.** Consultava os serviços um por um: com um fora do ar, o tempo
 dele somava ao dos outros. Agora consulta todos ao mesmo tempo. O gateway também passou
-a usar um cliente HTTP só, em vez de abrir um por requisição — sem guardar cookie, para
+a usar um cliente HTTP só, em vez de abrir um por requisição - sem guardar cookie, para
 nada de um usuário vazar para outro.
 
 **Recomendação.** Fazia uma chamada HTTP por contrato do histórico; agora tira tipo e
@@ -557,7 +557,7 @@ cidade do portfólio que já carregava. E a penalidade para imóvel onde a pesso
 era o dobro do score máximo, então ele nunca mais aparecia; agora só o rebaixa.
 
 **Proprietário só por promoção.** O cadastro público aceitava `proprietario`, e
-qualquer pessoa ganhava acesso ao portfólio se cadastrando assim — a restrição de
+qualquer pessoa ganhava acesso ao portfólio se cadastrando assim - a restrição de
 imóveis virava fachada. Agora o cadastro público cria só inquilino; proprietário e
 admin são promovidos por um admin, que ganhou um seletor de perfil na tela de
 Usuários. O seed cadastra a proprietária como inquilina e o admin a promove.

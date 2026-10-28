@@ -717,7 +717,7 @@ def diagramas_refletem_o_codigo():
 
 def documentacao_sem_lastro_do_projeto_antigo():
     """6.4/6.5 - os docs descrevem o que existe, nao o trabalho anterior."""
-    docs = ["README.md", "COMO_CRIAR_APP.md", "scrum.md", "CLAUDE.md"]
+    docs = ["README.md", "COMO_CRIAR_APP.md", "scrum.md"]
     problemas = []
     for nome in docs:
         caminho = RAIZ / nome

@@ -1,4 +1,4 @@
-"""App 3 — Aviso de vencimento redigido pelo agente.
+"""App 3 - Aviso de vencimento redigido pelo agente.
 
 Esta é a aplicação que fecha o argumento do projeto: o agente não é um apêndice
 pendurado ao lado do sistema, ele é mais um componente orquestrado pelo mesmo
@@ -67,7 +67,7 @@ class AppAvisoVencimento(FrameworkBiblioteca):
                 "inquilino_id": contrato["inquilino_id"],
                 "imovel_id": contrato["imovel_id"],
                 "imovel": imovel.get("titulo", f"Imóvel {contrato['imovel_id']}"),
-                "cidade": imovel.get("cidade", "—"),
+                "cidade": imovel.get("cidade", "-"),
                 "data_fim_prevista": contrato["data_fim_prevista"],
                 "dias": dias,
                 "valor_mensal": contrato["valor_mensal"],
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="App 3 — Aviso de vencimento redigido pelo agente"
+        description="App 3 - Aviso de vencimento redigido pelo agente"
     )
     parser.add_argument(
         "--dias", type=int, default=AppAvisoVencimento.DIAS_ALERTA_PADRAO,
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("=" * 60)
-    print("APP 3 — Aviso de Vencimento (agente + framework)")
+    print("APP 3 - Aviso de Vencimento (agente + framework)")
     print("=" * 60)
 
     app = AppAvisoVencimento()
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         )
         for aviso in resultado["avisos"]:
             marca = "VENCIDO" if aviso["vencido"] else f"faltam {aviso['dias']}d"
-            print(f"  [{marca}] {aviso['imovel']} — inquilino {aviso['inquilino_id']}")
+            print(f"  [{marca}] {aviso['imovel']} - inquilino {aviso['inquilino_id']}")
             print(f"    redigido por: {aviso['redigido_por']}")
             print(f"    {aviso['mensagem']}")
             if aviso.get("erro_envio"):

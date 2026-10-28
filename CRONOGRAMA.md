@@ -1,9 +1,9 @@
-# Cronograma — ECOM021 (2026.2)
+# Cronograma - ECOM021 (2026.2)
 
 **Início:** 21/09/2026 (segunda) · **Pronto:** 07/11/2026 (sábado) · **Entrega:** 09/11/2026 (segunda)
 
 48 dias = **16 blocos de 3 dias**. Os 2 dias entre "pronto" e "entrega" não são folga
-utilizável — o colchão real são os blocos 15 e 16.
+utilizável - o colchão real são os blocos 15 e 16.
 
 Cadência: bloco de 3 dias como unidade de trabalho, semana como sprint para o
 registro Scrum (`scrum.md`).
@@ -18,7 +18,7 @@ registro Scrum (`scrum.md`).
 | 2 | 24–26/09 | 1 | ✅ **Concluído 21/09.** `lifespan` nos 5 serviços (1.2) · headers hop-by-hop filtrados no proxy (1.4) · `subir_servicos.py` (1.6). Validado: 6 serviços no ar, `/health` geral ok, fluxo registro→login→POST→GET pelo gateway, resposta correta com `--compressed` |
 | 3 | 27–29/09 | 2 | ✅ **Concluído 27/09.** `catalogo` → `imoveis` via `git mv`, histórico preservado (2.1) · modelo `Imovel` + schema (2.2). 2.5 (busca por ISBN) caiu junto: o modelo novo não tem ISBN |
 | 4 | 30/09–02/10 | 2 | ✅ **Concluído 27/09.** `definir_disponibilidade(bool)` (2.3) · filtros cidade/tipo/quartos_min/valor_min/valor_max/disponivel (2.4) · 2.6 antecipado por necessidade (renomear o serviço quebra os componentes) |
-| 5 | 03–05/10 | 2 | ⚠️ **Esvaziado** — 2.5 e 2.6 saíram nos blocos 3 e 4. Bloco livre: usar como folga ou adiantar a Fase 3 |
+| 5 | 03–05/10 | 2 | ⚠️ **Esvaziado** - 2.5 e 2.6 saíram nos blocos 3 e 4. Bloco livre: usar como folga ou adiantar a Fase 3 |
 | 6 | 06–08/10 | 3 | ✅ **Concluído 27/09.** `Emprestimo` → `Contrato`, `inquilino_id`/`imovel_id`, `data_inicio`/`data_fim_prevista`/`data_fim_real`, status `devolvido` → `encerrado` (3.1–3.3) |
 | 7 | 09–11/10 | 3 | ✅ **Concluído 27/09.** `PRAZO_MESES = 12` com `somar_meses` tratando mês curto (3.4) · multa de 1/30 do aluguel por dia, calculada sobre o `valor_mensal` gravado no contrato (3.5) |
 | 8 | 12–14/10 | 3 | ✅ **Concluído 27/09.** `registrar_contrato`/`encerrar_contrato` (3.6) · um contrato aberto por imóvel, imposto no serviço **e** por índice parcial no banco (3.7) |
@@ -26,10 +26,10 @@ registro Scrum (`scrum.md`).
 | 10 | 18–20/10 | 5 | ✅ **Concluído 07/10.** Shell reusado e rebrandeado; status dos serviços agora vem do `/health` real (5.1) · `Imoveis.jsx` com filtros server-side, cards e estado de erro honesto (5.2) |
 | 11 | 21–23/10 | 5 | ✅ **Concluído 07/10.** `Contratos.jsx` com filtro de status server-side, cadastro de contrato, encerramento e feedback de ação em voo (5.3). Corrigido bug de dados no `seed_contratos.py` |
 | 12 | 24–26/10 | 5 | ✅ **Concluído 07/10.** Dashboard, Usuários, Notificações e Recomendação reescritos com dados reais (5.4, 5.7–5.9) · `Configurador.jsx` removido (5.5) · rotas e menu (5.6). A interface de chat do agente fica para a Fase 4, quando o agente existir |
-| 13 | 27–29/10 | 4 | ✅ **Concluído 10/10.** Serviço `agente` em :8006, com as ferramentas vindas de `framework/componentes.py` (4.1) · busca conversacional (4.2). **Não testado contra o modelo real** — falta credencial da Anthropic na máquina |
-| 14 | 30/10–01/11 | 4 | ✅ **Concluído 10/10.** `app_aviso_vencimento.py`: a App levanta os contratos pelos componentes, o agente redige o texto, a App envia (4.3, 4.4) · `IComponenteAgente` + tela `/agente` com o chat. **Resposta do modelo segue não testada** — falta credencial |
+| 13 | 27–29/10 | 4 | ✅ **Concluído 10/10.** Serviço `agente` em :8006, com as ferramentas vindas de `framework/componentes.py` (4.1) · busca conversacional (4.2). **Não testado contra o modelo real** - falta credencial da Anthropic na máquina |
+| 14 | 30/10–01/11 | 4 | ✅ **Concluído 10/10.** `app_aviso_vencimento.py`: a App levanta os contratos pelos componentes, o agente redige o texto, a App envia (4.3, 4.4) · `IComponenteAgente` + tela `/agente` com o chat. **Resposta do modelo segue não testada** - falta credencial |
 | 15 | 02–04/11 | 6 | ✅ **Concluído 13/10.** 77 testes: 73 de unidade com repositórios fake + 4 de integração pelo gateway (6.1). 6.2 já tinha saído nos blocos 3–4 e 11. Corrigido bug de fuso no token, achado pela suíte |
-| 16 | 05–07/11 | 6 | ✅ **Concluído 13/10.** Cinco diagramas reescritos em Mermaid (6.3) · README, guia do framework e `scrum.md` reescritos; `COMO_DERIVAR_PRODUTO.md` removido (6.4, 6.5). Docker (6.6) não feito — ver nota no fim |
+| 16 | 05–07/11 | 6 | ✅ **Concluído 13/10.** Cinco diagramas reescritos em Mermaid (6.3) · README, guia do framework e `scrum.md` reescritos; `COMO_DERIVAR_PRODUTO.md` removido (6.4, 6.5). Docker (6.6) não feito - ver nota no fim |
 
 ---
 
@@ -40,16 +40,16 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 
 | Semana | Blocos | Status |
 |--------|--------|--------|
-| 21–27/09 | 1 e 2 | ✅ 12 checagens passando — Fase 1 fechada |
-| 28/09–04/10 | 3 e 4 | ✅ 16 checagens passando — Fase 2 fechada |
-| 05–11/10 | 6 a 9 | ✅ 20 checagens passando — Fase 3 fechada |
-| 12–18/10 | 10 | ✅ 23 checagens passando — sistema demonstrável de novo |
-| 19–25/10 | 11 | ✅ 25 checagens passando — ciclo de contrato pela interface |
-| 26/10–01/11 | 12 | ✅ 28 checagens passando — **Fase 5 fechada**, nenhuma tela mente |
-| 02–08/11 | 13 | ✅ 32 checagens passando — agente construído; falta rodar com chave |
-| 09–15/11 | 14 | ✅ 36 checagens passando — **Fase 4 fechada**, com a ressalva da credencial |
-| 16–22/11 | 15 | ✅ 37 checagens + 77 testes — suíte pytest no ritual |
-| 23–29/11 | 16 | ✅ 40 checagens + 77 testes — **projeto concluído**, 25 dias antes da entrega |
+| 21–27/09 | 1 e 2 | ✅ 12 checagens passando - Fase 1 fechada |
+| 28/09–04/10 | 3 e 4 | ✅ 16 checagens passando - Fase 2 fechada |
+| 05–11/10 | 6 a 9 | ✅ 20 checagens passando - Fase 3 fechada |
+| 12–18/10 | 10 | ✅ 23 checagens passando - sistema demonstrável de novo |
+| 19–25/10 | 11 | ✅ 25 checagens passando - ciclo de contrato pela interface |
+| 26/10–01/11 | 12 | ✅ 28 checagens passando - **Fase 5 fechada**, nenhuma tela mente |
+| 02–08/11 | 13 | ✅ 32 checagens passando - agente construído; falta rodar com chave |
+| 09–15/11 | 14 | ✅ 36 checagens passando - **Fase 4 fechada**, com a ressalva da credencial |
+| 16–22/11 | 15 | ✅ 37 checagens + 77 testes - suíte pytest no ritual |
+| 23–29/11 | 16 | ✅ 40 checagens + 77 testes - **projeto concluído**, 25 dias antes da entrega |
 
 ## Marcos
 
@@ -57,8 +57,8 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 |--------|-----------------|
 | Bloco 2 (26/09) | Esqueleto saneado, roda nas duas máquinas por env var |
 | Bloco 5 (05/10) | Serviço de imóveis completo |
-| Bloco 9 (17/10) | ✅ **atingido em 27/09** — backend funcional end-to-end, mínimo do enunciado |
-| Bloco 12 (26/10) | ✅ **atingido em 07/10** — sistema demonstrável de ponta a ponta |
+| Bloco 9 (17/10) | ✅ **atingido em 27/09** - backend funcional end-to-end, mínimo do enunciado |
+| Bloco 12 (26/10) | ✅ **atingido em 07/10** - sistema demonstrável de ponta a ponta |
 | Bloco 14 (01/11) | ⚠️ **Construído em 10/10**, mas só roda com `ANTHROPIC_API_KEY` |
 | Bloco 16 (07/11) | Pronto para entregar |
 
@@ -66,7 +66,7 @@ que entrega comportamento novo adiciona sua checagem lá. Ver `VALIDACAO.md`.
 
 O obrigatório do enunciado (microsserviços + componentes) fecha no **bloco 9**, com
 8 blocos de margem. O agente (opcional) vem nos blocos 13–14, depois do frontend, para
-que nasça com tela onde ser demonstrado — e para que, se o tempo apertar, o que fica
+que nasça com tela onde ser demonstrado - e para que, se o tempo apertar, o que fica
 de fora seja o opcional, nunca o obrigatório.
 
 Blocos 6–9 são o maior trecho contínuo (Fase 3, 8 itens). São majoritariamente
@@ -75,6 +75,6 @@ para validar a integração antes de seguir.
 
 **Decisão sobre Docker:** fora do caminho crítico. O enunciado não pede, e não está
 instalado em nenhuma das máquinas (Docker Desktop + WSL2 nas duas). As duas dores que
-ele resolveria — subir 6 serviços e portabilidade entre máquinas — são cobertas pelo
+ele resolveria - subir 6 serviços e portabilidade entre máquinas - são cobertas pelo
 script do bloco 2 e pelas env vars do bloco 1. Com as URLs já externalizadas,
 containerizar no bloco 16 é meia hora. Se o tempo não sobrar, não se perde nada.

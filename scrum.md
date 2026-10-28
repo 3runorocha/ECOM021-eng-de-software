@@ -1,4 +1,4 @@
-# Scrum — Aluguel de Imóveis
+# Scrum - Aluguel de Imóveis
 
 Planejamento ágil do projeto da ECOM021. As sprints abaixo são as que de fato
 aconteceram: cada uma corresponde a uma fase do [`PLANO_DE_EXECUCAO.md`](PLANO_DE_EXECUCAO.md),
@@ -6,10 +6,10 @@ e o registro do que foi entregue e verificado está em [`VALIDACAO.md`](VALIDACA
 
 ## Atores
 
-- **Inquilino** — procura imóvel, assina e encerra contrato, recebe avisos
-- **Proprietário / corretor** — cadastra e administra o portfólio
-- **Sistema** — tarefas automáticas: marcar contratos vencidos, varrer e notificar
-- **Agente** — assistente que busca imóveis em linguagem natural e redige avisos
+- **Inquilino** - procura imóvel, assina e encerra contrato, recebe avisos
+- **Proprietário / corretor** - cadastra e administra o portfólio
+- **Sistema** - tarefas automáticas: marcar contratos vencidos, varrer e notificar
+- **Agente** - assistente que busca imóveis em linguagem natural e redige avisos
 
 ---
 
@@ -60,11 +60,11 @@ opcional do enunciado (Agentic AI).
 | 6 | Qualidade e documentação | US23 | 8 | ✅ |
 
 US04, US05, US15 e US16 (usuários e gateway) vieram prontas do projeto anterior e
-atravessaram a migração sem mudança — é o reúso aparecendo no planejamento.
+atravessaram a migração sem mudança - é o reúso aparecendo no planejamento.
 
 ---
 
-## Sprint 1 — Sanear o esqueleto
+## Sprint 1 - Sanear o esqueleto
 
 **Meta:** o projeto herdado tem de rodar sem ajuste manual, com a configuração vinda de
 variável de ambiente.
@@ -75,10 +75,10 @@ variável de ambiente.
 - Filtrar headers hop-by-hop no proxy do gateway
 - Script que sobe todos os serviços num comando
 
-**Revisão:** o `PUBLIC_ROUTES` que parecia bug não era — o gateway consome o primeiro
+**Revisão:** o `PUBLIC_ROUTES` que parecia bug não era - o gateway consome o primeiro
 segmento como seletor de serviço. Descartado após verificação.
 
-## Sprint 2 — Portfólio de imóveis
+## Sprint 2 - Portfólio de imóveis
 
 **Meta:** o catálogo de livros vira portfólio de imóveis.
 
@@ -90,7 +90,7 @@ segmento como seletor de serviço. Descartado após verificação.
 **Revisão:** renomear o serviço arrastou os componentes que o consomem; não dava para
 separar em sprints diferentes sem deixar o repositório incoerente.
 
-## Sprint 3 — Contratos
+## Sprint 3 - Contratos
 
 **Meta:** empréstimo de 14 dias vira contrato de 12 meses.
 
@@ -103,7 +103,7 @@ separar em sprints diferentes sem deixar o repositório incoerente.
 **Revisão:** renomear entidade é operação atômica. As quatro sprints planejadas para
 isso viraram uma só.
 
-## Sprint 4 — Interface web
+## Sprint 4 - Interface web
 
 **Meta:** o sistema volta a ser demonstrável, e nenhuma tela mente.
 
@@ -114,7 +114,7 @@ isso viraram uma só.
 **Revisão:** três telas (Dashboard, Notificações, Usuários) não estavam em nenhuma
 história e mostravam dados inventados. Entraram como US06, US12 e US19 revisadas.
 
-## Sprint 5 — Agente
+## Sprint 5 - Agente
 
 **Meta:** busca em linguagem natural usando a camada de componentes como ferramentas.
 
@@ -123,10 +123,10 @@ história e mostravam dados inventados. Entraram como US06, US12 e US19 revisada
 - `AppAvisoVencimento` orquestra o agente pelo Template Method
 - Degrada para texto padrão quando o agente está fora ou sem credencial
 
-**Pendência:** a qualidade da resposta do modelo não foi verificada — falta
+**Pendência:** a qualidade da resposta do modelo não foi verificada - falta
 `ANTHROPIC_API_KEY` na máquina. O que foi testado está em `VALIDACAO.md`, semana 8.
 
-## Sprint 6 — Qualidade e documentação
+## Sprint 6 - Qualidade e documentação
 
 **Meta:** mexer no código sem medo, e documentação que descreve o que existe.
 
@@ -146,5 +146,5 @@ Uma história só é dada como pronta quando:
 
 1. o comportamento está implementado e o `validar.py` passa inteiro;
 2. a regra de negócio nova tem teste que falha se ela for removida;
-3. a tela correspondente mostra dado real, ou mostra o erro — nunca dado inventado;
+3. a tela correspondente mostra dado real, ou mostra o erro - nunca dado inventado;
 4. o que ficou de fora está escrito, com o motivo.

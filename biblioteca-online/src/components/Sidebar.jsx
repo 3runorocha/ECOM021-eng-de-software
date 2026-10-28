@@ -104,12 +104,12 @@ export default function Sidebar() {
       <div className={styles.status}>
         <div className={styles.statusLabel}>
           Status dos serviços
-          {degradado && <span style={{ color: '#b45309', fontWeight: 600 }}> — degradado</span>}
+          {degradado && <span style={{ color: '#b45309', fontWeight: 600 }}> - degradado</span>}
         </div>
         {linhas.map((s) => (
           <div key={s.chave} className={styles.statusRow}>
             <span className={corDoPonto(s.status)} />
-            {s.label} — :{s.porta}
+            {s.label} - :{s.porta}
             {s.status === null && <span style={{ color: '#9ca3af' }}> (checando)</span>}
           </div>
         ))}

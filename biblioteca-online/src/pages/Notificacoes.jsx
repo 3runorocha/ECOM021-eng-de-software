@@ -181,7 +181,7 @@ export default function Notificacoes() {
                   <div style={{ fontSize: '13px', color: '#111', lineHeight: 1.5 }}>{n.mensagem}</div>
                   <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
                     {new Date(n.data_criacao).toLocaleString('pt-BR')}
-                    {n.imovel_id != null && ` — imóvel #${n.imovel_id}`}
+                    {n.imovel_id != null && ` - imóvel #${n.imovel_id}`}
                   </div>
                 </div>
                 {!n.lida && (

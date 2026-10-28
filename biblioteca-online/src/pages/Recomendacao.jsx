@@ -140,7 +140,7 @@ export default function Recomendacao() {
           </div>
           {perfil.total_contratos === 0 && (
             <div style={{ color: '#9ca3af', marginTop: '4px', fontSize: '12px' }}>
-              Sem histórico, o serviço não tem preferência para pontuar — a lista vem vazia.
+              Sem histórico, o serviço não tem preferência para pontuar - a lista vem vazia.
             </div>
           )}
         </div>

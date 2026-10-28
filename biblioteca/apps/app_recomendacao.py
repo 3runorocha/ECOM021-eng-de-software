@@ -84,13 +84,13 @@ class AppRecomendacao(FrameworkBiblioteca):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="App 2 — Recomendação Personalizada")
+    parser = argparse.ArgumentParser(description="App 2 - Recomendação Personalizada")
     parser.add_argument("--usuario", type=int, default=1, help="ID do usuário")
     parser.add_argument("--limite",  type=int, default=5, help="Quantidade de recomendações")
     args = parser.parse_args()
 
     print("=" * 60)
-    print("APP 2 — Recomendação Personalizada com Perfil")
+    print("APP 2 - Recomendação Personalizada com Perfil")
     print("=" * 60)
 
     app = AppRecomendacao()
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     print(f"\nPerfil do usuário: {resultado.get('perfil')}")
     print(f"\nRecomendações ({resultado.get('total')} imóveis):")
     for rec in resultado.get("recomendacoes", []):
-        print(f"  [{rec['score']}pts] {rec['titulo']} — {rec['motivo']}")
+        print(f"  [{rec['score']}pts] {rec['titulo']} - {rec['motivo']}")
 
     if resultado.get("aviso"):
         print(f"\nAviso: {resultado['aviso']}")

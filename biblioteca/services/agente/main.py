@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Aluguel de Imóveis — Agente",
+    title="Aluguel de Imóveis - Agente",
     description=(
         "Busca conversacional sobre o portfólio. Usa a camada de componentes "
         "do framework como ferramentas do modelo."

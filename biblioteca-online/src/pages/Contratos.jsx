@@ -200,7 +200,7 @@ export default function Contratos() {
               <option value="">selecione</option>
               {disponiveis.map((i) => (
                 <option key={i.id} value={i.id}>
-                  {i.titulo} — {moeda(i.valor_mensal)}
+                  {i.titulo} - {moeda(i.valor_mensal)}
                 </option>
               ))}
             </select>
@@ -241,7 +241,7 @@ export default function Contratos() {
           </div>
           <p style={{ flexBasis: '100%', margin: 0, fontSize: '12px', color: '#9ca3af' }}>
             Prazo de 12 meses, contado da assinatura. Só aparecem imóveis sem contrato em
-            aberto — um imóvel não aceita dois.
+            aberto - um imóvel não aceita dois.
           </p>
         </form>
       )}
@@ -338,13 +338,13 @@ export default function Contratos() {
                       )}
                     </td>
                     <td style={{ ...celula, color: '#6b7280', whiteSpace: 'nowrap' }}>
-                      {c.data_fim_real ?? '—'}
+                      {c.data_fim_real ?? '-'}
                     </td>
                     <td style={{ ...celula, color: '#6b7280', whiteSpace: 'nowrap' }}>
                       {moeda(c.valor_mensal)}
                     </td>
                     <td style={{ ...celula, color: c.multa > 0 ? '#991b1b' : '#6b7280', whiteSpace: 'nowrap' }}>
-                      {c.multa > 0 ? moeda(c.multa) : '—'}
+                      {c.multa > 0 ? moeda(c.multa) : '-'}
                     </td>
                     <td style={celula}>
                       <span

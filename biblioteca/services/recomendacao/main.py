@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Aluguel de Imóveis — Recomendação",
+    title="Aluguel de Imóveis - Recomendação",
     description="Recomendação de imóveis pelo perfil e histórico de contratos do inquilino",
     version="1.0.0",
     lifespan=lifespan,

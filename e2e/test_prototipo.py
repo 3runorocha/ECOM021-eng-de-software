@@ -107,7 +107,7 @@ def test_ct07_painel_mostra_numeros_reais(abrir):
     assert re.search(r"Usuários\s+7", textos), textos[:300]
     status = page.locator("aside")
     for servico in ("Gateway", "Imóveis", "Usuários", "Contratos", "Notificações", "Recomendação", "Agente"):
-        expect(status).to_contain_text(re.compile(f"{servico} — :80"))
+        expect(status).to_contain_text(re.compile(f"{servico} - :80"))
 
 
 def test_ct08_catalogo_carrega(abrir):

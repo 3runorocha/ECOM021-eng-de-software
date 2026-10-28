@@ -1,6 +1,6 @@
-# Aluguel de Imóveis — Microsserviços, Componentes e Agente
+# Aluguel de Imóveis - Microsserviços, Componentes e Agente
 
-Projeto da disciplina **ECOM021 — Engenharia de Software (2026.2)**: sistema de
+Projeto da disciplina **ECOM021 - Engenharia de Software (2026.2)**: sistema de
 gerenciamento de aluguel de apartamentos e casas, construído com **microsserviços** e
 **componentes de software**, mais um **agente** (item opcional do enunciado).
 
@@ -49,7 +49,7 @@ contrato e agente.
 O enunciado pede microsserviços **e** componentes. Os componentes são uma camada
 explícita em [`biblioteca/framework/`](biblioteca/framework/): interfaces `IComponente*`
 com ciclo de vida (`inicializar`/`finalizar`) e implementações HTTP. Quem consome não
-monta requisição — chama um método.
+monta requisição - chama um método.
 
 A mesma camada serve as aplicações do framework **e** as ferramentas do agente. Ver
 [`diagramas/2_componentes.md`](diagramas/2_componentes.md).
@@ -96,7 +96,7 @@ ser admin, e o seed cadastra o admin primeiro.
 > `biblioteca/services/*/` e rode os dois seeds de novo.
 
 Usuários duplicados são ignorados. **Imóveis não**: diferente do livro, que tinha ISBN,
-imóvel não tem chave única de negócio — rodar de novo duplica o portfólio. Apague
+imóvel não tem chave única de negócio - rodar de novo duplica o portfólio. Apague
 `biblioteca/services/imoveis/imoveis.db` para recomeçar.
 
 ```bash
@@ -106,7 +106,7 @@ cd biblioteca && python seed_contratos.py
 
 Insere 42 contratos (7 inquilinos × 6 perfis): ativos, atrasados e encerrados, estes com
 multa proporcional ao aluguel de cada imóvel. Como um imóvel é único, no máximo um
-contrato fica em aberto por imóvel — quando os livres acabam, os demais entram como
+contrato fica em aberto por imóvel - quando os livres acabam, os demais entram como
 histórico encerrado.
 
 Depois suba os serviços de novo.
@@ -128,7 +128,7 @@ devolvem 503 explicando o que falta. Para ativá-lo:
 export ANTHROPIC_API_KEY=sk-ant-...      # ou: ant auth login
 ```
 
-Nenhum outro serviço depende dele. Não comite a chave — use `.env`, que está no
+Nenhum outro serviço depende dele. Não comite a chave - use `.env`, que está no
 `.gitignore`.
 
 ---
@@ -141,7 +141,7 @@ python -m pytest                  # unidade: rápidos, sem serviço no ar
 python -m pytest -m integracao    # pelo gateway; exige os serviços no ar
 ```
 
-Os de unidade exercitam a camada de serviço com repositórios fake — sem SQLite e sem
+Os de unidade exercitam a camada de serviço com repositórios fake - sem SQLite e sem
 rede. Os de integração são pulados, não falham, quando os serviços não estão no ar.
 
 Para validar o projeto inteiro de uma vez (invariantes + suíte + integração com bancos
@@ -158,7 +158,7 @@ serviços com bancos temporários, então não suja os dados de desenvolvimento.
 
 ## Configuração
 
-As URLs entre serviços saem de variável de ambiente, com default local — rodar numa
+As URLs entre serviços saem de variável de ambiente, com default local - rodar numa
 máquina só não exige configuração nenhuma. Para mudar, copie `.env.example` para `.env`
 (e `biblioteca-online/.env.example` para o frontend).
 

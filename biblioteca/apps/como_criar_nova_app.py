@@ -59,13 +59,13 @@ class AppDevolucao(FrameworkBiblioteca):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Nova App — Devolução com Multa")
+    parser = argparse.ArgumentParser(description="Nova App - Devolução com Multa")
     parser.add_argument("--emprestimo", type=int, required=True, help="ID do empréstimo")
     parser.add_argument("--usuario",    type=int, required=True, help="ID do usuário")
     args = parser.parse_args()
 
     print("=" * 60)
-    print("NOVA APP — Devolução com Multa e Notificação")
+    print("NOVA APP - Devolução com Multa e Notificação")
     print("=" * 60)
 
     app = AppDevolucao()

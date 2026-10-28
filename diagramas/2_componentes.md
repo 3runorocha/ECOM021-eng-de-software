@@ -1,4 +1,4 @@
-# 2 — Componentes de software
+# 2 - Componentes de software
 
 O enunciado pede microsserviços **e componentes**. Os microsserviços estão no diagrama 1;
 os componentes são esta camada: contratos explícitos (`IComponente*`) com ciclo de vida
@@ -64,7 +64,7 @@ classDiagram
 
 Todo componente tem `inicializar()` e `finalizar()`. Na prática é aí que o cliente HTTP
 abre e fecha. Quem controla o ciclo é o framework (nas apps) ou o `lifespan` do FastAPI
-(no serviço de agente) — nunca o código de negócio.
+(no serviço de agente) - nunca o código de negócio.
 
 ## Quem consome o quê
 

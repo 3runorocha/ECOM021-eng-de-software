@@ -1,4 +1,4 @@
-# 4 — Ciclo de um contrato
+# 4 - Ciclo de um contrato
 
 A operação central do sistema, e o lugar onde dois serviços precisam concordar sobre um
 mesmo fato: o imóvel está ocupado ou não.
@@ -40,7 +40,7 @@ sequenceDiagram
 
 ### A regra, imposta em dois níveis
 
-Um imóvel só aceita **um contrato em aberto**, seja qual for o inquilino — diferente do
+Um imóvel só aceita **um contrato em aberto**, seja qual for o inquilino - diferente do
 acervo de livros, onde a checagem era por (usuário, livro) porque havia vários
 exemplares do mesmo título.
 
@@ -82,7 +82,7 @@ Exemplo real do sistema, com 61 dias de atraso:
 | Cobertura na Pajuçara | R$ 5.200 | R$ 10.746,67 |
 
 A regra mora só no serviço de contratos. A tela mostra os dias em atraso, mas não
-calcula dinheiro — há checagem no validador para isso não se duplicar.
+calcula dinheiro - há checagem no validador para isso não se duplicar.
 
 Arquivo: [`services/contratos/service.py`](../biblioteca/services/contratos/service.py) ·
 Testes: [`tests/test_contratos.py`](../tests/test_contratos.py)
