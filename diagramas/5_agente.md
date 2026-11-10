@@ -43,7 +43,7 @@ Por isso a app o trata como qualquer outro serviço, sem caso especial.
 sequenceDiagram
     actor U as Usuário
     participant A as Agente :8006
-    participant M as Claude
+    participant M as Modelo (Gemini ou Claude)
     participant C as Componentes
     participant I as Imóveis :8001
 
@@ -90,10 +90,11 @@ morta e exige que a notificação saia mesmo assim.
 
 ## Estado
 
-Construído e integrado, **mas não exercitado contra o modelo real** - falta
-`ANTHROPIC_API_KEY` na máquina de desenvolvimento. O que foi verificado sem chave: as
-ferramentas chamando os serviços de verdade, os schemas gerados dos docstrings, e o
-caminho até a API (uma chave inválida chega na Anthropic e volta 401).
+Construído e integrado com dois provedores de modelo, escolhidos em
+`services/agente/provedores.py`: o **Gemini** (`gemini-3.8-flash`, com nível gratuito)
+e o **Claude** (`claude-opus-5-5`). As ferramentas são funções Python comuns; cada
+provedor converte as assinaturas e docstrings para o formato da sua API. Com uma chave
+do Gemini no `.env`, o agente passa a responder sem custo.
 
 Arquivos: [`services/agente/`](../biblioteca/services/agente/) ·
 [`apps/app_aviso_vencimento.py`](../biblioteca/apps/app_aviso_vencimento.py)

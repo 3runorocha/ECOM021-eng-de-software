@@ -25,7 +25,7 @@ flowchart TB
     dbn[("notificacoes.db")]
     dbr[("recomendacao.db")]
 
-    api["API da Anthropic"]
+    api["API do modelo<br/>Gemini ou Claude"]
 
     nav --> gw
     gw --> imo & usu & con & not & rec & age
@@ -51,9 +51,9 @@ flowchart TB
 - **O gateway é o único ponto de entrada.** O navegador nunca fala com :8001 a :8006
   diretamente. Rotas livres: `/health`, `/services`, `/docs`, registro e login.
 - **Banco por serviço.** Não há join entre serviços; a integração é por HTTP.
-- **O agente é o único que sai para a internet.** Sem `ANTHROPIC_API_KEY` ele sobe e
-  responde `/health` normalmente; só as rotas que pensam devolvem 503. Nenhum outro
-  serviço depende dele.
+- **O agente é o único que sai para a internet**, para a API do Gemini ou do Claude.
+  Sem `GEMINI_API_KEY` nem `ANTHROPIC_API_KEY` ele sobe e responde `/health`
+  normalmente; só as rotas que pensam devolvem 503. Nenhum outro serviço depende dele.
 
 ## Por que `127.0.0.1` e não `localhost`
 

@@ -308,7 +308,7 @@ def p33(page):
 def p34(page):
     digitar(page, "input[placeholder='O que você procura?']", "casa em Maceió até 3 mil reais")
     page.click("main button[type=submit]")
-    page.locator("text=/Defina ANTHROPIC_API_KEY no ambiente/").wait_for()
+    page.locator("text=/Defina GEMINI_API_KEY/").wait_for()
 
 
 def p35(page):
@@ -381,7 +381,7 @@ PASSOS = [
     ("Usuários, notificações, recomendação e agente", p30, "Ao marcar o alerta como lido, o contador de não lidas é atualizado."),
     ("Usuários, notificações, recomendação e agente", p31, "O serviço de recomendação monta o perfil de cada inquilino a partir do histórico de contratos, identificando os tipos de imóvel e as cidades que ele mais alugou."),
     ("Usuários, notificações, recomendação e agente", p32, "Com esse perfil, os imóveis disponíveis recebem uma pontuação, e cada sugestão explica o motivo."),
-    ("Usuários, notificações, recomendação e agente", p33, "A tela do agente aceita perguntas em linguagem natural. Ele usa a API do Claude e consulta o sistema pelos mesmos componentes que as outras aplicações usam."),
+    ("Usuários, notificações, recomendação e agente", p33, "A tela do agente aceita perguntas em linguagem natural. Ele usa a API do Gemini ou do Claude e consulta o sistema pelos mesmos componentes que as outras aplicações usam."),
     ("Usuários, notificações, recomendação e agente", p34, "Sem a chave da API configurada, o agente avisa com clareza o que falta, e o restante do sistema continua funcionando normalmente."),
     ("Perfis e fechamento", p35, "Agora, os outros perfis. Beatriz é proprietária."),
     ("Perfis e fechamento", p36, "Como proprietária, ela pode cadastrar e administrar imóveis."),

@@ -364,7 +364,8 @@ def test_ct27_agente_sem_credencial(abrir):
     expect(page.locator("main")).to_contain_text("Agente sem credencial")
     page.fill("input[placeholder='O que você procura?']", "casa em Maceio")
     page.click("main button[type=submit]")
-    expect(page.locator("main")).to_contain_text("Defina ANTHROPIC_API_KEY no ambiente")
+    expect(page.locator("main")).to_contain_text("Defina GEMINI_API_KEY")
+    expect(page.locator("main")).to_contain_text("ANTHROPIC_API_KEY no ambiente")
 
 
 def test_ct28_mobile_sem_rolagem_horizontal(abrir):

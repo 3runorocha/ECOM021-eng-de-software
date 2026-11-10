@@ -24,13 +24,14 @@ def criar_router(agente: Agente) -> APIRouter:
 
     @router.post("/redigir-aviso", response_model=Aviso)
     def redigir_aviso(pedido: PedidoAviso):
-        from agente import MODELO
-        return {"mensagem": agente.redigir_aviso(pedido.fatos), "modelo": MODELO}
+        return {"mensagem": agente.redigir_aviso(pedido.fatos), "modelo": agente.modelo}
 
     @router.get("/status")
     def status():
         return {
             "credencial_configurada": agente.tem_credencial(),
+            "provedor": agente.provedor,
+            "modelo": agente.modelo,
             "ferramentas": ["buscar_imoveis", "detalhar_imovel", "listar_contratos"],
         }
 

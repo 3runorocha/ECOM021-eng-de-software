@@ -565,3 +565,30 @@ Usuários. O seed cadastra a proprietária como inquilina e o admin a promove.
 Fica de fora, por decisão: o imóvel continua sem dono no modelo, então um proprietário
 mexe em qualquer imóvel. Para um projeto acadêmico, o custo (modelo, banco, seed, tela
 e testes) não compensa.
+
+### Agente com Gemini (10/11)
+
+**54 checagens, 139 testes de unidade e 27 de 29 casos de ponta a ponta** (as duas
+falhas seguem sendo os defeitos conhecidos, CT26 e CT29).
+
+O agente nunca tinha rodado contra um modelo de verdade: a API da Anthropic é paga à
+parte e não havia chave. Agora ele aceita dois provedores, escolhidos em
+`services/agente/provedores.py`: o **Gemini** (`gemini-3.8-flash`, com nível gratuito
+no Google AI Studio) e o **Claude** (`claude-opus-5-5`). `AGENTE_PROVEDOR` força um
+deles; sem ela, vale o primeiro com chave no ambiente, com o Gemini na frente.
+
+- As ferramentas viraram funções Python comuns, sem SDK. O Claude recebe exatamente o
+  mesmo esquema de antes (comparado antes e depois); o Gemini monta o dele das mesmas
+  assinaturas e docstrings.
+- A trava de dono continua valendo: o SDK do Gemini executa as ferramentas na mesma
+  thread da pergunta, então o `chamador_atual` chega a `listar_contratos`. Há teste
+  que passa por um provedor que chama a ferramenta e confere a recusa.
+- `/agente/status` diz qual provedor e qual modelo estão em uso, e a tela do agente
+  mostra isso.
+- `subir_servicos.py` passou a ler o `.env` da raiz. O README já mandava guardar a
+  chave lá, mas nenhum serviço Python lia o arquivo.
+- Checagem nova: "agente aceita Gemini ou Claude". A de "agente degrada sem
+  credencial" agora exige que a mensagem cite as duas chaves.
+
+Segue pendente conferir a resposta do modelo de verdade, com uma chave do Gemini no
+`.env`. Nenhum teste chama uma API de modelo.

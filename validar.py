@@ -572,9 +572,11 @@ def ferramentas_do_agente_sao_de_leitura():
 
 def agente_usa_modelo_atual():
     """O id do modelo tem de ser um da geracao atual, nao um inventado."""
-    fonte = (BIB / "services" / "agente" / "agente.py").read_text(encoding="utf-8")
+    fonte = (BIB / "services" / "agente" / "provedores.py").read_text(encoding="utf-8")
     assert "claude-opus-5-5" in fonte, (
         "o agente nao esta no modelo padrao claude-opus-5-5")
+    assert "gemini-3.8-flash" in fonte, (
+        "o provedor Gemini nao esta no modelo padrao gemini-3.8-flash")
     assert not re.search(r"claude-[a-z0-9.-]*-\d{8}", fonte), (
         "id de modelo com sufixo de data: esses nao existem")
 
@@ -599,8 +601,30 @@ def agente_degrada_sem_credencial(ctx):
     assert r.status_code == 503, (
         "sem credencial deveria dar 503 com explicacao, deu {0} {1}"
         .format(r.status_code, r.text))
-    assert "ANTHROPIC_API_KEY" in r.text, (
-        "a mensagem de erro nao diz o que configurar: " + r.text)
+    for chave in ("GEMINI_API_KEY", "ANTHROPIC_API_KEY"):
+        assert chave in r.text, (
+            "a mensagem de erro nao diz o que configurar ({0}): {1}".format(chave, r.text))
+
+
+def agente_aceita_gemini_ou_claude():
+    """Revisao (10/11): o agente roda com o Gemini (nivel gratuito) ou o Claude.
+
+    As ferramentas nao podem depender de SDK nenhum, senao trocar de provedor
+    obriga a reescrever a camada que fala com os componentes.
+    """
+    pasta = BIB / "services" / "agente"
+    provedores = sem_comentarios((pasta / "provedores.py").read_text(encoding="utf-8"))
+    for nome in ("class ProvedorGemini", "class ProvedorAnthropic", "def escolher_provedor",
+                 "AGENTE_PROVEDOR", "GEMINI_API_KEY"):
+        assert nome in provedores, "provedores.py sem {0}".format(nome)
+    ferramentas = sem_comentarios((pasta / "ferramentas.py").read_text(encoding="utf-8"))
+    for sdk in ("anthropic", "google.genai", "from google"):
+        assert sdk not in ferramentas, "ferramentas.py depende de SDK: {0}".format(sdk)
+    rotas = (pasta / "routes.py").read_text(encoding="utf-8")
+    assert '"provedor"' in rotas and '"modelo"' in rotas, (
+        "/agente/status nao diz qual provedor e modelo estao em uso")
+    lancador = (RAIZ / "subir_servicos.py").read_text(encoding="utf-8")
+    assert "def ler_env" in lancador, "subir_servicos.py nao le o .env da raiz"
 
 
 def agente_e_componente_do_framework():
@@ -1037,6 +1061,7 @@ ESTATICAS = [
     ("13", "agente usa a camada de componentes", agente_usa_a_camada_de_componentes),
     ("13", "ferramentas do agente sao de leitura", ferramentas_do_agente_sao_de_leitura),
     ("13", "agente usa modelo atual", agente_usa_modelo_atual),
+    ("rev", "agente aceita Gemini ou Claude", agente_aceita_gemini_ou_claude),
     ("14", "agente e componente do framework", agente_e_componente_do_framework),
     ("14", "app do framework orquestra o agente", app_do_framework_orquestra_o_agente),
     ("14", "redator de aviso nao faz conta", redator_de_aviso_nao_faz_conta),

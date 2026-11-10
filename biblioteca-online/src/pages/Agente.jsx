@@ -97,12 +97,15 @@ export default function Agente() {
               <strong style={{ display: 'block', marginBottom: '4px' }}>
                 Agente sem credencial
               </strong>
-              O serviço está no ar, mas não tem chave da Anthropic. Defina
+              O serviço está no ar, mas não tem chave de modelo. Defina
+              <code style={{ margin: '0 4px' }}>GEMINI_API_KEY</code>
+              (gratuita, em aistudio.google.com) ou
               <code style={{ margin: '0 4px' }}>ANTHROPIC_API_KEY</code>
-              no ambiente e reinicie os serviços. O resto do sistema não depende dele.
+              no arquivo .env e reinicie os serviços. O resto do sistema não depende dele.
             </>
           ) : (
             <>
+              Modelo em uso: <strong>{status.modelo}</strong> ({status.provedor}).
               Ferramentas disponíveis ao agente:{' '}
               <strong>{(status.ferramentas || []).join(', ')}</strong>. Ele consulta os
               microsserviços pela camada de componentes do framework - não inventa imóvel.

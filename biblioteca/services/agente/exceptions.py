@@ -3,7 +3,7 @@ class AgenteError(Exception):
 
 
 class AgenteIndisponivel(AgenteError):
-    """Falta credencial, ou a API da Anthropic nao respondeu."""
+    """Falta credencial, ou a API do modelo (Gemini ou Anthropic) nao respondeu."""
 
 
 class RegraDeNegocio(AgenteError):

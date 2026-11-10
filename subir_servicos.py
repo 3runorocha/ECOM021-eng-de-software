@@ -8,12 +8,34 @@ Ctrl+C encerra todos. Se algum servico morrer, o script derruba o resto e
 avisa qual foi -- silenciosamente ficar com 6 de 7 no ar e mais confuso do
 que falhar de uma vez.
 """
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent / "biblioteca"
+ARQUIVO_ENV = Path(__file__).resolve().parent / ".env"
+
+
+def ler_env(caminho: Path) -> dict:
+    """Le um .env simples (CHAVE=valor por linha), sem depender de biblioteca.
+
+    Linhas vazias, linhas que comecam com # e linhas sem = sao ignoradas; aspas
+    em volta do valor sao removidas. Valor vazio e tratado como ausente.
+    """
+    valores = {}
+    if not caminho.exists():
+        return valores
+    for linha in caminho.read_text(encoding="utf-8").splitlines():
+        linha = linha.strip()
+        if not linha or linha.startswith("#") or "=" not in linha:
+            continue
+        chave, valor = linha.split("=", 1)
+        valor = valor.strip().strip('"').strip("'")
+        if valor:
+            valores[chave.strip()] = valor
+    return valores
 
 SERVICOS = [
     ("imoveis",      RAIZ / "services" / "imoveis",      8001),
@@ -73,6 +95,12 @@ def encerrar(processos: list) -> None:
 
 def main() -> int:
     reload = "--reload" in sys.argv
+
+    do_env = ler_env(ARQUIVO_ENV)
+    for chave, valor in do_env.items():
+        os.environ.setdefault(chave, valor)
+    if do_env:
+        print("Lido .env: " + ", ".join(sorted(do_env)))
 
     print("Subindo os servicos" + (" (--reload)" if reload else "") + ":")
     processos = iniciar(reload)

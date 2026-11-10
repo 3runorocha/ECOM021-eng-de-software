@@ -6,6 +6,7 @@ uvicorn[standard]==0.52.3
 pydantic==2.13.4
 httpx==0.28.1
 
-# Agente (servico :8006). Precisa de credencial da Anthropic em tempo de
-# execucao: ANTHROPIC_API_KEY no ambiente, ou `ant auth login`.
+# Agente (servico :8006). Precisa de uma credencial em tempo de execucao:
+# GEMINI_API_KEY (Google) ou ANTHROPIC_API_KEY (Anthropic).
 anthropic==1.13.0
+google-genai==3.0.0

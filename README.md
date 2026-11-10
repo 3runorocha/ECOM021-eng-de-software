@@ -4,7 +4,7 @@ Projeto da disciplina **ECOM021 - Engenharia de Software (2026.2)**: sistema de
 gerenciamento de aluguel de apartamentos e casas, construído com **microsserviços** e
 **componentes de software**, mais um **agente** (item opcional do enunciado).
 
-**Stack:** Python 3.11+, FastAPI, SQLite, React (Vite), Claude API.
+**Stack:** Python 3.11+, FastAPI, SQLite, React (Vite), API do Gemini ou do Claude.
 
 ---
 
@@ -122,14 +122,17 @@ Acesse `http://localhost:5173`.
 ### 4. Agente (opcional)
 
 O serviço de agente sobe e responde `/health` sem credencial, mas as rotas que pensam
-devolvem 503 explicando o que falta. Para ativá-lo:
+devolvem 503 explicando o que falta. Ele funciona com o **Gemini** (Google, com nível
+gratuito) ou com o **Claude** (Anthropic, pago à parte); basta uma das chaves.
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...      # ou: ant auth login
-```
+1. Gere uma chave gratuita do Gemini em https://aistudio.google.com ("Get API key").
+2. Copie `.env.example` para `.env`, na raiz, e preencha `GEMINI_API_KEY=` com a chave.
+3. Suba os serviços de novo com `python subir_servicos.py`: ele lê o `.env`.
 
-Nenhum outro serviço depende dele. Não comite a chave - use `.env`, que está no
-`.gitignore`.
+Com as duas chaves, vale o Gemini; para usar o Claude, defina `AGENTE_PROVEDOR=anthropic`.
+A tela do Agente mostra qual provedor e qual modelo estão em uso.
+
+Nenhum outro serviço depende dele. Não comite a chave: o `.env` está no `.gitignore`.
 
 ---
 

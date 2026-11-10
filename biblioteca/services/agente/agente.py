@@ -1,15 +1,11 @@
-"""O agente: recebe pergunta em linguagem natural e responde usando as tools."""
-import os
+"""O agente: recebe pergunta em linguagem natural e responde usando as tools.
 
-import anthropic
-
+Quem fala com o modelo e o provedor escolhido em `provedores.py` (Gemini ou
+Claude); aqui ficam so as instrucoes e as regras que valem para os dois.
+"""
 from ferramentas import FERRAMENTAS, chamador_atual
 from exceptions import AgenteIndisponivel, RegraDeNegocio
-
-MODELO = os.getenv("AGENTE_MODELO", "claude-opus-5-5")
-MAX_TOKENS = 4096
-ESFORCO = os.getenv("AGENTE_ESFORCO", "medium")
-MAX_ITERACOES = 8
+from provedores import escolher_provedor
 
 INSTRUCOES = """Você é o assistente de uma imobiliária que aluga apartamentos e
 casas em Maceió, Recife e João Pessoa.
@@ -47,35 +43,26 @@ Regras:
 
 
 class Agente:
-    """Encapsula o cliente e o loop de ferramentas.
+    """Encapsula o provedor de modelo e as regras de quem pergunta.
 
-    O cliente e criado sob demanda: o servico precisa subir e responder
-    /health mesmo sem credencial configurada, senao uma maquina sem chave
-    derruba a composicao inteira.
+    O provedor e escolhido ao criar o agente, mas a credencial so e exigida
+    na hora da pergunta: o servico precisa subir e responder /health mesmo
+    sem chave configurada.
     """
 
-    def __init__(self):
-        self._cliente = None
+    def __init__(self, provedor=None):
+        self._provedor = provedor or escolher_provedor()
 
-    SEM_CREDENCIAL = (
-        "Nenhuma credencial da Anthropic encontrada. Defina ANTHROPIC_API_KEY "
-        "no ambiente (ou rode `ant auth login`) e reinicie o serviço."
-    )
+    @property
+    def provedor(self) -> str:
+        return self._provedor.nome
 
-    def _obter_cliente(self) -> anthropic.Anthropic:
-        if self._cliente is None:
-            cliente = anthropic.Anthropic()
-            if not (cliente.api_key or cliente.auth_token or cliente.credentials):
-                raise AgenteIndisponivel(self.SEM_CREDENCIAL)
-            self._cliente = cliente
-        return self._cliente
+    @property
+    def modelo(self) -> str:
+        return self._provedor.modelo
 
     def tem_credencial(self) -> bool:
-        try:
-            self._obter_cliente()
-            return True
-        except AgenteIndisponivel:
-            return False
+        return self._provedor.disponivel()
 
     def perguntar(
         self, pergunta: str, inquilino_id: int = None, chamador: dict = None
@@ -84,116 +71,43 @@ class Agente:
         if not texto:
             raise RegraDeNegocio("A pergunta não pode estar vazia")
 
-        cliente = self._obter_cliente()
-
         if chamador is not None:
             inquilino_id = chamador["id"]
 
         contexto = texto
         if inquilino_id is not None:
             contexto = (
-                f"[inquilino_id do usuário autenticado: {inquilino_id}]\n{texto}"
+                f"[inquilino_id do usuário autenticado: {inquilino_id}]" + chr(10) + texto
             )
 
         marca = chamador_atual.set(chamador)
         try:
-            runner = cliente.beta.messages.tool_runner(
-                model=MODELO,
-                max_tokens=MAX_TOKENS,
-                system=INSTRUCOES,
-                output_config={"effort": ESFORCO},
-                tools=FERRAMENTAS,
-                messages=[{"role": "user", "content": contexto}],
-            )
-
-            ferramentas_usadas = []
-            ultima = None
-            iteracoes = 0
-            for mensagem in runner:
-                ultima = mensagem
-                iteracoes += 1
-                for bloco in mensagem.content:
-                    if bloco.type == "tool_use":
-                        ferramentas_usadas.append(
-                            {"ferramenta": bloco.name, "argumentos": bloco.input}
-                        )
-                if iteracoes >= MAX_ITERACOES:
-                    break
-        except anthropic.APIStatusError as erro:
-            raise AgenteIndisponivel(
-                f"A API da Anthropic recusou a chamada ({erro.status_code}): {erro}"
-            )
-        except anthropic.APIConnectionError as erro:
-            raise AgenteIndisponivel(f"Falha ao falar com a API da Anthropic: {erro}")
-        except TypeError as erro:
-            if "authentication" in str(erro).lower():
-                raise AgenteIndisponivel(self.SEM_CREDENCIAL)
-            raise
+            resultado = self._provedor.responder(INSTRUCOES, contexto, FERRAMENTAS)
         finally:
             chamador_atual.reset(marca)
 
-        if ultima is None:
-            raise AgenteIndisponivel("O modelo não devolveu resposta")
-
-        if ultima.stop_reason == "refusal":
-            motivo = getattr(ultima, "stop_details", None)
-            raise RegraDeNegocio(
-                "O modelo recusou responder a esta pergunta"
-                + (f" ({motivo.category})" if motivo else "")
-            )
-
-        resposta = "".join(
-            bloco.text for bloco in ultima.content if bloco.type == "text"
-        ).strip()
-
         return {
-            "resposta": resposta or "Não consegui formular uma resposta.",
-            "ferramentas_usadas": ferramentas_usadas,
-            "modelo": MODELO,
-            "truncado": iteracoes >= MAX_ITERACOES
-            and ultima.stop_reason == "tool_use",
+            "resposta": resultado["resposta"] or "Não consegui formular uma resposta.",
+            "ferramentas_usadas": resultado["ferramentas_usadas"],
+            "modelo": self.modelo,
+            "truncado": resultado["truncado"],
         }
 
     def redigir_aviso(self, fatos: dict) -> str:
         """Redige o aviso de vencimento a partir de fatos já apurados.
 
         Sem ferramentas de propósito: quem levantou os contratos foi a aplicação,
-        usando os componentes. O modelo só escreve o texto -- não busca dados e
+        usando os componentes. O modelo só escreve o texto, não busca dados e
         não faz contas. Isso mantém a regra de multa num lugar só (o serviço de
         contratos) e tira do modelo a chance de inventar número.
         """
         if not fatos:
             raise RegraDeNegocio("Nenhum fato informado para o aviso")
 
-        cliente = self._obter_cliente()
         linhas = [f"- {chave}: {valor}" for chave, valor in fatos.items()]
         conteudo = "Fatos do contrato:" + chr(10) + chr(10).join(linhas)
 
-        try:
-            resposta = cliente.messages.create(
-                model=MODELO,
-                max_tokens=600,
-                system=INSTRUCOES_AVISO,
-                output_config={"effort": "low"},
-                messages=[{"role": "user", "content": conteudo}],
-            )
-        except anthropic.APIStatusError as erro:
-            raise AgenteIndisponivel(
-                f"A API da Anthropic recusou a chamada ({erro.status_code}): {erro}"
-            )
-        except anthropic.APIConnectionError as erro:
-            raise AgenteIndisponivel(f"Falha ao falar com a API da Anthropic: {erro}")
-        except TypeError as erro:
-            if "authentication" in str(erro).lower():
-                raise AgenteIndisponivel(self.SEM_CREDENCIAL)
-            raise
-
-        if resposta.stop_reason == "refusal":
-            raise RegraDeNegocio("O modelo recusou redigir este aviso")
-
-        texto = "".join(
-            bloco.text for bloco in resposta.content if bloco.type == "text"
-        ).strip()
+        texto = self._provedor.redigir(INSTRUCOES_AVISO, conteudo)
         if not texto:
             raise AgenteIndisponivel("O modelo devolveu aviso vazio")
         return texto

@@ -152,6 +152,7 @@ entregues.
 - Imóveis restritos a admin e proprietário; cadastro público cria só inquilino
 - `/health` em paralelo, encerramento com compensação, e-mail repetido devolvendo 400
 - 29 casos de ponta a ponta com Playwright (`e2e/`) e demonstração gravada
+- Agente com dois provedores de modelo: Gemini (nível gratuito) ou Claude
 
 **Revisão:** a suíte de ponta a ponta passa em 27 dos 29 casos. As duas falhas são
 defeitos reais, registrados e mantidos em aberto: o serviço de recomendação não confere

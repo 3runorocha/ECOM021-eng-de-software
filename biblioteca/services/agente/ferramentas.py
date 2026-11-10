@@ -9,13 +9,15 @@ assinatura de uma tool.
 
 As ferramentas sao todas de LEITURA. Registrar contrato e acao com efeito
 colateral e dinheiro envolvido; isso nao fica a cargo do modelo nesta fase.
+
+Sao funcoes Python comuns, sem depender de SDK: cada provedor de modelo
+(`provedores.py`) converte a assinatura e a docstring para o formato da sua
+API. Por isso as docstrings seguem o formato Args, que os dois entendem.
 """
 import json
 import os
 import sys
 from contextvars import ContextVar
-
-from anthropic import beta_tool
 
 sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), "..", "..", "framework")
@@ -37,7 +39,6 @@ def _json(valor) -> str:
     return json.dumps(valor, ensure_ascii=False, default=str)
 
 
-@beta_tool
 def buscar_imoveis(
     cidade: str = "",
     tipo: str = "",
@@ -74,7 +75,6 @@ def buscar_imoveis(
     return _json({"total": len(encontrados), "imoveis": encontrados})
 
 
-@beta_tool
 def detalhar_imovel(imovel_id: int) -> str:
     """Devolve os dados completos de um imovel especifico pelo id.
 
@@ -90,7 +90,6 @@ def detalhar_imovel(imovel_id: int) -> str:
     return _json(imovel)
 
 
-@beta_tool
 def listar_contratos(inquilino_id: int) -> str:
     """Lista os contratos de aluguel de um inquilino, em vigor e encerrados.
 

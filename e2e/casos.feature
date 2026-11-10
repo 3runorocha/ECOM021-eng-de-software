@@ -171,10 +171,10 @@ Funcionalidade: Recomendação
 Funcionalidade: Agente de IA
 
   Cenário: CT27 Agente sem credencial avisa e responde com clareza
-    Dado que o serviço do agente está no ar sem chave da Anthropic
+    Dado que o serviço do agente está no ar sem chave de modelo
     Quando abro a tela do agente e pergunto "casa em Maceio"
     Então vejo o aviso "Agente sem credencial"
-    E a resposta explica que falta definir ANTHROPIC_API_KEY
+    E a resposta explica que falta definir GEMINI_API_KEY ou ANTHROPIC_API_KEY
 
 Funcionalidade: Responsivo
 
