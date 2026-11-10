@@ -590,5 +590,19 @@ deles; sem ela, vale o primeiro com chave no ambiente, com o Gemini na frente.
 - Checagem nova: "agente aceita Gemini ou Claude". A de "agente degrada sem
   credencial" agora exige que a mensagem cite as duas chaves.
 
-Segue pendente conferir a resposta do modelo de verdade, com uma chave do Gemini no
-`.env`. Nenhum teste chama uma API de modelo.
+**Testado contra o modelo de verdade**, pela primeira vez no projeto, com uma chave
+gratuita do Gemini no `.env`. Pergunta "casa em Maceió até 3 mil": o agente chamou
+`buscar_imoveis` com cidade Maceió, tipo casa e teto de R$ 3.000, e respondeu com a
+Casa no Tabuleiro (R$ 1.900), que é a única casa disponível em Maceió nessa faixa. Não
+inventou imóvel.
+
+Dois problemas apareceram nesse teste e foram corrigidos:
+
+- O `gemini-3.8-flash` devolvia 503 (sobrecarga). O provedor agora tenta os modelos
+  de reserva, `gemini-3.6-flash` e `gemini-3.5-flash-lite`, quando o principal dá 429,
+  500 ou 503; a resposta diz qual modelo respondeu. No teste, respondeu o 3.6.
+- O gateway esperava qualquer serviço por 10 s, e a pergunta virava 502 quando o
+  modelo demorava. O agente agora tem prazo de 120 s; os outros serviços seguem em 10 s.
+
+Nenhum teste automático chama uma API de modelo: o validador e a suíte seguem rodando
+sem chave e sem custo.
