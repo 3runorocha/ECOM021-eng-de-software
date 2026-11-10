@@ -56,6 +56,8 @@ export default function Agente() {
           texto: r.data.resposta,
           ferramentas: r.data.ferramentas_usadas,
           truncado: r.data.truncado,
+          modelo: r.data.modelo,
+          imoveis: r.data.imoveis || [],
         },
       ])
     } catch (e) {
@@ -156,10 +158,43 @@ export default function Agente() {
           >
             <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '4px' }}>
               {m.remetente === 'voce' ? 'Você' : 'Agente'}
+              {m.modelo ? ` · respondido por ${m.modelo}` : ''}
             </div>
             <div style={{ fontSize: '13px', color: '#111', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {m.texto}
             </div>
+
+            {m.imoveis?.length > 0 && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
+                  gap: '8px',
+                }}
+              >
+                {m.imoveis.map((i) => (
+                  <div
+                    key={i.id}
+                    style={{
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      background: '#f9fafb',
+                    }}
+                  >
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#111' }}>{i.titulo}</div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', margin: '2px 0 6px' }}>
+                      {i.tipo} · {i.cidade} · {i.quartos} quarto(s) · {i.area_m2} m²
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1d4ed8' }}>
+                      {i.valor_mensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      <span style={{ fontWeight: 400, color: '#6b7280' }}> /mês</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {m.ferramentas?.length > 0 && (
               <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f3f4f6' }}>

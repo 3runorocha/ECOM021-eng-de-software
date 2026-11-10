@@ -5,10 +5,13 @@ Cada teste corresponde a um cenário de `casos.feature`, com o mesmo código
 9 deles alugados, e 42 contratos.
 """
 import re
+import time
 
 from playwright.sync_api import expect
 
-from apoio import FRONT, entrar, ir
+import httpx
+
+from apoio import CONTAS, FRONT, GATEWAY, entrar, ir
 
 
 def contagem(page):
@@ -357,15 +360,40 @@ def test_ct26_inquilina_consulta_so_a_propria_recomendacao(abrir):
     assert opcoes == ["Ana Souza"], f"a inquilina pode consultar outros usuários: {opcoes}"
 
 
-def test_ct27_agente_sem_credencial(abrir):
+def agente_tem_chave() -> bool:
+    email, senha = CONTAS["admin"]
+    token = httpx.post(f"{GATEWAY}/usuarios/usuarios/login",
+                       json={"email": email, "senha": senha}, timeout=10).json()["token"]
+    status = httpx.get(f"{GATEWAY}/agente/agente/status",
+                       headers={"Authorization": token}, timeout=10).json()
+    return status["credencial_configurada"]
+
+
+def test_ct27_agente_responde_ou_explica_o_que_falta(abrir):
+    """Sem chave, o aviso e a explicação; com chave, uma resposta em até 10 s.
+
+    Com chave, o caso faz uma pergunta de verdade ao modelo (gasta uma
+    chamada do nível gratuito do Gemini).
+    """
+    com_chave = agente_tem_chave()
     page = abrir()
     entrar(page, "admin")
     ir(page, "/agente")
-    expect(page.locator("main")).to_contain_text("Agente sem credencial")
-    page.fill("input[placeholder='O que você procura?']", "casa em Maceio")
+    if not com_chave:
+        expect(page.locator("main")).to_contain_text("Agente sem credencial")
+        page.fill("input[placeholder='O que você procura?']", "casa em Maceio")
+        page.click("main button[type=submit]")
+        expect(page.locator("main")).to_contain_text("Defina GEMINI_API_KEY")
+        expect(page.locator("main")).to_contain_text("ANTHROPIC_API_KEY no ambiente")
+        return
+
+    expect(page.locator("main")).to_contain_text("Modelo em uso")
+    page.fill("input[placeholder='O que você procura?']", "casa em Maceió até 3 mil")
+    inicio = time.monotonic()
     page.click("main button[type=submit]")
-    expect(page.locator("main")).to_contain_text("Defina GEMINI_API_KEY")
-    expect(page.locator("main")).to_contain_text("ANTHROPIC_API_KEY no ambiente")
+    expect(page.locator("main")).to_contain_text("respondido por", timeout=15_000)
+    assert time.monotonic() - inicio <= 10.5, "o agente levou mais de 10 s para responder"
+    expect(page.locator("main")).to_contain_text("Casa no Tabuleiro")
 
 
 def test_ct28_mobile_sem_rolagem_horizontal(abrir):

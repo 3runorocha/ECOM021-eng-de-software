@@ -170,10 +170,12 @@ Funcionalidade: Recomendação
 
 Funcionalidade: Agente de IA
 
-  Cenário: CT27 Agente sem credencial avisa e responde com clareza
-    Dado que o serviço do agente está no ar sem chave de modelo
-    Quando abro a tela do agente e pergunto "casa em Maceio"
-    Então vejo o aviso "Agente sem credencial"
+  Cenário: CT27 Agente responde em até 10 s, ou explica o que falta
+    Dado que estou na tela do agente
+    Quando pergunto "casa em Maceió até 3 mil"
+    Então, com chave de modelo configurada, a resposta chega em até 10 segundos
+    E mostra a "Casa no Tabuleiro" num cartão, com o modelo que respondeu
+    Mas, sem chave, vejo o aviso "Agente sem credencial"
     E a resposta explica que falta definir GEMINI_API_KEY ou ANTHROPIC_API_KEY
 
 Funcionalidade: Responsivo

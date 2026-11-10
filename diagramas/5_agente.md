@@ -90,11 +90,20 @@ morta e exige que a notificação saia mesmo assim.
 
 ## Estado
 
-Construído e integrado com dois provedores de modelo, escolhidos em
-`services/agente/provedores.py`: o **Gemini** (`gemini-3.8-flash`, com nível gratuito)
-e o **Claude** (`claude-opus-5-5`). As ferramentas são funções Python comuns; cada
-provedor converte as assinaturas e docstrings para o formato da sua API. Com uma chave
-do Gemini no `.env`, o agente passa a responder sem custo.
+Construído e testado contra o modelo de verdade, com dois provedores escolhidos em
+`services/agente/provedores.py`: o **Gemini** (nível gratuito) e o **Claude**
+(`claude-opus-5-5`). As ferramentas são funções Python comuns; cada provedor converte
+as assinaturas e docstrings para o formato da sua API.
+
+O agente responde em até 10 s. No Gemini, o principal é o `gemini-3.5-flash-lite`, o
+mais rápido, com `gemini-3.6-flash` e `gemini-3.8-flash` de reserva. O laço com as
+ferramentas é conduzido pelo provedor, com um relógio único por pergunta: um modelo
+lento ou sobrecarregado cede a vez ao próximo e fica de fora por um minuto. Se nenhum
+responder a tempo, o agente faz uma **busca direta** com filtros tirados da frase
+(`contingencia.py`) e diz isso na resposta; os imóveis continuam sendo os de verdade.
+
+A resposta traz os imóveis que as ferramentas encontraram, e a tela mostra cada um num
+cartão. O texto do modelo fica curto e sem Markdown.
 
 Arquivos: [`services/agente/`](../biblioteca/services/agente/) ·
 [`apps/app_aviso_vencimento.py`](../biblioteca/apps/app_aviso_vencimento.py)

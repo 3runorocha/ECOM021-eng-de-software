@@ -3,8 +3,9 @@
 Quem fala com o modelo e o provedor escolhido em `provedores.py` (Gemini ou
 Claude); aqui ficam so as instrucoes e as regras que valem para os dois.
 """
-from ferramentas import FERRAMENTAS, chamador_atual
-from exceptions import AgenteIndisponivel, RegraDeNegocio
+from contingencia import descrever, extrair_filtros
+from ferramentas import FERRAMENTAS, buscar_imoveis, chamador_atual, imoveis_encontrados
+from exceptions import AgenteIndisponivel, ModeloLento, RegraDeNegocio
 from provedores import escolher_provedor
 
 INSTRUCOES = """Você é o assistente de uma imobiliária que aluga apartamentos e
@@ -15,7 +16,11 @@ Responda SEMPRE em português do Brasil, de forma curta e direta.
 Regras:
 - Use as ferramentas para obter dados. Nunca invente imóvel, preço, endereço ou
   contrato: se não veio de uma ferramenta, você não sabe.
-- Ao sugerir imóveis, cite o título, a cidade e o aluguel mensal de cada um.
+- A tela mostra em cartões os imóveis que as ferramentas encontrarem. Na
+  resposta, escreva no máximo três frases: diga quantos imóveis encontrou e
+  destaque até três pelo título e pelo aluguel mensal.
+- Escreva em texto simples, sem Markdown: nada de asteriscos, cerquilhas ou
+  tabelas. Para listar, use uma linha por item começando com hífen.
 - Se a busca não retornar nada, diga isso claramente e sugira afrouxar um
   critério (outra cidade, mais orçamento, menos quartos). Não ofereça imóvel que
   não apareceu no resultado.
@@ -40,6 +45,34 @@ Regras:
   ou agendar a desocupação.
 - Responda apenas com o texto do aviso, sem aspas e sem comentários.
 """
+
+
+CAMPOS_DO_CARTAO = ("id", "titulo", "tipo", "cidade", "endereco", "quartos",
+                    "banheiros", "area_m2", "valor_mensal")
+MAX_CARTOES = 6
+
+
+def resumir_imoveis(vistos: list) -> list:
+    """Os imoveis que as ferramentas devolveram, sem repetir, para os cartoes."""
+    unicos = {}
+    for imovel in vistos:
+        unicos.setdefault(imovel["id"], {c: imovel.get(c) for c in CAMPOS_DO_CARTAO})
+    return list(unicos.values())[:MAX_CARTOES]
+
+
+def resumo_padrao(usadas: list, encontrados: int) -> str:
+    """Texto para quando o modelo nao escreveu a resposta dentro do prazo.
+
+    Os cartoes continuam vindo da busca de verdade; so a frase e montada aqui.
+    """
+    if encontrados == 1:
+        return "Encontrei 1 imóvel para a sua busca. Veja os detalhes abaixo."
+    if encontrados:
+        return f"Encontrei {encontrados} imóveis para a sua busca. Veja os detalhes abaixo."
+    if any(u["ferramenta"] == "buscar_imoveis" for u in usadas):
+        return ("Não encontrei imóveis com esses critérios. Tente outra cidade, "
+                "um orçamento maior ou menos quartos.")
+    return "Não consegui formular uma resposta a tempo. Tente de novo em alguns segundos."
 
 
 class Agente:
@@ -80,17 +113,48 @@ class Agente:
                 f"[inquilino_id do usuário autenticado: {inquilino_id}]" + chr(10) + texto
             )
 
+        vistos = []
         marca = chamador_atual.set(chamador)
+        marca_imoveis = imoveis_encontrados.set(vistos)
         try:
-            resultado = self._provedor.responder(INSTRUCOES, contexto, FERRAMENTAS)
+            try:
+                resultado = self._provedor.responder(INSTRUCOES, contexto, FERRAMENTAS)
+            except ModeloLento:
+                resultado = self._contingencia(texto)
         finally:
+            imoveis_encontrados.reset(marca_imoveis)
             chamador_atual.reset(marca)
 
+        cartoes = resumir_imoveis(vistos)
+        encontrados = len({i["id"] for i in vistos})
+        resposta = resultado["resposta"] or resumo_padrao(resultado["ferramentas_usadas"], encontrados)
+        if "contingencia" in resultado:
+            resposta = (
+                "O modelo não respondeu a tempo, então fiz uma busca direta "
+                f"({descrever(resultado['contingencia'])}). {resposta}"
+            )
         return {
-            "resposta": resultado["resposta"] or "Não consegui formular uma resposta.",
+            "resposta": resposta,
             "ferramentas_usadas": resultado["ferramentas_usadas"],
             "modelo": resultado.get("modelo", self.modelo),
             "truncado": resultado["truncado"],
+            "imoveis": cartoes,
+        }
+
+    def _contingencia(self, pergunta: str) -> dict:
+        """Busca direta com os filtros tirados da frase, sem modelo.
+
+        Usa a mesma ferramenta do agente, entao os imoveis sao os de verdade e
+        vao para os cartoes como numa resposta normal.
+        """
+        filtros = extrair_filtros(pergunta)
+        buscar_imoveis(**filtros)
+        return {
+            "resposta": "",
+            "ferramentas_usadas": [{"ferramenta": "buscar_imoveis", "argumentos": filtros}],
+            "truncado": True,
+            "modelo": "busca direta (contingência)",
+            "contingencia": filtros,
         }
 
     def redigir_aviso(self, fatos: dict) -> str:

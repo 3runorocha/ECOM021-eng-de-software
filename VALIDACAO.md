@@ -606,3 +606,35 @@ Dois problemas apareceram nesse teste e foram corrigidos:
 
 Nenhum teste automático chama uma API de modelo: o validador e a suíte seguem rodando
 sem chave e sem custo.
+
+### Agente em até 10 segundos (10/11)
+
+**159 testes de unidade.** A primeira pergunta de verdade levou quase um minuto. As
+medições no nível gratuito mostraram de onde vinha o tempo:
+
+| Modelo | Uma chamada |
+|---|---|
+| `gemini-3.8-flash` | 3,2 s só para devolver 503 (sobrecarga) |
+| `gemini-3.6-flash` | 3,6 s; e 429 quando a cota por minuto acaba |
+| `gemini-3.5-flash-lite` | 1,2 s |
+
+E o SDK do Google repetia sozinho o modelo sobrecarregado, até 5 vezes, esperando
+entre elas. O que mudou:
+
+- O principal virou o `gemini-3.5-flash-lite`; o 3.6 e o 3.8 ficam de reserva.
+- As novas tentativas do SDK foram desligadas, e o laço com as ferramentas passou a
+  ser conduzido pelo provedor, com um relógio único de 9 s por pergunta. A primeira
+  chamada tem até 4,5 s por modelo; depois da busca, sem outro modelo para tentar, a
+  chamada usa o tempo que resta.
+- Modelo que dá 429, 500, 503, 504 ou estoura o prazo fica de fora por um minuto.
+- O servidor do Google recusa prazo menor que 10 s; o prazo curto vale só do lado do
+  cliente, e o cabeçalho `X-Server-Timeout` vai com 10.
+- Se nenhum modelo responder a tempo, o agente faz uma busca direta com filtros
+  tirados da frase (`contingencia.py`) e avisa na resposta. Os imóveis são os de
+  verdade; não é resposta inventada.
+- A resposta traz os imóveis encontrados, e a tela mostra cartões. O texto do modelo
+  ficou curto, sem Markdown, e a tela diz qual modelo respondeu.
+
+Medido com 8 perguntas de verdade: a mais lenta levou 7,7 s, e a média foi 2,9 s. Uma
+delas caiu na busca direta. O CT27 da suíte de ponta a ponta agora se adapta: sem chave,
+confere o aviso; com chave, faz uma pergunta e exige resposta em até 10 s.

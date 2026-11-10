@@ -625,6 +625,12 @@ def agente_aceita_gemini_ou_claude():
         "/agente/status nao diz qual provedor e modelo estao em uso")
     lancador = (RAIZ / "subir_servicos.py").read_text(encoding="utf-8")
     assert "def ler_env" in lancador, "subir_servicos.py nao le o .env da raiz"
+    assert "class ModeloLento" in (pasta / "exceptions.py").read_text(encoding="utf-8"), (
+        "falta distinguir modelo lento de falta de credencial")
+    contingencia = sem_comentarios((pasta / "contingencia.py").read_text(encoding="utf-8"))
+    assert "def extrair_filtros" in contingencia, "falta a busca de contingencia"
+    assert "ORCAMENTO" in provedores and "PRAZO_CHAMADA" in provedores, (
+        "o provedor do Gemini nao tem orcamento de tempo por pergunta")
     gateway = (BIB / "gateway" / "config.py").read_text(encoding="utf-8")
     linha_agente = next(l for l in gateway.splitlines() if '"agente"' in l)
     assert '"timeout"' in linha_agente, (

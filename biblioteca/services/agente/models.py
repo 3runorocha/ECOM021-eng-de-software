@@ -21,8 +21,21 @@ class Aviso(BaseModel):
     modelo: str
 
 
+class ImovelResumo(BaseModel):
+    id: int
+    titulo: str
+    tipo: str
+    cidade: str
+    endereco: str
+    quartos: int
+    banheiros: int
+    area_m2: float
+    valor_mensal: float
+
+
 class Resposta(BaseModel):
     resposta: str
     ferramentas_usadas: list[FerramentaUsada]
     modelo: str
     truncado: bool
+    imoveis: list[ImovelResumo] = []

@@ -32,6 +32,18 @@ imoveis = ComponenteImovelHTTP()
 contratos = ComponenteContratoHTTP()
 
 chamador_atual: ContextVar = ContextVar("chamador_atual", default=None)
+imoveis_encontrados: ContextVar = ContextVar("imoveis_encontrados", default=None)
+
+
+def _anotar(lista: list) -> None:
+    """Guarda os imoveis vistos pelas ferramentas, para a tela mostrar em cartoes.
+
+    Vale para qualquer provedor: o SDK executa a ferramenta na mesma thread da
+    pergunta, entao a lista aberta pelo agente e a que recebe os imoveis.
+    """
+    destino = imoveis_encontrados.get()
+    if destino is not None:
+        destino.extend(lista)
 
 
 def _json(valor) -> str:
@@ -72,6 +84,7 @@ def buscar_imoveis(
         filtros["valor_min"] = valor_min
 
     encontrados = imoveis.buscar_imoveis(filtros)
+    _anotar(encontrados)
     return _json({"total": len(encontrados), "imoveis": encontrados})
 
 
@@ -87,6 +100,7 @@ def detalhar_imovel(imovel_id: int) -> str:
     imovel = next((i for i in portfolio if i["id"] == imovel_id), None)
     if imovel is None:
         return _json({"erro": f"Imovel {imovel_id} nao existe no portfolio"})
+    _anotar([imovel])
     return _json(imovel)
 
 
