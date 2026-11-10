@@ -625,6 +625,10 @@ def agente_aceita_gemini_ou_claude():
         "/agente/status nao diz qual provedor e modelo estao em uso")
     lancador = (RAIZ / "subir_servicos.py").read_text(encoding="utf-8")
     assert "def ler_env" in lancador, "subir_servicos.py nao le o .env da raiz"
+    gateway = (BIB / "gateway" / "config.py").read_text(encoding="utf-8")
+    linha_agente = next(l for l in gateway.splitlines() if '"agente"' in l)
+    assert '"timeout"' in linha_agente, (
+        "o gateway espera o agente so 10 s; resposta do modelo passa disso e vira 502")
 
 
 def agente_e_componente_do_framework():

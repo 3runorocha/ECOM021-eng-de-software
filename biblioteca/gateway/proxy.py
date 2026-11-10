@@ -65,7 +65,7 @@ class ProxyService:
                 headers=headers,
                 params=params,
                 content=body,
-                timeout=self._timeout,
+                timeout=self._registry.timeout(service_name, self._timeout),
             )
         except httpx.RequestError:
             raise ServicoIndisponivel(

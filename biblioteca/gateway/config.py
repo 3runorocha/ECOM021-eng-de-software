@@ -7,7 +7,7 @@ SERVICES = {
     "contratos":    {"url": os.getenv("CONTRATOS_URL",    "http://127.0.0.1:8003"), "porta": 8003, "descricao": "Locacao, encerramento e multa"},
     "notificacoes": {"url": os.getenv("NOTIFICACOES_URL", "http://127.0.0.1:8004"), "porta": 8004, "descricao": "Alertas de prazo e atraso"},
     "recomendacao": {"url": os.getenv("RECOMENDACAO_URL", "http://127.0.0.1:8005"), "porta": 8005, "descricao": "Recomendacao por perfil do usuario"},
-    "agente":       {"url": os.getenv("AGENTE_URL",       "http://127.0.0.1:8006"), "porta": 8006, "descricao": "Busca conversacional sobre o portfolio"},
+    "agente":       {"url": os.getenv("AGENTE_URL",       "http://127.0.0.1:8006"), "porta": 8006, "descricao": "Busca conversacional sobre o portfolio", "timeout": 120.0},
 }
 
 PUBLIC_ROUTES = {
@@ -28,6 +28,11 @@ class ServiceRegistry:
 
     def url(self, nome: str) -> str:
         return self._services[nome]["url"]
+
+    def timeout(self, nome: str, padrao: float) -> float:
+        """Prazo de espera do servico; o agente precisa de mais, porque o modelo
+        raciocina e chama ferramentas antes de responder."""
+        return self._services[nome].get("timeout", padrao)
 
     def itens(self):
         return self._services.items()

@@ -89,7 +89,7 @@ class Agente:
         return {
             "resposta": resultado["resposta"] or "Não consegui formular uma resposta.",
             "ferramentas_usadas": resultado["ferramentas_usadas"],
-            "modelo": self.modelo,
+            "modelo": resultado.get("modelo", self.modelo),
             "truncado": resultado["truncado"],
         }
 

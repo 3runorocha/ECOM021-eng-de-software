@@ -32,9 +32,13 @@ class ProvedorGemini:
     """
 
     nome = "gemini"
+    RESERVAS_PADRAO = "gemini-3.6-flash,gemini-3.5-flash-lite"
+    ERROS_PASSAGEIROS = (429, 500, 503)
 
     def __init__(self):
         self.modelo = os.getenv("AGENTE_MODELO_GEMINI", "gemini-3.8-flash")
+        reservas = os.getenv("AGENTE_RESERVAS_GEMINI", self.RESERVAS_PADRAO)
+        self.reservas = [m.strip() for m in reservas.split(",") if m.strip() and m.strip() != self.modelo]
         self._cliente = None
 
     def disponivel(self) -> bool:
@@ -48,18 +52,32 @@ class ProvedorGemini:
             self._cliente = genai.Client()
         return self._cliente
 
-    def _gerar(self, conteudo: str, config):
+    def _gerar(self, conteudo: str, config) -> tuple:
+        """Tenta o modelo principal e, se ele estiver sobrecarregado ou sem cota,
+        os de reserva, na ordem. Devolve a resposta e o modelo que respondeu.
+
+        Nos modelos de reserva o nivel de raciocinio nao e enviado, porque nem
+        todos aceitam o parametro.
+        """
         from google.genai import errors
-        try:
-            return self._obter_cliente().models.generate_content(
-                model=self.modelo, contents=conteudo, config=config
-            )
-        except errors.APIError as erro:
-            raise AgenteIndisponivel(
-                f"A API do Gemini recusou a chamada ({erro.code}): {erro.message}"
-            )
-        except httpx.TransportError as erro:
-            raise AgenteIndisponivel(f"Falha ao falar com a API do Gemini: {erro}")
+        cliente = self._obter_cliente()
+        tentativas = [self.modelo] + self.reservas
+        for indice, modelo in enumerate(tentativas):
+            configuracao = config if indice == 0 else config.model_copy(update={"thinking_config": None})
+            try:
+                resposta = cliente.models.generate_content(
+                    model=modelo, contents=conteudo, config=configuracao
+                )
+                return resposta, modelo
+            except errors.APIError as erro:
+                ultimo = indice == len(tentativas) - 1
+                if erro.code in self.ERROS_PASSAGEIROS and not ultimo:
+                    continue
+                raise AgenteIndisponivel(
+                    f"A API do Gemini recusou a chamada ({erro.code}): {erro.message}"
+                )
+            except httpx.TransportError as erro:
+                raise AgenteIndisponivel(f"Falha ao falar com a API do Gemini: {erro}")
 
     def _pensamento(self, nivel: str):
         from google.genai import types
@@ -75,7 +93,7 @@ class ProvedorGemini:
             ),
             thinking_config=self._pensamento(ESFORCO),
         )
-        resposta = self._gerar(texto, config)
+        resposta, modelo = self._gerar(texto, config)
 
         feedback = resposta.prompt_feedback
         if feedback is not None and feedback.block_reason:
@@ -96,6 +114,7 @@ class ProvedorGemini:
             "resposta": (resposta.text or "").strip(),
             "ferramentas_usadas": usadas,
             "truncado": bool(resposta.function_calls),
+            "modelo": modelo,
         }
 
     def redigir(self, instrucoes: str, conteudo: str) -> str:
@@ -103,7 +122,8 @@ class ProvedorGemini:
         config = types.GenerateContentConfig(
             system_instruction=instrucoes, thinking_config=self._pensamento("low")
         )
-        return (self._gerar(conteudo, config).text or "").strip()
+        resposta, _ = self._gerar(conteudo, config)
+        return (resposta.text or "").strip()
 
 
 class ProvedorAnthropic:

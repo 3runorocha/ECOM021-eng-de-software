@@ -22,6 +22,14 @@ def registro():
     })
 
 
+def test_agente_tem_prazo_maior_que_os_outros_servicos():
+    """O modelo pode levar mais de 10 s; com o prazo padrao o gateway desistia
+    da pergunta e devolvia 502."""
+    registro = config.ServiceRegistry(config.SERVICES)
+    assert registro.timeout("agente", 10.0) == 120.0
+    assert registro.timeout("imoveis", 10.0) == 10.0
+
+
 def cliente_com(handler):
     return proxy.novo_cliente_http(httpx.MockTransport(handler))
 
